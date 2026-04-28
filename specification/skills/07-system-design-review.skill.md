@@ -39,7 +39,7 @@ Stages **6** and **7** repeat until **zero** open findings in **Blocker**, **Maj
 ### Step 1: Read Related Documents
 
 Read in order:
-1. YAML front matter and ep-context.md, if present, for orientation only
+1. YAML front matter and ep-context.md, if present, to understand the current epic state and identify areas that may have changed since the last review iteration
 2. `ep-scope.md` — understand feature scope and glossary
 3. `ep-requirements.md` — verify all requirements are addressed
 4. `ep-acceptance-criteria.md` — ensure testability alignment

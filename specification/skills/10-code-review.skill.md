@@ -126,6 +126,7 @@ open_counts:
   major: X
   medium: X
   minor: X
+non_blocking_counts:
   nit: X
   suggestion: X
 next_action: return_to_stage_9

@@ -103,6 +103,38 @@ updated_at: YYYY-MM-DD
 
 **Constraints:** Be short and specific. Prefer concrete over vague. One idea per bullet where applicable. Use only stable human-readable IDs (e.g. EP-001) in the document; no UUIDs.
 
+**Initial ep-context.md template:** When creating the epic context for the first time, use this compact structure:
+
+```markdown
+---
+artefact: ep-context
+epic_id: EP-XXX
+status: draft
+source_of_truth: false
+updated_at: YYYY-MM-DD
+---
+
+# Epic Context — EP-XXX <Title>
+
+## Purpose
+
+## Current Scope
+
+## Key Requirements
+
+## Acceptance Signals
+
+## Design Decisions
+
+## Interfaces / Contracts
+
+## Current Gate Summary
+
+## Open Questions
+
+## Links
+```
+
 ## 4. Done when
 
 Verify all before considering the stage complete:

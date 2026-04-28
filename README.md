@@ -13,6 +13,7 @@ This folder holds the **agentic SDLC process definition** for this repository: w
 | **[specification/pipeline.spec.md](specification/pipeline.spec.md)** | **Normative process:** stage order, inputs/outputs, stage→skill mapping, Human-in-the-loop, delegated execution, artefact naming, traceability, **agent execution expectations** (single process, AC validation, etc.). |
 | **[specification/skills/](specification/skills/)** | **Per-stage agent instructions** (`01-` … `11-` plus optional cross-cutting skills). Each skill defines workflow and artefact structure for its stage. |
 | **[specification/skills/README.md](specification/skills/README.md)** | Index and **common behaviour** across skills. |
+| **[proposals.md](proposals.md)** | Proposed pipeline improvements and measurement notes; a living document, not the normative process. |
 | **[tools/validate/](tools/validate/)** | AC↔test coverage checker (`./bin/validate`); see [VALIDATION.md](tools/validate/VALIDATION.md) and [README](tools/validate/README.md). |
 
 ---

@@ -135,6 +135,9 @@ open_counts:
   major: 1
   medium: 0
   minor: 2
+non_blocking_counts:
+  nit: 0
+  suggestion: 0
 next_action: return_to_stage_6
 updated_at: 2026-04-28
 ---
@@ -143,7 +146,7 @@ updated_at: 2026-04-28
 Recommended use:
 
 - all epic artefacts should identify `artefact`, `epic_id`, `status`, `source_of_truth`, and `updated_at`;
-- review artefacts should also expose `gate`, `latest_iteration`, `open_counts`, and `next_action`;
+- review artefacts should also expose `gate`, `latest_iteration`, `open_counts`, optional `non_blocking_counts`, and `next_action`;
 - `ep-context.md` should set `source_of_truth: false`;
 - full source artefacts such as `ep-requirements.md`, `ep-acceptance-criteria.md`, and `ep-system-design.md` should set `source_of_truth: true`.
 - project-level artefacts such as `scope.md` and `strategy.md` should identify `artefact`, `status`, `source_of_truth`, and `updated_at`.

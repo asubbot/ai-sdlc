@@ -20,7 +20,19 @@ Use the three lightweight context layers defined in [pipeline.spec.md](../pipeli
 
 Pipeline artefacts SHOULD begin with YAML front matter. If front matter is absent, agents MUST fall back to reading the Markdown body.
 
-Recommended fields:
+Source artefact example:
+
+```yaml
+---
+artefact: ep-scope
+epic_id: EP-XXX
+status: draft
+source_of_truth: true
+updated_at: YYYY-MM-DD
+---
+```
+
+Compact context example:
 
 ```yaml
 ---
