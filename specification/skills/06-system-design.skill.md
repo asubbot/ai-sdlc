@@ -6,7 +6,7 @@ description: Produce epic system design from ep-requirements and ep-acceptance-c
 # Stage 6: System design
 
 **Pipeline:** [pipeline.spec.md](../pipeline.spec.md)  
-**Output:** ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md
+**Output:** ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md; update ep-context.md
 
 ---
 
@@ -21,6 +21,7 @@ Follow these principles for all system design work:
 5. **Full REQ traceability** — Every requirement (REQ-EE.NNN format) from ep-requirements.md must be mentioned at least once in ep-system-design.md; the document must not omit any REQ.
 6. **Practical and short** — Get to the point. Be practical above all. Be short and specific.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only (e.g. technical discovery or research).
+8. **Token-optimized context** — Read current ep-context.md first when present, but open full requirements and acceptance criteria for traceability. On approved save, add YAML front matter to ep-system-design.md and refresh Design Decisions and Interfaces / Contracts in ep-context.md.
 
 ---
 
@@ -32,7 +33,7 @@ You are the Tech Lead for this epic. Your role is to produce the epic system des
 
 **Design–review iteration ([pipeline.spec.md](../pipeline.spec.md) §2.1):** When **stage 7** reports **Blocker**, **Major**, **Medium**, or **Minor** findings in the latest `## Review iteration N` section of `ep-system-design-review.md` (or in chat before save), run **stage 6** again: revise `ep-system-design.md` to resolve those findings, then the orchestrator schedules another **stage 7** (delegated, fresh session). Repeat until **zero** Blocker/Major/Medium/Minor or until the **operator decides** after **five** stage 7 iterations.
 
-**Inputs:** ep-requirements.md and ep-acceptance-criteria.md (ai-sdlc-artefacts/epics/<epic-id>/). If either is missing, ask the user to run stage 4 (Requirements) or stage 5 (Acceptance criteria) first. When addressing review feedback, also read the latest **`ep-system-design-review.md`** iteration section (and prior sections if needed for context). Platform constraints and research or technical discovery (e.g. under epic `legacy/`) may be used as reference.
+**Inputs:** ep-context.md when present and current, ep-requirements.md and ep-acceptance-criteria.md (ai-sdlc-artefacts/epics/<epic-id>/). If either source artefact is missing, ask the user to run stage 4 (Requirements) or stage 5 (Acceptance criteria) first. When addressing review feedback, read the latest **Current Gate Summary** and latest relevant **`ep-system-design-review.md`** iteration section (and prior sections if needed for context). Platform constraints and research or technical discovery (e.g. under epic `legacy/`) may be used as reference.
 
 **Questions to answer:** How is the system structured? What are the main components and interfaces? What are the key design decisions and risks?
 
@@ -42,18 +43,31 @@ You are the Tech Lead for this epic. Your role is to produce the epic system des
 
 Follow this order:
 
-1. **Check inputs** — Ensure ep-requirements.md and ep-acceptance-criteria.md exist for the epic. If not, ask the user to run stage 4 or 5 first.
+1. **Check inputs** — Ensure ep-requirements.md and ep-acceptance-criteria.md exist for the epic. If not, ask the user to run stage 4 or 5 first. If ep-context.md exists and is current, read it first for orientation; if stale or missing, fall back to source artefacts.
 2. **Check existing ep-system-design** — If ep-system-design.md exists for the epic, treat it as the baseline; propose changes as edits.
 3. **Draft in chat** — Draft the design in chat (section by section or by block). Show each part to the user and ask for clarification or changes. Apply edits only in the draft in chat; do not write to file yet.
 4. **Resolve choices** — When multiple valid options exist (e.g. structure depth, module boundaries), present options (e.g. A/B) and ask the user to choose.
 5. **Write after approval** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md only when the user explicitly approves (e.g. "lgtm", "save", "approve").
-6. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
+6. **Refresh epic context** — Update ep-context.md Design Decisions, Interfaces / Contracts, Open Questions, and Links concisely; do not copy full design sections.
+7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
 ---
 
 ## 3. Output structure (ep-system-design.md)
 
 Use these section headings (or user-agreed equivalents).
+
+Start the document with YAML front matter:
+
+```yaml
+---
+artefact: ep-system-design
+epic_id: EP-XXX
+status: draft
+source_of_truth: true
+updated_at: YYYY-MM-DD
+---
+```
 
 - **Overview** — Brief summary of the system and design scope, with traceability to key requirements. One short paragraph or bullet list.
 - **Architecture** — High-level structure and boundaries. **Must include C4 Level 2 (Containers):** C4-PlantUML diagram: source in `diagrams/c4-container.puml`, PNG in `diagrams/c4-container.png`. In ep-system-design: centered image, then "Source:" with link to .puml and regeneration command (`plantuml -tpng diagrams/c4-container.puml` from epic directory). System context (C1) is in ep-requirements; C2 is drawn here. Optional subsection **Module boundaries**: layers/modules, dependency rules, and wiring responsibilities; optional diagram and verification step (script or checklist).
@@ -78,6 +92,8 @@ Use these section headings (or user-agreed equivalents).
 Verify all before considering the stage complete:
 
 - [ ] ep-system-design.md exists at ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md
+- [ ] YAML front matter is present and consistent with the saved system design content
+- [ ] ep-context.md exists or was refreshed with compact Design Decisions, Interfaces / Contracts, Open Questions, and Links
 - [ ] Document contains **Overview** (system summary and traceability to REQ), **Architecture** including **C4 C2** (source in `diagrams/c4-container.puml`, PNG in `diagrams/c4-container.png` embedded centered; Source line with regeneration command), **Components and interfaces**, and **Data models** (if applicable); **Error handling** and **Testing strategy** recommended where relevant
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
 - [ ] Traceability to ep-requirements is maintained: **every REQ from ep-requirements.md is referenced at least once** in the document

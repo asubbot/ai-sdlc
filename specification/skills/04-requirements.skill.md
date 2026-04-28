@@ -6,7 +6,7 @@ description: Produce epic requirements from ep-scope; output ep-requirements.md.
 # Stage 4: Requirements
 
 **Pipeline:** [pipeline.spec.md](../pipeline.spec.md)  
-**Output:** ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md
+**Output:** ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md; update ep-context.md
 
 ---
 
@@ -21,6 +21,7 @@ Follow these principles for all requirements work:
 5. **Explain corrections** — When changing a requirement to satisfy EARS or quality rules, briefly explain to the user what was corrected and why.
 6. **Stable IDs only** — Use requirement IDs in the form **REQ-EE.NNN** where EE is the two-digit epic number (e.g. 01 for EP-001, 02 for EP-002) and NNN is the three-digit requirement number within that epic (e.g. REQ-01.001, REQ-02.013). This avoids ID collisions across epics. Do not use internal UUIDs.
 7. **Practical and short** — Get to the point. Be practical above all. Be short and specific.
+8. **Token-optimized context** — On approved save, add YAML front matter to ep-requirements.md and refresh the Key Requirements section in ep-context.md. If ep-context.md is missing, create it from available approved epic artefacts.
 
 ---
 
@@ -41,11 +42,12 @@ You are an expert requirements analyst. Your role is to produce the epic require
 Follow this order:
 
 1. **Check inputs** — Ensure ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md exists. If not, ask the user to run stage 3 first.
-2. **Check existing ep-requirements** — If ep-requirements.md exists for the epic, treat it as the baseline; propose changes as edits.
+2. **Check existing ep-requirements** — If ep-requirements.md exists for the epic, treat it as the baseline; propose changes as edits. If ep-context.md exists and is current, read it first for orientation; if stale or missing, fall back to ep-scope.md.
 3. **Draft in chat** — Draft requirements in chat (section by section or by block). Show each part to the user and ask for clarification or changes. Apply edits only in the draft in chat; do not write to file yet.
 4. **Resolve choices** — When multiple valid options exist (e.g. REQ granularity, tags, NFR depth), present options (e.g. A/B) and ask the user to choose.
 5. **Write after approval** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md only when the user explicitly approves (e.g. "lgtm", "save", "approve").
-6. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
+6. **Refresh epic context** — Update ep-context.md Key Requirements and Links concisely; do not copy the full requirements list.
+7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
 ---
 
@@ -80,6 +82,14 @@ Use these section headings (or user-agreed equivalents).
 **Example template:** Use the following structure as a skeleton for ep-requirements.md. Replace placeholders with epic-specific content; adjust theme groups and TOC sub-items to match the actual requirement sections.
 
 ```markdown
+---
+artefact: ep-requirements
+epic_id: EP-XXX
+status: draft
+source_of_truth: true
+updated_at: YYYY-MM-DD
+---
+
 # <Epic title> — Requirements (EARS / INCOSE)
 
 This document contains the product requirements for <epic> in EARS form, aligned with INCOSE semantic quality rules (active voice, one thought per requirement, explicit and measurable criteria, defined terminology, solution-free where applicable).
@@ -197,6 +207,8 @@ WHEN \<trigger\>, THE \<system\> SHALL \<response\>.
 Verify all before considering the stage complete:
 
 - [ ] ep-requirements.md exists at ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md
+- [ ] YAML front matter is present and consistent with the saved requirements content
+- [ ] ep-context.md exists or was refreshed with compact Key Requirements and Links
 - [ ] Document contains **Introduction** (epic summary; optional "scope in brief" or similar), **Glossary** (table: Term | Definition), **C4 C1** (source in `diagrams/c4-context.puml`, PNG in `diagrams/c4-context.png` embedded centered; Source line with regeneration command)
 - [ ] Document contains "EARS patterns used" reference, Requirement index (Id | Type | Summary), NFR subsection or grouping
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)

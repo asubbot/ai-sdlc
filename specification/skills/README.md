@@ -1,10 +1,81 @@
 # specification/skills — Agent instructions
 
-Agent instructions for the SDLC pipeline. **One numbered skill per pipeline stage (1–11)**, plus **optional cross-cutting** skills (C4 C3 diagram, project comparison, threat model from code). Paths in skills use **ai-sdlc-artefacts/** (project root: `scope.md`, `strategy.md`, optional `analytics/`) and **ai-sdlc-artefacts/epics/<epic-id>/** for epic artefacts: ep-scope, ep-requirements, ep-acceptance-criteria, ep-system-design, ep-system-design-review, ep-implementation-plan, **ep-code-review** (when saved; **§2.2** uses per-iteration sections), ep-audit-report. Story-level paths are not used by the pipeline.
+Agent instructions for the SDLC pipeline. **One numbered skill per pipeline stage (1–11)**, plus **optional cross-cutting** skills (C4 C3 diagram, project comparison, threat model from code). Paths in skills use **ai-sdlc-artefacts/** (project root: `scope.md`, `strategy.md`, optional `analytics/`) and **ai-sdlc-artefacts/epics/<epic-id>/** for epic artefacts: ep-scope, ep-context, ep-requirements, ep-acceptance-criteria, ep-system-design, ep-system-design-review, ep-implementation-plan, **ep-code-review** (when saved; **§2.2** uses per-iteration sections), ep-audit-report. Story-level paths are not used by the pipeline.
 
 **Common behaviour:** The agent works in cooperation with the user. When several valid choices exist (output format, path, scope, or interpretation of the request), present them (e.g. A / B) and ask the user which they prefer. Do not proceed until the user has chosen. See [pipeline.spec.md](../pipeline.spec.md) (Human-in-the-loop).
 
 **Mandatory delegation:** Stages **7** (system design review) and **10** (code review) MUST run via a **subagent** or equivalent fresh session—see [pipeline.spec.md](../pipeline.spec.md) §3. Each **§2.1** or **§2.2** iteration after material edits requires a **new** delegated review run.
+
+---
+
+## Common token-optimized context rules
+
+Use the three lightweight context layers defined in [pipeline.spec.md](../pipeline.spec.md):
+
+1. **YAML front matter** — cheap machine-readable file metadata.
+2. **Current Gate Summary** — current state of saved review gates.
+3. **`ep-context.md`** — compact semantic context for an epic.
+
+### YAML front matter
+
+Pipeline artefacts SHOULD begin with YAML front matter. If front matter is absent, agents MUST fall back to reading the Markdown body.
+
+Recommended fields:
+
+```yaml
+---
+artefact: ep-context
+epic_id: EP-XXX
+status: draft
+source_of_truth: false
+updated_at: YYYY-MM-DD
+---
+```
+
+Allowed `status` values: `draft`, `approved`, `superseded`, `archived`.
+
+Full source artefacts such as `ep-scope.md`, `ep-requirements.md`, `ep-acceptance-criteria.md`, and `ep-system-design.md` use `source_of_truth: true`. `ep-context.md` uses `source_of_truth: false`. YAML front matter MUST be updated in the same save operation as the body content it reflects.
+
+### `ep-context.md`
+
+`ep-context.md` is a compact epic handoff file, not a source of truth. If it conflicts with a source artefact, the source artefact wins. If `ep-context.md` is missing for an epic, agents SHOULD create it on the first approved epic artefact write/update during stages 3–11.
+
+Recommended sections:
+
+```markdown
+# Epic Context — EP-XXX
+
+## Purpose
+## Current Scope
+## Key Requirements
+## Acceptance Signals
+## Design Decisions
+## Interfaces / Contracts
+## Current Gate Summary
+## Open Questions
+## Links
+```
+
+Keep it short, ideally 100–150 lines. If `ep-context.md` has `updated_at` older than any source artefact it summarizes, treat it as stale and open the changed source artefact before relying on the context.
+
+### Current Gate Summary
+
+Saved review artefacts (`ep-system-design-review.md`, `ep-code-review.md`) SHOULD keep this block above iteration history:
+
+```markdown
+## Current Gate Summary
+
+Gate: Pass / Fail / Cap
+Latest iteration: N
+Last updated: YYYY-MM-DD
+Open counts: Blocker X | Major X | Medium X | Minor X
+Non-blocking counts: Nit X | Suggestion X
+Open findings:
+- F-001 Major: One-line finding title.
+Next action: Proceed to stage X / Return to stage Y / Operator decision required.
+```
+
+The latest full `## Review iteration N` remains the source of truth. Stages 7 and 10 MUST update the latest review iteration and Current Gate Summary atomically when saving review files.
 
 ---
 

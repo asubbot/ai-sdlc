@@ -5,7 +5,7 @@
 **Artefact paths:** Project-level artefacts (scope.md, strategy.md) live in the **ai-sdlc-artefacts/** root. Epic-level outputs live under **ai-sdlc-artefacts/epics/<epic-id>/** (e.g. `ai-sdlc-artefacts/epics/EP-001/`).
 Paths in this spec and in skills use that convention; no references to outside of that folders in links.
 
-**Artefact levels:** Project-level (scope.md, strategy.md) in `ai-sdlc-artefacts/`. Epic-level artefacts (ep-scope, ep-requirements, ep-acceptance-criteria, ep-system-design, ep-system-design-review, ep-implementation-plan, **ep-code-review** when saved, ep-audit-report) live in `epics/<epic-id>/`. **`ep-code-review.md`** may hold **§2.2** per-iteration sections (see **§2.2** and stage 10 skill).
+**Artefact levels:** Project-level (scope.md, strategy.md) in `ai-sdlc-artefacts/`. Epic-level artefacts (ep-scope, ep-context, ep-requirements, ep-acceptance-criteria, ep-system-design, ep-system-design-review, ep-implementation-plan, **ep-code-review** when saved, ep-audit-report) live in `epics/<epic-id>/`. **`ep-context.md`** is a compact context summary and is not a source of truth. **`ep-code-review.md`** may hold **§2.2** per-iteration sections (see **§2.2** and stage 10 skill).
 
 **Human-in-the-loop:** Pipeline execution is cooperative. When a stage has multiple valid outcomes (e.g. artefact naming, document structure, file placement), the agent MUST list options and ask the user to choose before proceeding. See also skills [README](skills/README.md) (Common behaviour).
 
@@ -21,6 +21,16 @@ Paths in this spec and in skills use that convention; no references to outside o
 - **Repository truth:** Prefer approved content under **`ai-sdlc-artefacts/`** and the product codebase over unofficial external write-ups when deciding how *this* project should behave.
 - **Implementation plan (stages 8 → 9):** The epic **`ep-implementation-plan.md`** is produced by pipeline **stage 8** ([08-implementation-planning.skill.md](skills/08-implementation-planning.skill.md)). **Executing** that plan is **stage 9** only — follow [09-task-execution.skill.md](skills/09-task-execution.skill.md) (one task at a time from the plan, verification and checkpoints per skill; do not treat the plan as an informal checklist outside stage 9).
 - **Acceptance criteria coverage:** Before treating an epic as complete from an AC↔test perspective, run `./bin/validate EP-XXX` from the repository root (after `make build` if needed). For project-wide AC coverage, run `./bin/validate` with no arguments. See [VALIDATION.md](../tools/validate/VALIDATION.md) and the [validate tool README](../tools/validate/README.md) under `ai-sdlc/tools/validate/`.
+
+### Token-optimized context loading
+
+The pipeline uses three lightweight context layers to reduce repeated full-document reads:
+
+1. **YAML front matter** — file metadata and routing state (e.g. artefact type, status, source-of-truth flag, updated date, gate state).
+2. **Current Gate Summary** — current review-gate state at the top of review artefacts.
+3. **`ep-context.md`** — compact semantic context for an epic.
+
+Full artefacts remain the source of truth. If a compact layer conflicts with a full artefact, the full artefact wins. If YAML front matter is absent, agents MUST fall back to reading the body. If `ep-context.md` is absent, agents SHOULD create it on the first approved epic artefact write/update in stages 3–11. If `ep-context.md` is older than any source artefact it summarizes, agents MUST treat it as stale and open the changed source artefacts before relying on it.
 
 ---
 
@@ -57,15 +67,15 @@ Each stage lists its **skill file** (under `specification/skills/`), purpose, ma
 |-------|-------|-----------------|-------------|--------------------------|
 | 1. Scope analysis | [01-scope-analysis.skill.md](skills/01-scope-analysis.skill.md) | Project scope from chat/request | Chat / request | scope.md |
 | 2. Strategy analysis | [02-strategy-analysis.skill.md](skills/02-strategy-analysis.skill.md) | Delivery + test strategy | scope.md | strategy.md |
-| 3. Epic planning | [03-epic-planning.skill.md](skills/03-epic-planning.skill.md) | Epic scope per epic; **creates epic git branch at start** of stage (see skill), writes `ep-scope.md` after approval **on that branch** | scope, strategy | epics/<epic-id>/ep-scope.md |
-| 4. Requirements | [04-requirements.skill.md](skills/04-requirements.skill.md) | Epic requirements | ep-scope.md | epics/<epic-id>/ep-requirements.md |
-| 5. Acceptance criteria | [05-acceptance-criteria.skill.md](skills/05-acceptance-criteria.skill.md) | Epic-level testable conditions | ep-scope.md, ep-requirements.md | epics/<epic-id>/ep-acceptance-criteria.md |
-| 6. System design | [06-system-design.skill.md](skills/06-system-design.skill.md) | Components, interfaces, decisions (may repeat per **§2.1** after stage 7) | ep-requirements.md, ep-acceptance-criteria.md; optional: latest `ep-system-design-review.md` iteration | epics/<epic-id>/ep-system-design.md |
-| 7. System design review | [07-system-design-review.skill.md](skills/07-system-design-review.skill.md) | Quality and traceability review of design (may repeat per **§2.1**) | ep-scope.md, ep-requirements.md, ep-acceptance-criteria.md, ep-system-design.md | epics/<epic-id>/ep-system-design-review.md |
-| 8. Implementation planning | [08-implementation-planning.skill.md](skills/08-implementation-planning.skill.md) | Tasks, ordering, verification per epic | ep-scope.md, ep-requirements.md, ep-acceptance-criteria.md, ep-system-design.md; **recommended:** ep-system-design-review.md | epics/<epic-id>/ep-implementation-plan.md |
-| 9. Task execution | [09-task-execution.skill.md](skills/09-task-execution.skill.md) | Implement plan → codebase (may repeat per **§2.2** after stage 10) | ep-implementation-plan.md; optional: latest `ep-code-review.md` iteration | repo (codebase) |
-| 10. Code review | [10-code-review.skill.md](skills/10-code-review.skill.md) | Structured review of change set (may repeat per **§2.2**) | Diff / PR / paths; optional epic artefacts | Chat; **ep-code-review.md** when saved (see skill; **§2.2** iteration sections) |
-| 11. Audit | [11-audit.skill.md](skills/11-audit.skill.md) | Status report from current branch | Current branch | epics/<epic-id>/ep-audit-report.md |
+| 3. Epic planning | [03-epic-planning.skill.md](skills/03-epic-planning.skill.md) | Epic scope per epic; **creates epic git branch at start** of stage (see skill), writes `ep-scope.md` after approval **on that branch** | scope, strategy | epics/<epic-id>/ep-scope.md; creates/updates ep-context.md |
+| 4. Requirements | [04-requirements.skill.md](skills/04-requirements.skill.md) | Epic requirements | ep-scope.md; ep-context.md if present | epics/<epic-id>/ep-requirements.md; updates ep-context.md |
+| 5. Acceptance criteria | [05-acceptance-criteria.skill.md](skills/05-acceptance-criteria.skill.md) | Epic-level testable conditions | ep-scope.md, ep-requirements.md; ep-context.md if present | epics/<epic-id>/ep-acceptance-criteria.md; updates ep-context.md |
+| 6. System design | [06-system-design.skill.md](skills/06-system-design.skill.md) | Components, interfaces, decisions (may repeat per **§2.1** after stage 7) | ep-context.md if current; ep-requirements.md, ep-acceptance-criteria.md; optional: latest `ep-system-design-review.md` summary/iteration | epics/<epic-id>/ep-system-design.md; updates ep-context.md |
+| 7. System design review | [07-system-design-review.skill.md](skills/07-system-design-review.skill.md) | Quality and traceability review of design (may repeat per **§2.1**) | ep-scope.md, ep-requirements.md, ep-acceptance-criteria.md, ep-system-design.md | epics/<epic-id>/ep-system-design-review.md with Current Gate Summary |
+| 8. Implementation planning | [08-implementation-planning.skill.md](skills/08-implementation-planning.skill.md) | Tasks, ordering, verification per epic | ep-context.md if current; full artefacts as needed; **recommended:** ep-system-design-review.md Current Gate Summary | epics/<epic-id>/ep-implementation-plan.md; may update ep-context.md |
+| 9. Task execution | [09-task-execution.skill.md](skills/09-task-execution.skill.md) | Implement plan → codebase (may repeat per **§2.2** after stage 10) | ep-context.md if useful, ep-implementation-plan.md; optional: latest `ep-code-review.md` summary/iteration | repo (codebase); updates ep-context.md only for material design/contract changes |
+| 10. Code review | [10-code-review.skill.md](skills/10-code-review.skill.md) | Structured review of change set (may repeat per **§2.2**) | Diff / PR / paths; optional ep-context.md and focused epic artefacts | Chat; **ep-code-review.md** with Current Gate Summary when saved (see skill; **§2.2** iteration sections) |
+| 11. Audit | [11-audit.skill.md](skills/11-audit.skill.md) | Status report from current branch | Current branch; ep-context.md and gate summaries as fast entry points | epics/<epic-id>/ep-audit-report.md |
 
 ### 2.1 System design ↔ system design review iteration (stages 6 and 7)
 
@@ -75,7 +85,7 @@ Stages **6** and **7** are **re-entrant**: after **stage 7** finds issues in **`
 
 **Iteration cap:** After **five** completed **stage 7** iterations, if any **Blocker**, **Major**, **Medium**, or **Minor** finding **remains**, **stop** the cycle and obtain an explicit **operator decision** (e.g. accept residual risk, narrow scope, redesign approach, or written override) before **stage 8** or further automated passes.
 
-**Artefact `ep-system-design-review.md`:** **One file per epic**, containing a **separate top-level section per iteration** (e.g. `## Review iteration 1` … `## Review iteration N`) as specified in the stage 7 skill—preserve prior iterations when adding a new one.
+**Artefact `ep-system-design-review.md`:** **One file per epic**, containing YAML front matter, a **Current Gate Summary**, and a **separate top-level section per iteration** (e.g. `## Review iteration 1` … `## Review iteration N`) as specified in the stage 7 skill—preserve prior iterations when adding a new one.
 
 **Delegation:** Each **stage 7** run MUST follow [§3](#3-delegated-execution-mandatory-subagent-stages-7-and-10) (fresh reviewer context), including **every** iteration after material edits to `ep-system-design.md`.
 
@@ -87,7 +97,7 @@ Stages **9** and **10** are **re-entrant** for a bounded change set (e.g. epic b
 
 **Iteration cap:** After **five** completed **stage 10** iterations, if any **Blocker**, **Major**, **Medium**, or **Minor** finding **remains**, **stop** the cycle and obtain an explicit **operator decision** before **stage 11** or further automated passes.
 
-**Artefact `ep-code-review.md`:** **One file per epic** when persisting reviews, containing a **separate top-level section per iteration** (e.g. `## Review iteration 1` … `## Review iteration N`) as specified in the stage 10 skill—preserve prior iterations when appending. (Reviews may still be drafted in chat first; save per skill and user approval.)
+**Artefact `ep-code-review.md`:** **One file per epic** when persisting reviews, containing YAML front matter, a **Current Gate Summary**, and a **separate top-level section per iteration** (e.g. `## Review iteration 1` … `## Review iteration N`) as specified in the stage 10 skill—preserve prior iterations when appending. (Reviews may still be drafted in chat first; save per skill and user approval.)
 
 **Delegation:** Each **stage 10** run MUST follow [§3](#3-delegated-execution-mandatory-subagent-stages-7-and-10) (fresh reviewer context), including **every** iteration after **material code changes** from stage 9.
 
@@ -99,9 +109,9 @@ Stages **9** and **10** are **re-entrant** for a bounded change set (e.g. epic b
 
 **MUST (when the environment supports subagents):**
 
-- **Stage 7** — The **orchestrating** agent (or human) **delegates** stage 7 to a **subagent** (or Cursor **Task** / equivalent) whose only job is to execute [07-system-design-review.skill.md](skills/07-system-design-review.skill.md) for the given epic: read `ep-scope.md`, `ep-requirements.md`, `ep-acceptance-criteria.md`, `ep-system-design.md`, and produce the review (draft in chat until user approves **save**, per skill). The subagent MUST NOT be the same linear chat session that **wrote** `ep-system-design.md` in one uninterrupted flow without handoff (start a new delegated run for the review). This applies to **every** stage 7 iteration in the **§2.1** cycle (each pass after material design changes needs a new delegated review).
+- **Stage 7** — The **orchestrating** agent (or human) **delegates** stage 7 to a **subagent** (or Cursor **Task** / equivalent) whose only job is to execute [07-system-design-review.skill.md](skills/07-system-design-review.skill.md) for the given epic: read `ep-scope.md`, `ep-requirements.md`, `ep-acceptance-criteria.md`, `ep-system-design.md`, and produce the review (draft in chat until user approves **save**, per skill). The subagent may read `ep-context.md` for orientation, but must not use it instead of source artefacts and must not edit it directly. The subagent MUST NOT be the same linear chat session that **wrote** `ep-system-design.md` in one uninterrupted flow without handoff (start a new delegated run for the review). This applies to **every** stage 7 iteration in the **§2.1** cycle (each pass after material design changes needs a new delegated review).
 
-- **Stage 10** — The **orchestrating** agent **delegates** stage 10 to a **subagent** whose only job is to execute [10-code-review.skill.md](skills/10-code-review.skill.md) on the agreed change set (PR, branch range, or paths). Review stays **readonly** on the repo unless the user explicitly asks the reviewer to edit. Output is chat-first; optional `ep-code-review.md` when the user asks to save (for **§2.2**, append **`## Review iteration N`** per skill). This applies to **every** stage 10 iteration in the **§2.2** cycle (each pass after material code changes needs a new delegated review).
+- **Stage 10** — The **orchestrating** agent **delegates** stage 10 to a **subagent** whose only job is to execute [10-code-review.skill.md](skills/10-code-review.skill.md) on the agreed change set (PR, branch range, or paths). Review stays **readonly** on the repo unless the user explicitly asks the reviewer to edit. The reviewer may read `ep-context.md` to identify focused epic context, but must not edit it directly. Output is chat-first; optional `ep-code-review.md` when the user asks to save (for **§2.2**, update Current Gate Summary and append **`## Review iteration N`** per skill). This applies to **every** stage 10 iteration in the **§2.2** cycle (each pass after material code changes needs a new delegated review).
 
 **Orchestrator responsibilities:** Provide epic id (`EP-XXX`) or explicit paths, confirm inputs exist, invoke the subagent with a short brief (e.g. “Run pipeline **stage 7** per skill …” or “Run pipeline **stage 10** per skill …”), then present the subagent’s output to the user for approval and file writes per skill rules.
 
@@ -125,6 +135,7 @@ Stages **9** and **10** are **re-entrant** for a bounded change set (e.g. epic b
 | Artefact | Filename |
 |----------|----------|
 | Epic scope | ep-scope.md |
+| Epic context (compact, not source of truth) | ep-context.md |
 | Epic requirements | ep-requirements.md |
 | Epic acceptance criteria | ep-acceptance-criteria.md |
 | Epic system design | ep-system-design.md |
@@ -138,6 +149,7 @@ Stages **9** and **10** are **re-entrant** for a bounded change set (e.g. epic b
 ## 5. Traceability
 
 - **scope.md** → strategy.md → ep-scope.md → ep-requirements.md → ep-acceptance-criteria.md → **(ep-system-design.md ↔ ep-system-design-review.md)** — iterate per **§2.1** until exit criteria or operator decision → ep-implementation-plan.md → **(task execution / repo ↔ code review stage 10)** — iterate per **§2.2** until exit criteria or operator decision → chat and/or **ep-code-review.md** (per-iteration sections when saved) → **stage 11** → ep-audit-report.md.
+- **ep-context.md** is a compact sidecar maintained from approved epic artefacts and gate summaries. It supports token-optimized handoff but does not replace traceability through source artefacts.
 
 **References:** Links in artefacts may point only to paths under `ai-sdlc-artefacts/`. Every linked document must exist (no broken links). Skills must enforce this rule.
 
@@ -155,6 +167,7 @@ flowchart LR
   end
   subgraph epic [Epic]
     ep_scope[ep-scope]
+    ep_context[ep-context]
     ep_req[ep-requirements]
     ep_ac[ep-acceptance-criteria]
     ep_design[ep-system-design]
@@ -165,6 +178,11 @@ flowchart LR
     ep_audit[ep-audit-report]
   end
   scope --> strategy --> ep_scope --> ep_req --> ep_ac --> ep_design --> ep_rev
+  ep_scope -.-> ep_context
+  ep_req -.-> ep_context
+  ep_ac -.-> ep_context
+  ep_design -.-> ep_context
+  ep_rev -.-> ep_context
   ep_rev -.->|iterate stages 6-7 per 2.1| ep_design
   ep_rev --> ep_impl --> repo
   repo --> ep_cr
@@ -174,6 +192,6 @@ flowchart LR
 
 **Stage 10 (code review)** runs after task execution (stage 9) and before **stage 11 (audit)** (`ep-audit-report.md`). Output is **chat-first**; **`ep-code-review.md`** when saved holds optional notes or, under **§2.2**, **per-iteration** sections (see [10-code-review.skill.md](skills/10-code-review.skill.md)).
 
-**Context for AI:** Each step's context is everything upstream in the chain. When building the implementation plan (stage 8), the agent's context includes ep-scope, ep-requirements, ep-acceptance-criteria, ep-system-design, and **should include** ep-system-design-review.md when that file exists after stage 7 (including **all** iteration sections per **§2.1**). Do not start stage 8 until **§2.1** exit criteria are met or the operator has recorded a decision after the iteration cap.
+**Context for AI:** Each step's source-of-truth context is the upstream chain, but agents should use token-optimized entry points first when safe: YAML front matter, `ep-context.md`, and Current Gate Summary. When building the implementation plan (stage 8), the agent should read `ep-context.md` first when current, then open ep-scope, ep-requirements, ep-acceptance-criteria, ep-system-design, and ep-system-design-review.md only for traceability checks, missing details, stale context, or gate disputes. Do not start stage 8 until **§2.1** exit criteria are met or the operator has recorded a decision after the iteration cap.
 
-When running **stage 11** for an epic delivery path, the agent’s context **should include** **ep-code-review.md** when present (**all** `## Review iteration N` sections per **§2.2**). Do not treat the code-review gate as complete for that path until **§2.2** exit criteria are met or the operator has recorded a decision after the iteration cap.
+When running **stage 11** for an epic delivery path, the agent should read `ep-context.md` and the **Current Gate Summary** in **ep-code-review.md** when present before opening full review iterations. Do not treat the code-review gate as complete for that path until **§2.2** exit criteria are met or the operator has recorded a decision after the iteration cap.

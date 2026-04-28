@@ -6,7 +6,7 @@ description: Produce epic acceptance criteria from ep-scope and ep-requirements;
 # Stage 5: Acceptance criteria
 
 **Pipeline:** [pipeline.spec.md](../pipeline.spec.md)  
-**Output:** ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md
+**Output:** ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md; update ep-context.md
 
 ---
 
@@ -21,6 +21,7 @@ Follow these principles for all acceptance criteria work:
 5. **Stable IDs only** — Use acceptance criteria IDs in the form **AC-EE.NNN** where EE is the two-digit epic number (e.g. 01 for EP-001, 02 for EP-002) and NNN is the three-digit AC number within that epic (e.g. AC-01.001, AC-02.007). This avoids ID collisions across epics. Do not use internal UUIDs.
 6. **Practical and short** — Get to the point. Be practical above all. Be short and specific.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
+8. **Token-optimized context** — On approved save, add YAML front matter to ep-acceptance-criteria.md and refresh the Acceptance Signals section in ep-context.md. If ep-context.md is missing, create it from available approved epic artefacts.
 
 ---
 
@@ -40,18 +41,31 @@ You are an experienced QA / acceptance criteria analyst. Your role is to produce
 
 Follow this order:
 
-1. **Check inputs** — Ensure ep-scope.md and ep-requirements.md exist for the epic. If not, ask the user to run stage 3 or 4 first.
+1. **Check inputs** — Ensure ep-scope.md and ep-requirements.md exist for the epic. If not, ask the user to run stage 3 or 4 first. If ep-context.md exists and is current, read it first for orientation; if stale or missing, fall back to source artefacts.
 2. **Check existing ep-acceptance-criteria** — If ep-acceptance-criteria.md exists for the epic, treat it as the baseline; propose changes as edits.
 3. **Draft in chat** — Draft acceptance criteria in chat (section by section or by block). Show each part to the user and ask for clarification or changes. Apply edits only in the draft in chat; do not write to file yet.
 4. **Resolve choices** — When multiple valid options exist (e.g. AC granularity), present options (e.g. A/B) and ask the user to choose.
 5. **Write after approval** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md only when the user explicitly approves (e.g. "lgtm", "save", "approve").
-6. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
+6. **Refresh epic context** — Update ep-context.md Acceptance Signals and Links concisely; do not copy the full AC list.
+7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
 ---
 
 ## 3. Output structure (ep-acceptance-criteria.md)
 
 Use these section headings (or user-agreed equivalents).
+
+Start the document with YAML front matter:
+
+```yaml
+---
+artefact: ep-acceptance-criteria
+epic_id: EP-XXX
+status: draft
+source_of_truth: true
+updated_at: YYYY-MM-DD
+---
+```
 
 - **Introduction** — Brief summary of the epic and purpose of this document.
 - **Acceptance criteria index** — Table: AC ID (link to AC in document), REQ (link to ep-requirements.md section), Summary (one-line). Required.
@@ -79,6 +93,8 @@ Then the system SHALL display the summary widget within 2 seconds
 Verify all before considering the stage complete:
 
 - [ ] ep-acceptance-criteria.md exists at ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md
+- [ ] YAML front matter is present and consistent with the saved acceptance criteria content
+- [ ] ep-context.md exists or was refreshed with compact Acceptance Signals and Links
 - [ ] Document contains **Introduction** (epic summary and document purpose), **Acceptance criteria index** (AC ID | REQ with links | Summary), and **Acceptance criteria** (AC-EE.NNN with Gherkin or equivalent and traceability to REQ)
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
 - [ ] Every AC traces to at least one REQ from ep-requirements.md

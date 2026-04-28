@@ -19,7 +19,7 @@ You are the QA and delivery lead. Your task is to produce an audit (status) repo
 **Inputs:**
 
 - Current branch (codebase).
-- **Epic artefacts:** ai-sdlc-artefacts/epics/<epic-id>/ep-implementation-plan.md, ep-acceptance-criteria.md; optionally ep-requirements.md, ep-system-design.md, ep-manual-test-scenarios.md, **ep-code-review.md** (include **all** `## Review iteration N` sections when assessing the code-review gate per [pipeline.spec.md](../pipeline.spec.md) **§2.2**).
+- **Epic artefacts:** ai-sdlc-artefacts/epics/<epic-id>/ep-context.md when present and current, ep-implementation-plan.md, ep-acceptance-criteria.md; optionally ep-requirements.md, ep-system-design.md, ep-manual-test-scenarios.md, **ep-code-review.md**. For code-review gate assessment, read YAML front matter and Current Gate Summary first; read full `## Review iteration N` sections only when the summary reports open findings, repeated issues, a cap decision, or a traceability dispute.
 - **Prerequisite (epic delivery path):** Do not treat the epic as past the code-review gate until **§2.2** exit criteria are met (zero Blocker/Major/Medium/Minor) or the operator has recorded a decision after the iteration cap—see [10-code-review.skill.md](10-code-review.skill.md).
 - **Test strategy:** e.g. ai-sdlc-artefacts/strategy.md or project-defined test/coverage commands.
 - **Test and coverage outputs:** Run **`make check`** (or the project’s equivalent). This single command is sufficient, as it runs all defined checks (e.g. fmt, vet, lint, tests with coverage, module boundaries). Use its terminal output for pass/fail and for the **total** test coverage figure.
@@ -44,10 +44,11 @@ You are the QA and delivery lead. Your task is to produce an audit (status) repo
 Follow this order:
 
 1. **Check inputs** — Ensure ep-implementation-plan.md and ep-acceptance-criteria.md exist for the epic. Resolve epic ID (branch, artefact path, or ask user). If inputs are missing, ask the user to run the missing stage(s) or provide the epic.
-2. **Run tests and checks** — Execute **`make check`** (or the project’s equivalent single command that runs fmt, vet, lint, tests with coverage, and any boundary/static checks). Capture pass/fail and the **total** test coverage from the command output.
-3. **Compare to plan** — For each task in ep-implementation-plan.md, determine status: done, pending, or blocked. Tie test results to acceptance criteria (AC-EE.NNN) where applicable.
-4. **Write report to file** — Create or update `ai-sdlc-artefacts/epics/<epic-id>/ep-audit-report.md` by default.
-5. **Output compact summary in chat** — Show only concise summary (quality gate, total coverage, key gaps/risks, report path). Output full report in chat only if user explicitly requests full mode.
+2. **Load fast context** — Read YAML front matter, ep-context.md, and Current Gate Summary blocks first when present. If missing, stale, or contradictory, fall back to the full artefact body.
+3. **Run tests and checks** — Execute **`make check`** (or the project’s equivalent single command that runs fmt, vet, lint, tests with coverage, and any boundary/static checks). Capture pass/fail and the **total** test coverage from the command output.
+4. **Compare to plan** — For each task in ep-implementation-plan.md, determine status: done, pending, or blocked. Tie test results to acceptance criteria (AC-EE.NNN) where applicable.
+5. **Write report to file** — Create or update `ai-sdlc-artefacts/epics/<epic-id>/ep-audit-report.md` by default.
+6. **Output compact summary in chat** — Show only concise summary (quality gate, total coverage, key gaps/risks, report path). Output full report in chat only if user explicitly requests full mode.
 
 ---
 
@@ -74,6 +75,16 @@ When the user requested a **project-level** audit (token-optimized mode):
 
 Use these elements (or user-agreed equivalents):
 
+- **YAML front matter** — Start with artefact metadata:
+  ```yaml
+  ---
+  artefact: ep-audit-report
+  epic_id: EP-XXX
+  status: draft
+  source_of_truth: true
+  updated_at: YYYY-MM-DD
+  ---
+  ```
 - **Document header** — **Date and time of creation**: use the **current date** (the date of the user's audit request). Take it from context (e.g. user_info "Today's date"); format e.g. `YYYY-MM-DD (UTC)` or `YYYY-MM-DD HH:MM UTC`. Purpose, pipeline link, links to ep-implementation-plan.md and ep-acceptance-criteria.md (and optionally ep-requirements.md).
 - **Summary** — Pass/fail or overall status in one short paragraph.
 - **Implementation vs plan** — For each task (or task group) from ep-implementation-plan, state status: done / pending / blocked. Reference task identifiers (e.g. Task 1.1, 1.2). Link to ep-implementation-plan.md where helpful.
@@ -102,6 +113,7 @@ Use these elements (or user-agreed equivalents):
 
 When producing the **project-level** audit report, use this structure. File path: **ai-sdlc-artefacts/audit-report.md**.
 
+- **YAML front matter** — Start the document with `artefact: audit-report`, `status`, `source_of_truth: true`, and `updated_at`.
 - **Document header** — **Date and time of creation**: use the **current date** (the date of the user's audit request). Take it from context (e.g. user_info "Today's date"); format e.g. `YYYY-MM-DD (UTC)` or `YYYY-MM-DD HH:MM UTC`. Purpose: project-level audit summary. Link to [scope.md](scope.md) and [strategy.md](strategy.md). Do **not** include a line about `make check` or project coverage in the project-level report.
 - **Mode note (token optimization)** — DONE/CANCELED rows are preserved from previous project audit unless the user explicitly requests full recomputation.
 - **Epic summary table** — A single table with exactly these columns:
@@ -134,6 +146,7 @@ All links must be relative to ai-sdlc-artefacts/ and point to existing paths. Do
 **Epic-level audit:** Verify all before considering the stage complete:
 
 - [ ] Full report was written to `ep-audit-report.md`.
+- [ ] YAML front matter is present and consistent with the saved audit report.
 - [ ] Chat output contains compact summary: quality gate, total coverage, key gaps/risks, report path.
 - [ ] Report content (in file) includes: header with **date and time**, Summary, Implementation vs plan, Test results and coverage, **REQ/AC test coverage matrix** (AC and REQ columns use markdown links to ep-acceptance-criteria.md and ep-requirements.md), Quality gate, Gaps/risks/recommendations.
 - [ ] Implementation vs plan references task IDs from ep-implementation-plan and states status (done/pending/blocked).

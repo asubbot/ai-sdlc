@@ -19,6 +19,7 @@ Follow these principles for all strategy analysis work:
 adapt strategy to scope; do not modify scope from stage 2.
 4. **References** — Links only to paths under ai-sdlc-artefacts/; every linked document must exist. Strategy must align with scope; if conflict, adapt strategy to scope; do not modify scope from stage 2. Do not mention EP-xx, US-xx, REQ-xx, AC-xx in the body. Write in English.
 5. **Practical and short** — Use English. Get to the point. For simple projects, keep the strategy lightweight.
+6. **YAML front matter** — On approved save, start strategy.md with YAML front matter (`artefact`, `status`, `source_of_truth: true`, `updated_at`).
 
 ---
 
@@ -47,6 +48,15 @@ Follow this order:
 
 Use these section headings (or user-agreed equivalents).
 
+- **YAML front matter** — Start with artefact metadata:
+  ```yaml
+  ---
+  artefact: strategy
+  status: draft
+  source_of_truth: true
+  updated_at: YYYY-MM-DD
+  ---
+  ```
 - **Introduction** — One short paragraph: what this document is (delivery + test strategy), alignment with scope. Reference [scope.md](scope.md) and other existing artefacts under `ai-sdlc-artefacts/` only when the linked document exists.
 - **1. Delivery strategy** — Increments (e.g. Prototype, PoC, MVP, Ver 1), scope and stack per increment, iteration/dependency order, success criteria. Use subsections (1.1, 1.2, …) if helpful.
 - **2. Test strategy** — Test levels and definitions (unit, integration, E2E, manual); pyramid approach; how AC should be covered; etc. Use subsections (2.1, 2.2, …) if helpful.
@@ -58,6 +68,7 @@ Use these section headings (or user-agreed equivalents).
 Verify all before considering the stage complete:
 
 - [ ] strategy.md exists at ai-sdlc-artefacts/strategy.md
+- [ ] YAML front matter is present and consistent with the saved strategy content
 - [ ] Document contains the required sections above (or user-agreed subset)
 - [ ] Every link in the document points to an existing path under ai-sdlc-artefacts/ (no broken links).
 - [ ] Document does not mention downstream identifiers (EP-xx, US-xx, REQ-xx, AC-xx).

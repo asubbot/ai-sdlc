@@ -16,6 +16,7 @@ Follow these principles for all scope analysis work:
 2. **Existing file is baseline** — If scope.md already exists, treat it as the current baseline; propose changes as edits and overwrite only after user approval.
 3. **Options when in doubt** — When multiple valid choices exist (e.g. scope granularity, depth of glossary, requirements table), present options (e.g. A/B) and ask the user to choose before proceeding.
 4. **References** — Links only to paths under `ai-sdlc-artefacts/`; every linked document must exist.
+5. **YAML front matter** — On approved save, start scope.md with YAML front matter (`artefact`, `status`, `source_of_truth: true`, `updated_at`).
 
 ---
 
@@ -41,6 +42,15 @@ Follow this order:
 
 Use these section headings (or user-agreed equivalents).
 
+- **YAML front matter** — Start with artefact metadata:
+  ```yaml
+  ---
+  artefact: scope
+  status: draft
+  source_of_truth: true
+  updated_at: YYYY-MM-DD
+  ---
+  ```
 - **Introduction** — Short summary of the project or feature and what this document covers (2–4 sentences).
 - **Glossary** — Key system names and technical terms the team will use. One row per term: term and short definition. Only terms that affect scope or downstream stages. Example: "Personal Assistant (PA)" — "Agent-driven app that executes user requests in the repo and environment."
 - **In scope** — What is included: capabilities, features, or themes. Use concrete, testable phrasing (e.g. "Telegram bot for conversation" not "we will have a bot"). Bullet list.
@@ -53,6 +63,7 @@ Use these section headings (or user-agreed equivalents).
 Verify all before considering the stage complete:
 
 - [ ] scope.md exists at ai-sdlc-artefacts/scope.md
+- [ ] YAML front matter is present and consistent with the saved scope content
 - [ ] Document contains the required sections above (or user-agreed subset)
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links).
 - [ ] Document does not mention downstream identifiers (EP-xx, US-xx, AC-xx).

@@ -6,7 +6,7 @@ description: Produce epic scope for one epic from project scope and strategy; ou
 # Stage 3: Epic planning
 
 **Pipeline:** [pipeline.spec.md](../pipeline.spec.md)
-**Output:** ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md (one epic per run)
+**Output:** ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md (one epic per run); create/update ep-context.md
 
 ---
 
@@ -21,6 +21,7 @@ Follow these principles for all epic planning work:
 5. **Clarity and testability** — Scope and success criteria must be unambiguous and testable so that later stages can derive requirements and acceptance criteria from them.
 6. **Stable IDs only** — Use human-readable stable identifiers (e.g. EP-001) in the document; do not include internal UUIDs or system-generated IDs.
 7. **Practical and short** — Default language for the document is English. Get to the point; for simple products, keep the epic scope lightweight.
+8. **Token-optimized context** — On approved save, add YAML front matter to ep-scope.md and create/update ep-context.md with Purpose, Current Scope, Open Questions, and Links. ep-context.md is not a source of truth.
 
 ---
 
@@ -45,7 +46,8 @@ Follow this order:
 5. **Draft in chat** — Draft ep-scope in chat (section by section or as a whole). Show the full draft (or each section) to the user; after each part, ask if anything needs clarification or change. Apply all requested changes to the draft in chat only; do not write to `ep-scope.md` until final approval in step 7.
 6. **Resolve choices** — When multiple valid options exist, present them (e.g. A/B) and ask the user to choose.
 7. **Write after approval** — When the user explicitly approves the draft (e.g. "lgtm", "save", "approve", or equivalent), create or update `ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md` **on the epic branch from step 3**, with the current date as **First version date**.
-8. **Commit (optional, requires allowance)** — After the file is written, **do not commit** unless the user explicitly allows commits (repo [AGENTS.md](../../../AGENTS.md)). If allowed, commit `ep-scope.md` on the epic branch with a clear message (e.g. `docs(epic): add ep-scope for EP-009`).
+8. **Refresh epic context** — Create or update `ai-sdlc-artefacts/epics/<epic-id>/ep-context.md` with compact Purpose, Current Scope, Open Questions, and Links. Do not copy the full ep-scope body.
+9. **Commit (optional, requires allowance)** — After the files are written, **do not commit** unless the user explicitly allows commits (repo [AGENTS.md](../../../AGENTS.md)). If allowed, commit `ep-scope.md` and `ep-context.md` on the epic branch with a clear message (e.g. `docs(epic): add ep-scope for EP-009`).
 
 ## 3. Output structure (ep-scope.md)
 
@@ -60,6 +62,14 @@ Use these section headings (or user-agreed equivalents).
 **Example format** — Use the following structure (required sections):
 
 ```markdown
+---
+artefact: ep-scope
+epic_id: EP-XXX
+status: draft
+source_of_truth: true
+updated_at: YYYY-MM-DD
+---
+
 # Epic scope — EP-XXX <Title>
 
 | Field | Content |
@@ -99,6 +109,8 @@ Verify all before considering the stage complete:
 
 - [ ] Working git branch `epic/<epic-id>-<short-title>` was created (or already checked out) **before** the first write to `ep-scope.md`, per step 3
 - [ ] `ep-scope.md` exists at `ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md` on that branch
+- [ ] `ep-context.md` exists or was refreshed with compact scope context on approved save
+- [ ] YAML front matter is present and consistent with the saved ep-scope content
 - [ ] Document contains the required sections above (or user-agreed subset); opening table includes **First version date** on first approved write
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
 - [ ] User has explicitly approved the content (e.g. lgtm, save, or equivalent in the user's language)
