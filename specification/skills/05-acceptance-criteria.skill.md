@@ -10,6 +10,18 @@ description: Produce epic acceptance criteria from ep-scope and ep-requirements;
 
 ---
 
+## Orchestrator brief (subagent mode)
+
+When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../pipeline.spec.md) §4):
+
+- **Required input:** epic ID, paths to `ep-scope.md` and `ep-requirements.md`
+- **Context:** `ep-context.md` (read first for orientation)
+- **Gate check before launch:** `ep-scope.md` and `ep-requirements.md` must exist
+- **Output signal:** `STAGE_5_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md [<N> ACs]`
+- **Validation after:** `./bin/validate req EP-XXX` (REQ↔AC traceability), `./bin/validate structure EP-XXX` (artefact structure)
+
+---
+
 ## Core Principles
 
 Follow these principles for all acceptance criteria work:

@@ -17,7 +17,7 @@ Paths in this spec and in skills use that convention; no references to outside o
 
 **Relationship to [ai-sdlc README](../README.md):** That file is the **directory index** for `ai-sdlc/` (what lives where). **This specification** and the **stage skills** define pipeline behaviour.
 
-- **Single process:** Execute stages using the table in §2, **Human-in-the-loop** above, and **§3** for delegated stages **7** and **10**. Do **not** invent a parallel SDLC.
+- **Single process:** Execute stages using the table in §2, **Human-in-the-loop** above, **§3** for delegated stages **7** and **10**, and **§4** for subagent orchestration. Do **not** invent a parallel SDLC.
 - **Repository truth:** Prefer approved content under **`ai-sdlc-artefacts/`** and the product codebase over unofficial external write-ups when deciding how *this* project should behave.
 - **Implementation plan (stages 8 → 9):** The epic **`ep-implementation-plan.md`** is produced by pipeline **stage 8** ([08-implementation-planning.skill.md](skills/08-implementation-planning.skill.md)). **Executing** that plan is **stage 9** only — follow [09-task-execution.skill.md](skills/09-task-execution.skill.md) (one task at a time from the plan, verification and checkpoints per skill; do not treat the plan as an informal checklist outside stage 9).
 - **Acceptance criteria coverage:** Before treating an epic as complete from an AC↔test perspective, run `./bin/validate EP-XXX` from the repository root (after `make build` if needed). For project-wide AC coverage, run `./bin/validate` with no arguments. See [VALIDATION.md](../tools/validate/VALIDATION.md) and the [validate tool README](../tools/validate/README.md) under `ai-sdlc/tools/validate/`.
@@ -105,6 +105,8 @@ Stages **9** and **10** are **re-entrant** for a bounded change set (e.g. epic b
 
 ## 3. Delegated execution (mandatory subagent: stages 7 and 10)
 
+**Relationship to §4:** This section defines the **mandatory** delegation rules for review stages. **§4** generalises the subagent model to all stages (SHOULD) and defines the orchestrator protocol, autonomous mode, and task-level isolation for stage 9.
+
 **Purpose:** Stages **7** (system design review) and **10** (code review) MUST run in a **separate agent session** from the work they critique, so the reviewer has clean context and is not biased by having just authored the design or the code.
 
 **MUST (when the environment supports subagents):**
@@ -121,7 +123,72 @@ Stages **9** and **10** are **re-entrant** for a bounded change set (e.g. epic b
 
 ---
 
-## 4. Artefact file naming
+## 4. Subagent orchestration (stages 3–11)
+
+**Purpose:** Each pipeline stage SHOULD execute in a **separate agent session** (subagent, Task tool, or new chat) to maintain fresh context and prevent quality degradation from accumulated context. Stages **7** and **10** MUST be delegated (see **§3**); all other stages (3–6, 8, 9, 11) SHOULD be delegated when the environment supports it.
+
+### 4.1 Orchestrator role
+
+The **orchestrator** is the agent (or human) that drives the pipeline. It does not execute stage skills itself (except in fallback); instead it:
+
+1. **Reads** `pipeline.spec.md` and `ep-context.md` for the target epic.
+2. **Checks gates** before each stage: runs `./bin/validate pipeline EP-XXX` (when available) to verify that prior stages are complete and review gates are passed.
+3. **Launches a subagent** for each stage with a short brief containing: epic ID, stage number, skill file path, and paths to required input artefacts.
+4. **Receives the output signal** from the subagent (see §4.2) and verifies that the expected artefact was written.
+5. **Runs applicable validation** after each stage: `./bin/validate structure EP-XXX` for artefact format, `./bin/validate ears EP-XXX` after stage 4, `./bin/validate req EP-XXX` after stage 5, `./bin/validate EP-XXX` (AC coverage) after stage 9 tasks.
+6. **Updates `ep-context.md`** if the subagent reports material changes. The orchestrator owns `ep-context.md` writes; subagents report changes but do not write `ep-context.md` directly (except stage 3, which creates it).
+
+### 4.2 Output signal protocol
+
+Each stage subagent, on completion, outputs a structured one-line signal for the orchestrator:
+
+```
+STAGE_<N>_COMPLETE: <artefact_path> [<key change summary>]
+```
+
+Examples:
+- `STAGE_4_COMPLETE: ai-sdlc-artefacts/epics/EP-012/ep-requirements.md [14 REQs, 2 NFR]`
+- `STAGE_7_COMPLETE: ai-sdlc-artefacts/epics/EP-012/ep-system-design-review.md [gate=pass, iteration 2]`
+- `TASK_COMPLETE: 1.3 [internal/config/loader.go, internal/config/loader_test.go]`
+
+For review stages (7, 10), the signal includes gate status. The orchestrator uses this to decide whether to iterate (return to stage 6 or 9) or proceed.
+
+### 4.3 Context handoff
+
+- **`ep-context.md`** is the primary inter-stage handoff mechanism. Each stage subagent reads it on entry for orientation.
+- Full artefacts remain the source of truth. If `ep-context.md` conflicts with a source artefact, the source artefact wins.
+- The orchestrator refreshes `ep-context.md` after each stage when the subagent reports material changes (new requirements, design decisions, contract changes).
+- Subagents that need details beyond `ep-context.md` read full artefacts directly (per token-optimized context rules).
+
+### 4.4 Stage 9: task-level subagent isolation
+
+Stage 9 (task execution) supports **per-task** subagent isolation within a single stage:
+
+1. The orchestrator reads `ep-implementation-plan.md` and finds the first unchecked task (or sub-task).
+2. Launches a subagent with: epic ID, the task block text (copied from the plan), paths to `ep-context.md`, `ep-acceptance-criteria.md`, and `ep-system-design.md`.
+3. The subagent implements **only** that task, runs relevant checks (`go test`, `make check`, or equivalent), and outputs: `TASK_COMPLETE: <task_id> [<files changed>]`.
+4. The orchestrator runs `./bin/validate EP-XXX` (AC coverage) and `make check` after each task.
+5. On validation pass: the orchestrator marks the task checkbox `[x]` in `ep-implementation-plan.md` and proceeds to the next task.
+6. On validation failure: the orchestrator launches a **new** subagent for the same task, appending the error output to the brief. Maximum **3** retries per task before requiring operator decision.
+7. After all tasks complete, the orchestrator proceeds to stage 10 (code review, mandatory delegation per §3).
+
+### 4.5 Autonomous mode (self-approve gates)
+
+When the user instructs the orchestrator to run stages N..M autonomously:
+
+- The orchestrator SHOULD **self-approve** intermediate artefacts (stages 3–6, 8) and proceed without a human gate. The "never write until approved" rule in skills is satisfied by the orchestrator acting as the approver on the user's behalf.
+- The orchestrator MUST NOT self-approve **review gates** (stages 7, 10): review subagents produce findings with severity counts; the orchestrator checks `open_counts` from the gate summary and decides programmatically (zero Blocker/Major/Medium/Minor = pass; otherwise return to stage 6 or 9 per §2.1/§2.2).
+- The orchestrator MUST run `./bin/validate pipeline EP-XXX` between stages to catch structural violations (when the tool is available).
+- The orchestrator SHOULD run `./bin/validate structure EP-XXX` after each artefact-producing stage to verify format compliance (when the tool is available).
+- When validation tools are not yet available (bootstrap), the orchestrator falls back to verifying artefact existence and basic YAML front matter presence.
+
+### 4.6 Fallback (subagents unavailable)
+
+When the environment does not support subagents: execute stages sequentially in the same session, but **clear context** between stages where possible (e.g. start a new composer thread per stage). For stages 7 and 10, the stricter fallback in **§3** applies (new chat with fresh context, MUST).
+
+---
+
+## 5. Artefact file naming
 
 **Project-level** (under `ai-sdlc-artefacts/`):
 
@@ -146,7 +213,7 @@ Stages **9** and **10** are **re-entrant** for a bounded change set (e.g. epic b
 
 ---
 
-## 5. Traceability
+## 6. Traceability
 
 - **scope.md** → strategy.md → ep-scope.md → ep-requirements.md → ep-acceptance-criteria.md → **(ep-system-design.md ↔ ep-system-design-review.md)** — iterate per **§2.1** until exit criteria or operator decision → ep-implementation-plan.md → **(task execution / repo ↔ code review stage 10)** — iterate per **§2.2** until exit criteria or operator decision → chat and/or **ep-code-review.md** (per-iteration sections when saved) → **stage 11** → ep-audit-report.md.
 - **ep-context.md** is a compact sidecar maintained from approved epic artefacts and gate summaries. It supports token-optimized handoff but does not replace traceability through source artefacts.
@@ -157,7 +224,7 @@ If an upstream artefact changes, downstream stages and artefacts must be reviewe
 
 ---
 
-## 6. Summary diagram
+## 7. Summary diagram
 
 ```mermaid
 flowchart LR

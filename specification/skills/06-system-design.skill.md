@@ -10,6 +10,18 @@ description: Produce epic system design from ep-requirements and ep-acceptance-c
 
 ---
 
+## Orchestrator brief (subagent mode)
+
+When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../pipeline.spec.md) §4):
+
+- **Required input:** epic ID, paths to `ep-requirements.md`, `ep-acceptance-criteria.md`; optional: latest `ep-system-design-review.md` (when iterating per §2.1)
+- **Context:** `ep-context.md` (read first for orientation)
+- **Gate check before launch:** `ep-requirements.md` and `ep-acceptance-criteria.md` must exist
+- **Output signal:** `STAGE_6_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md [<key design decisions>]`
+- **Validation after:** `./bin/validate structure EP-XXX` (artefact structure)
+
+---
+
 ## Core Principles
 
 Follow these principles for all system design work:

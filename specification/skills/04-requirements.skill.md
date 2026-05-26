@@ -10,6 +10,18 @@ description: Produce epic requirements from ep-scope; output ep-requirements.md.
 
 ---
 
+## Orchestrator brief (subagent mode)
+
+When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../pipeline.spec.md) §4):
+
+- **Required input:** epic ID, path to `ep-scope.md`
+- **Context:** `ep-context.md` (read first for orientation)
+- **Gate check before launch:** `ep-scope.md` must exist
+- **Output signal:** `STAGE_4_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md [<N> REQs, <n> FR, <n> NFR]`
+- **Validation after:** `./bin/validate ears EP-XXX` (EARS format), `./bin/validate structure EP-XXX` (artefact structure)
+
+---
+
 ## Core Principles
 
 Follow these principles for all requirements work:

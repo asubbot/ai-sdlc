@@ -10,6 +10,18 @@ description: Produce one implementation plan per epic (stage 8); output ep-imple
 
 ---
 
+## Orchestrator brief (subagent mode)
+
+When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../pipeline.spec.md) §4):
+
+- **Required input:** epic ID, paths to `ep-scope.md`, `ep-requirements.md`, `ep-acceptance-criteria.md`, `ep-system-design.md`, `ep-system-design-review.md`
+- **Context:** `ep-context.md` (read first for orientation); `ep-system-design-review.md` Current Gate Summary
+- **Gate check before launch:** §2.1 exit criteria must be met (stage 7 gate = pass or operator decision)
+- **Output signal:** `STAGE_8_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-implementation-plan.md [<N> tasks]`
+- **Validation after:** `./bin/validate structure EP-XXX` (artefact structure)
+
+---
+
 ## Core Principles
 
 Follow these principles for all implementation planning work:

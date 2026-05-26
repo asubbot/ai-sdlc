@@ -10,6 +10,16 @@ description: Review system design documents for SDLC epics (stage 7). Use when r
 
 This skill guides systematic review of system design documents (`ep-system-design.md`) within the SDLC pipeline.
 
+## Orchestrator brief (subagent mode)
+
+When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../pipeline.spec.md) §3, §4):
+
+- **Required input:** epic ID, paths to `ep-scope.md`, `ep-requirements.md`, `ep-acceptance-criteria.md`, `ep-system-design.md`
+- **Context:** `ep-context.md` (read for orientation, but do not use instead of source artefacts)
+- **Gate check before launch:** `ep-system-design.md` must exist
+- **Output signal:** `STAGE_7_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-system-design-review.md [gate=<pass|fail|cap>, iteration <N>, blocker:<n> major:<n> medium:<n> minor:<n>]`
+- **Validation after:** orchestrator checks gate status from signal; if fail → return to stage 6
+
 ## Mandatory delegation (pipeline stage 7)
 
 When this skill is run as **pipeline stage 7** for an epic, execution MUST follow [pipeline.spec.md](../pipeline.spec.md) **§3**:

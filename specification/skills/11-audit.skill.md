@@ -10,6 +10,18 @@ description: Produce epic or project-level audit reports (stage 11), write ep-au
 
 ---
 
+## Orchestrator brief (subagent mode)
+
+When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../pipeline.spec.md) §4):
+
+- **Required input:** epic ID, paths to all epic artefacts under `ai-sdlc-artefacts/epics/<epic-id>/`
+- **Context:** `ep-context.md` (read first); `ep-code-review.md` Current Gate Summary
+- **Gate check before launch:** §2.2 exit criteria must be met (stage 10 gate = pass or operator decision)
+- **Output signal:** `STAGE_11_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-audit-report.md [gate=<pass|fail>, coverage=<N%>, gaps=<n>]`
+- **Runs internally:** `make check`, `./bin/validate EP-XXX`, `./bin/validate EP-XXX --json`
+
+---
+
 ## 1. Context and goal
 
 You are the QA and delivery lead. Your task is to produce an audit (status) report for the current branch (stage 11).

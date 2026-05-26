@@ -22,6 +22,16 @@ Stages **9** and **10** repeat until **zero** open findings in **Blocker**, **Ma
 5. **Cap** — If **N = 5** and any **Blocker**, **Major**, **Medium**, or **Minor** is still **> 0**, **stop** and require an **operator decision** before further stage 9/10 work or stage 11.
 6. **Return to stage 9** — When Blocker/Major/Medium/Minor > 0 and **N < 5**, the orchestrator runs **stage 9** again to fix the codebase, then runs **stage 10** again (new **delegated** session per pipeline §3) on the updated change set.
 
+## Orchestrator brief (subagent mode)
+
+When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../pipeline.spec.md) §3, §4):
+
+- **Required input:** epic ID, scope (PR URL, `base..head`, or file paths)
+- **Context:** `ep-context.md` (read for orientation to identify relevant REQ/AC); optional: `ep-acceptance-criteria.md`, `ep-system-design.md`
+- **Gate check before launch:** stage 9 task(s) complete, code committed
+- **Output signal:** `STAGE_10_COMPLETE: <scope> [gate=<pass|fail|cap>, iteration <N>, blocker:<n> major:<n> medium:<n> minor:<n>]`
+- **Validation after:** orchestrator checks gate status from signal; if fail → return to stage 9
+
 ## Mandatory delegation (pipeline stage 10)
 
 When this skill is run as **pipeline stage 10**, execution MUST follow [pipeline.spec.md](../pipeline.spec.md) **§3**:

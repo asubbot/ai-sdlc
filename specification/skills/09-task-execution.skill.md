@@ -14,6 +14,41 @@ description: >-
 
 ---
 
+## Orchestrator brief (subagent mode)
+
+When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../pipeline.spec.md) §4):
+
+- **Required input:** epic ID, path to `ep-implementation-plan.md`, `ep-acceptance-criteria.md`
+- **Context:** `ep-context.md` (read first for orientation); `ep-system-design.md` for interfaces/contracts
+- **Gate check before launch:** `ep-implementation-plan.md` must exist; §2.1 exit criteria met
+- **Output signal:** `TASK_COMPLETE: <task_id> [<files changed>]` (per-task mode) or `STAGE_9_COMPLETE: <N tasks done>` (full-stage mode)
+- **Validation after:** `./bin/validate EP-XXX` (AC coverage), `make check`
+
+---
+
+## Task-level subagent isolation (recommended)
+
+Stage 9 supports **per-task** subagent isolation for fresh context on each task ([pipeline.spec.md](../pipeline.spec.md) §4.4). This is recommended for epics with 3+ tasks to prevent context degradation.
+
+**When the orchestrator runs stage 9 with task-level isolation:**
+
+1. **Orchestrator** reads `ep-implementation-plan.md`, finds the first unchecked task (or sub-task).
+2. **Orchestrator** launches a **task subagent** with a brief containing:
+   - Epic ID
+   - Task block text (copied verbatim from the plan, including verification criteria and REQ/AC references)
+   - Paths to `ep-context.md`, `ep-acceptance-criteria.md`, `ep-system-design.md`
+   - If retrying: previous error output appended to the brief
+3. **Task subagent** implements **only** that task following the "Workflow per task" rules below. Does not read or modify other tasks. Runs relevant checks (lint/test/build).
+4. **Task subagent** outputs: `TASK_COMPLETE: <task_id> [<files changed>]`
+5. **Orchestrator** runs `./bin/validate EP-XXX` (AC coverage) and `make check` after each task.
+6. On **pass**: orchestrator marks the task checkbox `[x]` in `ep-implementation-plan.md` and launches a new subagent for the next task.
+7. On **failure**: orchestrator launches a **new** subagent for the same task with the error output appended. Maximum **3** retries per task before requiring operator decision.
+8. After all tasks complete: orchestrator proceeds to stage 10 (code review, mandatory delegation per §3).
+
+**Without task-level isolation:** the subagent receives the full `ep-implementation-plan.md` and executes tasks sequentially within one session, following the "Workflow per task" rules below.
+
+---
+
 ## Prompt for AI agent
 
 You are the implementation (coding) agent for this epic. Your task is to execute the implementation plan: one task at a time from ai-sdlc-artefacts/epics/<epic-id>/ep-implementation-plan.md.

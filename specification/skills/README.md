@@ -6,6 +6,8 @@ Agent instructions for the SDLC pipeline. **One numbered skill per pipeline stag
 
 **Mandatory delegation:** Stages **7** (system design review) and **10** (code review) MUST run via a **subagent** or equivalent fresh session—see [pipeline.spec.md](../pipeline.spec.md) §3. Each **§2.1** or **§2.2** iteration after material edits requires a **new** delegated review run.
 
+**Subagent orchestration:** All stages (3–11) SHOULD run in separate subagent sessions for fresh context—see [pipeline.spec.md](../pipeline.spec.md) §4. Stage 9 supports per-task subagent isolation (§4.4).
+
 ---
 
 ## Common token-optimized context rules
@@ -88,6 +90,21 @@ Next action: Proceed to stage X / Return to stage Y / Operator decision required
 ```
 
 The latest full `## Review iteration N` remains the source of truth. Stages 7 and 10 MUST update the latest review iteration and Current Gate Summary atomically when saving review files.
+
+---
+
+## Subagent execution protocol
+
+Each skill can be invoked by an orchestrator as a standalone subagent ([pipeline.spec.md](../pipeline.spec.md) §4). When running as a subagent:
+
+1. **Input brief:** The orchestrator provides: epic ID, stage number, paths to input artefacts, and optional prior-stage summary or review feedback.
+2. **Context loading:** Read `ep-context.md` first (when present and current), then YAML front matter of required inputs, then full artefacts only as needed — per the token-optimized context rules above.
+3. **Self-contained:** Do not assume access to prior chat history. All context must come from artefacts and the orchestrator brief.
+4. **Artefact write:** Write the output artefact per skill rules. In autonomous mode the orchestrator acts as the approver — the "never write until approved" rule is satisfied by the orchestrator's delegation.
+5. **Output signal:** On completion, output a structured one-line signal for the orchestrator: `STAGE_<N>_COMPLETE: <artefact_path> [<key_change_summary>]`. For review stages include gate status. For stage 9 tasks: `TASK_COMPLETE: <task_id> [<files_changed>]`.
+6. **No ep-context.md writes:** Subagents (except stage 3 initial creation) do not write `ep-context.md` directly. Report material changes in the output signal; the orchestrator applies them.
+
+Each stage skill below includes an **Orchestrator brief** section that specifies the required input, gate preconditions, output signal format, and post-stage validation commands.
 
 ---
 
