@@ -225,6 +225,71 @@ func TestCheckPipelineState_AuditRequiresCodeReviewEvidence(t *testing.T) {
 	}
 }
 
+func TestCountUncheckedPlanTasks(t *testing.T) {
+	plan := "---\nartefact: ep-implementation-plan\n---\n## Tasks\n\n- [x] Done task\n- [ ] Pending task\n"
+	if got := countUncheckedPlanTasks(plan); got != 1 {
+		t.Errorf("countUncheckedPlanTasks = %d, want 1", got)
+	}
+}
+
+func TestCheckPipelineState_UncheckedTasksWarnWhenCodeReviewExists(t *testing.T) {
+	dir := t.TempDir()
+	epicDir := filepath.Join(dir, "EP-PLAN-WARN")
+	os.MkdirAll(epicDir, 0o755)
+
+	plan := frontMatter("ep-implementation-plan", "EP-PLAN-WARN") + "## Tasks\n\n- [ ] Pending task\n"
+	for _, f := range []struct{ name, content string }{
+		{"ep-scope.md", frontMatter("ep-scope", "EP-PLAN-WARN")},
+		{"ep-requirements.md", frontMatter("ep-requirements", "EP-PLAN-WARN")},
+		{"ep-acceptance-criteria.md", frontMatter("ep-acceptance-criteria", "EP-PLAN-WARN")},
+		{"ep-system-design.md", frontMatter("ep-system-design", "EP-PLAN-WARN")},
+		{"ep-system-design-review.md", reviewArtefact("ep-system-design-review", "EP-PLAN-WARN", "pass", "proceed_to_stage_8", 0, 0, 0, 0)},
+		{"ep-implementation-plan.md", plan},
+		{"ep-code-review.md", reviewArtefact("ep-code-review", "EP-PLAN-WARN", "pass", "proceed_to_stage_11", 0, 0, 0, 0)},
+	} {
+		os.WriteFile(filepath.Join(epicDir, f.name), []byte(f.content), 0o644)
+	}
+
+	result := checkPipelineState(epicDir, "EP-PLAN-WARN")
+	if result.Warnings == 0 {
+		t.Fatal("expected warning for unchecked tasks when stage 10 exists")
+	}
+	found := false
+	for _, f := range result.Findings {
+		if contains(f, "unchecked task") {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("expected unchecked task finding, got %v", result.Findings)
+	}
+}
+
+func TestCheckPipelineState_UncheckedTasksErrorWhenAuditExists(t *testing.T) {
+	dir := t.TempDir()
+	epicDir := filepath.Join(dir, "EP-PLAN-ERR")
+	os.MkdirAll(epicDir, 0o755)
+
+	plan := frontMatter("ep-implementation-plan", "EP-PLAN-ERR") + "## Tasks\n\n- [ ] Pending task\n"
+	for _, f := range []struct{ name, content string }{
+		{"ep-scope.md", frontMatter("ep-scope", "EP-PLAN-ERR")},
+		{"ep-requirements.md", frontMatter("ep-requirements", "EP-PLAN-ERR")},
+		{"ep-acceptance-criteria.md", frontMatter("ep-acceptance-criteria", "EP-PLAN-ERR")},
+		{"ep-system-design.md", frontMatter("ep-system-design", "EP-PLAN-ERR")},
+		{"ep-system-design-review.md", reviewArtefact("ep-system-design-review", "EP-PLAN-ERR", "pass", "proceed_to_stage_8", 0, 0, 0, 0)},
+		{"ep-implementation-plan.md", plan},
+		{"ep-code-review.md", reviewArtefact("ep-code-review", "EP-PLAN-ERR", "pass", "proceed_to_stage_11", 0, 0, 0, 0)},
+		{"ep-audit-report.md", frontMatter("ep-audit-report", "EP-PLAN-ERR") + "## Summary\n\n## Implementation vs plan\n"},
+	} {
+		os.WriteFile(filepath.Join(epicDir, f.name), []byte(f.content), 0o644)
+	}
+
+	result := checkPipelineState(epicDir, "EP-PLAN-ERR")
+	if !result.HasGaps {
+		t.Error("expected gaps when audit exists with unchecked plan tasks")
+	}
+}
+
 func frontMatter(artefact, epic string) string {
 	return "---\nartefact: " + artefact + "\nepic_id: " + epic + "\nstatus: approved\nsource_of_truth: true\nupdated_at: 2026-05-20\n---\n"
 }

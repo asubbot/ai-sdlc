@@ -50,11 +50,15 @@ type StructureResult struct {
 }
 
 var requiredSections = map[string][]string{
-	"ep-scope":               {"Glossary", "Scope", "Success criteria", "Traceability"},
-	"ep-requirements":        {"Introduction", "Glossary", "Requirements"},
-	"ep-acceptance-criteria": {"Scenarios"},
-	"ep-system-design":       {"Overview", "Components", "Traceability"},
-	"ep-implementation-plan": {"Tasks"},
+	"ep-scope":                {"Glossary", "Scope", "Success criteria", "Traceability"},
+	"ep-requirements":         {"Introduction", "Glossary", "Requirements"},
+	"ep-acceptance-criteria":  {"Scenarios"},
+	"ep-system-design":        {"Overview", "Components", "Traceability"},
+	"ep-implementation-plan":  {"Tasks"},
+	"ep-context":              {"Purpose", "Current Scope", "Links"},
+	"ep-system-design-review": {"Current Gate Summary", "Review iteration"},
+	"ep-code-review":          {"Current Gate Summary", "Review iteration"},
+	"ep-audit-report":         {"Summary", "Implementation vs plan"},
 }
 
 var dateFormatRe = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
@@ -200,7 +204,7 @@ func validateFrontMatter(fm *FrontMatter, epicID, filename string) []StructureFi
 			Message: fmt.Sprintf("updated_at %q is not in YYYY-MM-DD format", fm.UpdatedAt),
 		})
 	}
-	if !fm.SourceOfTruth {
+	if !fm.SourceOfTruth && fm.Artefact != "ep-context" {
 		findings = append(findings, StructureFinding{
 			File: filename, Check: "front_matter", Severity: "warning",
 			Message: "source_of_truth is not set to true",
@@ -270,11 +274,14 @@ func findBrokenLinks(content, baseDir string) []StructureFinding {
 
 var expectedArtefacts = []string{
 	"ep-scope.md",
+	"ep-context.md",
 	"ep-requirements.md",
 	"ep-acceptance-criteria.md",
 	"ep-system-design.md",
 	"ep-system-design-review.md",
 	"ep-implementation-plan.md",
+	"ep-code-review.md",
+	"ep-audit-report.md",
 }
 
 func validateArtefactStructure(epicDir, epicID string) *StructureResult {

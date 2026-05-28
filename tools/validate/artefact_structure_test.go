@@ -175,6 +175,22 @@ func TestValidateFrontMatter(t *testing.T) {
 			t.Error("expected warning about source_of_truth")
 		}
 	})
+
+	t.Run("ep-context allows source_of_truth false", func(t *testing.T) {
+		fm := &FrontMatter{
+			Artefact:      "ep-context",
+			EpicID:        "EP-099",
+			Status:        "draft",
+			SourceOfTruth: false,
+			UpdatedAt:     "2026-05-20",
+		}
+		findings := validateFrontMatter(fm, "EP-099", "ep-context.md")
+		for _, f := range findings {
+			if f.Severity == "warning" && contains(f.Message, "source_of_truth") {
+				t.Errorf("ep-context should not warn on source_of_truth=false, got %q", f.Message)
+			}
+		}
+	})
 }
 
 func TestFindRequiredSections(t *testing.T) {

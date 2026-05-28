@@ -48,6 +48,27 @@ Operator choice: <selected option>
 
 This is intentionally minimal: the validator checks that decision evidence exists, while process review checks whether the decision is appropriate.
 
+## Enforcement model
+
+Normative requirements live in [specification/pipeline.spec.md](../../specification/pipeline.spec.md) (Enforcement model table). Tooling enforces a subset only.
+
+| Requirement | Enforcement | Tool / evidence |
+|-------------|-------------|-----------------|
+| Stage ordering and required artefacts | Hard | `validate pipeline`, file presence, front matter |
+| Review gate pass before downstream progression | Hard | Current Gate Summary, open severity counts, `validate pipeline` |
+| AC↔test coverage before epic completion | Hard | `validate` / `validate ac` |
+| Artefact structure (sections, links, front matter) | Hard | `validate structure` |
+| EARS requirements format | Hard | `validate ears` |
+| REQ↔AC traceability | Hard | `validate req` |
+| Unchecked implementation-plan tasks before audit | Hard | `validate pipeline` (when `ep-audit-report.md` exists) |
+| Unchecked tasks when code review exists | Warning | `validate pipeline` (when `ep-code-review.md` exists) |
+| Mandatory delegation for stages 7 and 10 | Soft | Orchestrator run notes, subagent output signal |
+| Required HITL decision quality | Soft | Decision record in chat or artefact |
+| `ep-context.md` staleness judgment | Soft | Agent reads source artefacts when context is stale |
+| Subagent discipline | Soft | Process compliance; not CI-verifiable |
+
+**Stage 9:** Task execution produces the codebase, not a markdown artefact. Completion is inferred from `ep-implementation-plan.md` checkboxes (`- [x]` / `- [ ]` in `## Tasks`) when later stages exist.
+
 ## AC Validation
 
 The `validate` tool automatically validates that all Acceptance Criteria (AC) from an epic's `ep-acceptance-criteria.md` are covered by tests.

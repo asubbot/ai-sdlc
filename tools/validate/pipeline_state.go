@@ -180,6 +180,26 @@ func hasOperatorDecisionEvidence(content string) bool {
 	return decisionNeededRe.MatchString(content) && operatorChoiceRe.MatchString(content)
 }
 
+var uncheckedTaskRe = regexp.MustCompile(`(?m)^\s*-\s*\[\s\]\s+`)
+
+// countUncheckedPlanTasks returns the number of unchecked `- [ ]` items in the plan body.
+// Stage 9 has no artefact file; unchecked tasks in ep-implementation-plan.md indicate incomplete work.
+func countUncheckedPlanTasks(content string) int {
+	inTasks := false
+	count := 0
+	for _, line := range strings.Split(content, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "## ") {
+			inTasks = strings.Contains(strings.ToLower(trimmed), "tasks")
+			continue
+		}
+		if inTasks && uncheckedTaskRe.MatchString(line) {
+			count++
+		}
+	}
+	return count
+}
+
 // checkPipelineState validates the pipeline state for a single epic directory.
 func checkPipelineState(epicDir, epicID string) *PipelineResult {
 	result := &PipelineResult{
@@ -297,6 +317,30 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 				"stage 11 (%s) exists but stage 10 gate=%s (must be pass or have recorded operator decision)",
 				pipelineStages[auditIdx].file, result.Stages[codeReviewIdx].Gate,
 			))
+		}
+	}
+
+	// Stage 9 is the codebase (no artefact). When a later stage exists, flag unchecked plan tasks.
+	implPlanPath := epicDir + "/ep-implementation-plan.md"
+	if implPlanData, err := os.ReadFile(implPlanPath); err == nil {
+		unchecked := countUncheckedPlanTasks(string(implPlanData))
+		if unchecked > 0 {
+			auditExists := auditIdx >= 0 && result.Stages[auditIdx].Exists
+			codeReviewExists := codeReviewIdx >= 0 && result.Stages[codeReviewIdx].Exists
+			if auditExists {
+				result.Errors++
+				result.HasGaps = true
+				result.Findings = append(result.Findings, fmt.Sprintf(
+					"stage 11 (%s) exists but ep-implementation-plan.md has %d unchecked task(s)",
+					pipelineStages[auditIdx].file, unchecked,
+				))
+			} else if codeReviewExists {
+				result.Warnings++
+				result.Findings = append(result.Findings, fmt.Sprintf(
+					"stage 10 (%s) exists but ep-implementation-plan.md has %d unchecked task(s)",
+					pipelineStages[codeReviewIdx].file, unchecked,
+				))
+			}
 		}
 	}
 

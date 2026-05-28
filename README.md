@@ -26,3 +26,34 @@ Projects consume this repository as a separate workspace root. To keep reproduci
 2. CI in consumer projects verifies that the pinned revision exists in this canonical repository.
 3. Process changes are made here via PR; product repositories update only their pinned version.
 
+### Pin file example (`ai-sdlc.version`)
+
+```text
+v1.0.0
+```
+
+Or pin an exact commit:
+
+```text
+f0264d2063e2d881250e0db0542f0de3dfd9c413
+```
+
+### Consumer CI example (GitHub Actions)
+
+Verify the pin exists in the canonical repository (set `AI_SDLC_REPO` to your fork or upstream, e.g. `ORG/ai-sdlc`):
+
+```yaml
+- name: Verify ai-sdlc pin
+  env:
+    AI_SDLC_REPO: ORG/ai-sdlc
+  run: |
+    PIN="$(tr -d '[:space:]' < ai-sdlc.version)"
+    if git ls-remote "https://github.com/${AI_SDLC_REPO}.git" "refs/tags/${PIN}" | grep -q .; then
+      echo "Tag ${PIN} found"
+    elif git ls-remote "https://github.com/${AI_SDLC_REPO}.git" "${PIN}" | grep -q .; then
+      echo "Commit ${PIN} found"
+    else
+      echo "Pin ${PIN} not found in ${AI_SDLC_REPO}" >&2
+      exit 1
+    fi
+```

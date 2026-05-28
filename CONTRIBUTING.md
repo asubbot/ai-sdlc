@@ -16,3 +16,5 @@ This repository defines the shared SDLC process for multiple projects. Keep chan
 1. Tag a release after approved changes (for example `v1.0.1`).
 2. Consumer repositories update their `ai-sdlc.version` pin via a dedicated PR.
 3. Do not make direct process edits in consumer repository copies after cutover.
+
+See [README.md](README.md) (Consumption model) for `ai-sdlc.version` format and a minimal CI verification snippet.
