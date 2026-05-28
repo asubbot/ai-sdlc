@@ -4,7 +4,7 @@ Shell utilities for process maintainers. Not copied to consumer product reposito
 
 ## bootstrap-smoke.sh
 
-Automated regression for greenfield bootstrap: copies [templates/consumer/](../../templates/consumer/) into a temporary consumer layout, runs `make build`, `make check`, and project `make validate` (AC all epics + pipeline/structure per epic).
+Automated regression for greenfield bootstrap: copies [templates/consumer/](../../templates/consumer/) into a temporary consumer layout, then runs product gates `make build`, `make check` (fmt, vet, vuln, lint, race+coverage on `tests/`), and `make validate` (AC all epics + pipeline/structure per epic). This exercises the consumer template; real product repositories enforce the same gates via `.github/workflows/ci.yml`. May require network on first run (govulncheck, golangci-lint via `go run`).
 
 ```bash
 ./tools/scripts/bootstrap-smoke.sh

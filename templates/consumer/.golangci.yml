@@ -1,0 +1,22 @@
+# Consumer product linter config (strict baseline). Extend as the codebase grows.
+version: "2"
+run:
+  modules-download-mode: readonly
+linters:
+  enable:
+    - errcheck
+    - gocyclo
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+  settings:
+    gocyclo:
+      min-complexity: 15
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  enable:
+    - gofumpt
+    - goimports

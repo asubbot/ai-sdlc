@@ -11,8 +11,12 @@ This project uses [ai-sdlc](https://github.com/asubbot/ai-sdlc) (nested under `a
 
 ## Commands
 
+Product gates (run locally and in `.github/workflows/ci.yml`):
+
 ```bash
-make build      # build bin/validate from ai-sdlc/tools/validate
-make validate   # project gate: AC (all epics) + pipeline/structure per epic
-make check      # go vet + bootstrap smoke tests in tests/
+make build      # build bin/validate from ai-sdlc/tools/validate (requires ai-sdlc/ at pin)
+make check      # fmt, vet, govulncheck, golangci-lint, race tests + coverage on tests/
+make validate   # artefact gate: AC (all epics) + pipeline/structure per epic
 ```
+
+First `make check` may download linter and vulnerability DB modules. Uncomment additional targets in the `Makefile` when `cmd/`, integration, or e2e tests exist.

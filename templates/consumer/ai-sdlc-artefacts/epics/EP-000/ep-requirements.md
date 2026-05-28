@@ -24,19 +24,19 @@ Requirements to adopt ai-sdlc in this consumer repository.
 THE consumer repository SHALL record the canonical ai-sdlc revision in `ai-sdlc.version` at the repository root.
 
 ### REQ-00.002 — Consumer layout and artefacts
-THE consumer repository SHALL provide `AGENTS.md`, `.gitignore`, and `Makefile` at the repository root, SHALL list `ai-sdlc/` in `.gitignore`, and SHALL store pipeline outputs under `ai-sdlc-artefacts/` at the repository root, not inside `ai-sdlc/`.
+THE consumer repository SHALL provide `AGENTS.md`, `.gitignore`, `Makefile`, `.golangci.yml`, `scripts/check-module-boundaries.sh`, and `.github/workflows/ci.yml` at the repository root, SHALL list `ai-sdlc/` in `.gitignore`, and SHALL store pipeline outputs under `ai-sdlc-artefacts/` at the repository root, not inside `ai-sdlc/`.
 
 ### REQ-00.003 — Validator invocable
 WHEN the operator runs `make build` from the repository root, THE system SHALL produce `bin/validate` from `ai-sdlc/tools/validate`.
 
-### REQ-00.004 — CI pin verification
-WHEN CI runs on the default branch, THE workflow SHALL verify that `ai-sdlc.version` exists in the configured upstream repository, SHALL checkout `ai-sdlc` at that pin, SHALL run `make build`, `make check`, and project `make validate`.
+### REQ-00.004 — Product CI
+WHEN CI runs on the default branch using `.github/workflows/ci.yml`, THE workflow SHALL verify that `ai-sdlc.version` exists in the configured upstream repository, SHALL checkout `ai-sdlc` at that pin, and SHALL run `make build`, `make check`, and `make validate`.
 
 ### REQ-00.005 — Project validate gate
 WHEN the operator runs `make validate` from the repository root with no extra goals, THE system SHALL run AC coverage for all epics and pipeline/structure checks for each epic without errors (structure warnings for not-yet-created optional stages are acceptable).
 
 ### REQ-00.006 — Product check gate
-WHEN the operator runs `make check` from the repository root, THE system SHALL run `go vet` on the product module and bootstrap tests under `tests/` without errors.
+WHEN the operator runs `make check` from the repository root, THE system SHALL run `go fmt`, `go vet`, `govulncheck`, `golangci-lint`, race-enabled tests with coverage on `tests/`, and SHALL complete without errors. Commented Makefile targets SHALL document optional extensions (full-module tests, integration, e2e, module boundaries).
 
 ## REQ Index
 

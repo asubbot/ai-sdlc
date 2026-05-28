@@ -66,7 +66,9 @@ my-app/
 ├── ai-sdlc.version
 ├── .gitignore              # includes ai-sdlc/
 ├── bin/validate
-├── .github/workflows/ai-sdlc.yml
+├── .github/workflows/ci.yml
+├── .golangci.yml
+├── scripts/check-module-boundaries.sh
 ├── ai-sdlc/                 # local clone (gitignored; not in product git)
 └── ai-sdlc-artefacts/
     ├── scope.md            # stub, refine in stage 1
@@ -128,4 +130,4 @@ Verify the pin exists in the canonical repository (set `AI_SDLC_REPO` to your fo
     fi
 ```
 
-A full consumer workflow template is in [templates/consumer/.github/workflows/ai-sdlc.yml](templates/consumer/.github/workflows/ai-sdlc.yml) (pin verify + checkout `ai-sdlc` at pin).
+Product CI template: [templates/consumer/.github/workflows/ci.yml](templates/consumer/.github/workflows/ci.yml) (pin verify, checkout `ai-sdlc` at pin, `make build`, `make check`, `make validate`). Process template regression runs in this repository via [tools/scripts/bootstrap-smoke.sh](tools/scripts/bootstrap-smoke.sh).

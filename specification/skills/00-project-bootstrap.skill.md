@@ -55,7 +55,9 @@ Follow this order:
    | `go.mod` | `go.mod` |
    | `tests/**` | `tests/**` |
    | `ai-sdlc-artefacts/**` | `ai-sdlc-artefacts/**` |
-   | `.github/workflows/ai-sdlc.yml` | `.github/workflows/ai-sdlc.yml` |
+   | `.golangci.yml` | `.golangci.yml` |
+   | `scripts/check-module-boundaries.sh` | `scripts/check-module-boundaries.sh` |
+   | `.github/workflows/ci.yml` | `.github/workflows/ci.yml` |
 
    Do not overwrite existing operator content without HITL.
 
@@ -94,7 +96,7 @@ Not part of bootstrap **Done when**; run as follow-on work:
 - [ ] `.gitignore` exists and includes `ai-sdlc/`.
 - [ ] `ai-sdlc.version` contains a pin matching the `ai-sdlc/` checkout.
 - [ ] `ai-sdlc-artefacts/README.md` exists.
-- [ ] `Makefile` and `.github/workflows/ai-sdlc.yml` exist.
+- [ ] `Makefile`, `.golangci.yml`, `scripts/check-module-boundaries.sh`, and `.github/workflows/ci.yml` exist.
 - [ ] `make build` produces `bin/validate` when `ai-sdlc/` is present.
 - [ ] Operator briefed on next steps (stages 1–2, then EP-000).
 

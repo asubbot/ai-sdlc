@@ -7,7 +7,8 @@ All notable changes to this repository are documented in this file.
 ### Greenfield consumer bootstrap
 
 - [00-project-bootstrap.skill.md](specification/skills/00-project-bootstrap.skill.md) — pre-pipeline skeleton for new product repositories.
-- [templates/consumer/](templates/consumer/) — `AGENTS.md`, `.gitignore`, `Makefile`, `ai-sdlc.version`, CI workflow, `ai-sdlc-artefacts/` stubs including **EP-000** adoption epic.
+- [templates/consumer/](templates/consumer/) — `AGENTS.md`, `.gitignore`, `Makefile`, `ai-sdlc.version`, `.golangci.yml`, `scripts/check-module-boundaries.sh`, product CI (`.github/workflows/ci.yml`), aggressive `make check`, `ai-sdlc-artefacts/` stubs including **EP-000** adoption epic.
+- Consumer template: removed `.github/workflows/ai-sdlc.yml`; product gates (`make check`, `make validate`) run in `ci.yml` only. Process regression stays in canonical repo (`bootstrap-smoke.sh`).
 - [pipeline.spec.md](specification/pipeline.spec.md) — **Consumer onboarding (greenfield)**; gitignored nested `ai-sdlc/` clone; normative order bootstrap → stages 1–2 → EP-000 → product epics.
 - [README.md](README.md) — **Starting a new project** walkthrough and target layout summary.
 - Validator testdata: [tools/validate/testdata/EP-000/](tools/validate/testdata/EP-000/), project-level [scope.md](tools/validate/testdata/scope.md) / [strategy.md](tools/validate/testdata/strategy.md); CI smoke for EP-000 and EP-099.

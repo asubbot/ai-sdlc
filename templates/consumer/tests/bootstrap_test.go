@@ -100,6 +100,9 @@ func TestConsumerLayout(t *testing.T) {
 		".gitignore",
 		"Makefile",
 		"ai-sdlc.version",
+		".golangci.yml",
+		"scripts/check-module-boundaries.sh",
+		".github/workflows/ci.yml",
 	} {
 		if _, err := os.Stat(filepath.Join(root, rel)); err != nil {
 			t.Fatalf("missing root file %s: %v", rel, err)
@@ -111,6 +114,9 @@ func TestConsumerLayout(t *testing.T) {
 	}
 	if !strings.Contains(string(gitignore), "ai-sdlc/") {
 		t.Fatal(".gitignore must list ai-sdlc/")
+	}
+	if _, err := os.Stat(filepath.Join(root, ".github", "workflows", "ai-sdlc.yml")); err == nil {
+		t.Fatal(".github/workflows/ai-sdlc.yml must not exist; use ci.yml for product gates")
 	}
 
 	base := filepath.Join(root, "ai-sdlc-artefacts")
@@ -166,9 +172,9 @@ func TestMakeCheck(t *testing.T) {
 }
 
 // Covers AC-00.004
-func TestCIWorkflowPinAndValidateTool(t *testing.T) {
+func TestCIProductWorkflow(t *testing.T) {
 	root := repoRoot(t)
-	wfPath := filepath.Join(root, ".github", "workflows", "ai-sdlc.yml")
+	wfPath := filepath.Join(root, ".github", "workflows", "ci.yml")
 	data, err := os.ReadFile(wfPath)
 	if err != nil {
 		t.Fatalf("read workflow: %v", err)
@@ -177,8 +183,7 @@ func TestCIWorkflowPinAndValidateTool(t *testing.T) {
 
 	for _, needle := range []string{
 		"ai-sdlc.version",
-		"ai-sdlc/tools/validate",
-		"go test",
+		"ai-sdlc",
 		"make build",
 		"make validate",
 		"make check",
@@ -191,10 +196,9 @@ func TestCIWorkflowPinAndValidateTool(t *testing.T) {
 	for _, stepName := range []string{
 		"Verify ai-sdlc pin",
 		"Checkout ai-sdlc at pin",
-		"Test validate tool",
 		"Build validate binary",
-		"Bootstrap smoke tests",
-		"Project validate gate",
+		"Product check gate",
+		"Product validate gate",
 	} {
 		if !strings.Contains(content, stepName) {
 			t.Fatalf("workflow missing step name %q", stepName)

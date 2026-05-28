@@ -27,8 +27,9 @@ Minimal strategy for greenfield adoption. Aligns with [scope.md](scope.md). Refi
 
 ### 2.1 Levels
 
-- **Process / infra:** `make validate`, CI pin verification (EP-000).
-- **Product:** Unit / integration tests when `cmd/`, `internal/`, or `tests/` exist (EP-001+).
+- **Product gates (this repo):** `make check` (code quality), `make validate` (artefacts under `ai-sdlc-artefacts/`), enforced in `.github/workflows/ci.yml` after pin checkout.
+- **Process regression (canonical ai-sdlc repo only):** `bootstrap-smoke.sh` and validator unit tests — reference when bumping `ai-sdlc.version`.
+- **Product tests:** Bootstrap tests in `tests/` today; unit / integration / e2e when `cmd/`, `internal/`, or additional test dirs exist (EP-001+; uncomment Makefile targets).
 
 ### 2.2 AC coverage
 

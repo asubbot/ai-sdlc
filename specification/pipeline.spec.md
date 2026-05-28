@@ -61,7 +61,7 @@ Full artefacts remain the source of truth. If a compact layer conflicts with a f
 
 **Bootstrap triggers:** Operator intents such as «start new project», «bootstrap ai-sdlc», or «begin work» when consumer `AGENTS.md` or `ai-sdlc-artefacts/scope.md` is missing while `ai-sdlc/` exists.
 
-**Bootstrap outputs:** Consumer `AGENTS.md`, `.gitignore`, `Makefile`, `ai-sdlc.version`, `ai-sdlc-artefacts/` (including stubs), `.github/workflows/ai-sdlc.yml`, buildable `bin/validate`. Signal: `BOOTSTRAP_COMPLETE: skeleton ready`.
+**Bootstrap outputs:** Consumer `AGENTS.md`, `.gitignore`, `Makefile`, `ai-sdlc.version`, `ai-sdlc-artefacts/` (including stubs), `.golangci.yml`, `scripts/check-module-boundaries.sh`, `.github/workflows/ci.yml` (product gates: `make check`, `make validate`), buildable `bin/validate`. Process template regression runs in the canonical ai-sdlc repository (`bootstrap-smoke.sh`), not as a separate consumer process workflow. Signal: `BOOTSTRAP_COMPLETE: skeleton ready`.
 
 **Post-bootstrap order (normative):**
 

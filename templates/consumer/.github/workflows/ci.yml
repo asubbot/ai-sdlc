@@ -1,0 +1,82 @@
+# Product CI: code quality (make check) and delivery artefacts (make validate).
+# Process regression (template smoke, validator unit tests) runs in the canonical ai-sdlc repository.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  product-gates:
+    runs-on: ubuntu-latest
+    env:
+      # Replace with your fork of the process repository when not using github.com/asubbot/ai-sdlc.
+      AI_SDLC_REPO: asubbot/ai-sdlc
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify ai-sdlc pin
+        run: |
+          PIN="$(tr -d '[:space:]' < ai-sdlc.version)"
+          if git ls-remote "https://github.com/${AI_SDLC_REPO}.git" "refs/tags/${PIN}" | grep -q .; then
+            echo "Tag ${PIN} found"
+          elif git ls-remote "https://github.com/${AI_SDLC_REPO}.git" "${PIN}" | grep -q .; then
+            echo "Commit ${PIN} found"
+          else
+            echo "Pin ${PIN} not found in ${AI_SDLC_REPO}" >&2
+            exit 1
+          fi
+
+      - name: Checkout ai-sdlc at pin
+        run: |
+          PIN="$(tr -d '[:space:]' < ai-sdlc.version)"
+          if git ls-remote "https://github.com/${AI_SDLC_REPO}.git" "refs/tags/${PIN}" | grep -q .; then
+            git clone --depth 1 --branch "${PIN}" "https://github.com/${AI_SDLC_REPO}.git" ai-sdlc
+          else
+            git clone "https://github.com/${AI_SDLC_REPO}.git" ai-sdlc
+            git -C ai-sdlc checkout "${PIN}"
+          fi
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # Optional: install golangci-lint to PATH if go run in Makefile is too slow in CI.
+      # - name: Install golangci-lint v2
+      #   run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.5.0
+      # - run: echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Build validate binary
+        run: make build
+
+      - name: Product check gate
+        run: make check
+
+      - name: Product validate gate
+        run: make validate
+
+      # Optional: fail if fmt left the tree dirty (requires committed baseline).
+      # - name: Verify working tree clean after fmt
+      #   run: git diff --exit-code
+
+      # Optional: CGO / OS packages when the product needs CGO (e.g. SQLite).
+      # - name: Install OS packages (CGO)
+      #   run: sudo apt-get update && sudo apt-get install -y build-essential
+      #   env:
+      #     CGO_ENABLED: "1"
+
+      # Optional: Docker for integration tests (uncomment test-integration in Makefile first).
+      # - uses: docker/setup-docker-action@v4
+
+      # Optional: upload coverage.out from make check.
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-out
+      #     path: coverage.out

@@ -14,7 +14,7 @@ Adopt the ai-sdlc process in this consumer repository (pin, layout, validator, C
 
 ## Current Scope
 
-Bootstrap skeleton and EP-000 elaboration (consumer root files, pin, artefacts, `make build` / `make validate` / `make check`, CI); no product application code beyond `tests/` required.
+Bootstrap skeleton and EP-000 elaboration (consumer root files, pin, artefacts, product gates `make build` / `make validate` / `make check`, `.github/workflows/ci.yml`, `.golangci.yml`); no product application code beyond `tests/` required. Process template regression runs in the canonical ai-sdlc repository (`bootstrap-smoke.sh`), not as a separate consumer workflow.
 
 ## Open Questions
 

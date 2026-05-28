@@ -10,11 +10,13 @@ Files in this directory are **copied to the product repository root** during gre
 | `ai-sdlc.version` | `ai-sdlc.version` |
 | `README.project.md` | `README.md` |
 | `ai-sdlc-artefacts/**` | `ai-sdlc-artefacts/**` |
-| `.github/workflows/ai-sdlc.yml` | `.github/workflows/ai-sdlc.yml` |
+| `.golangci.yml` | `.golangci.yml` |
+| `scripts/check-module-boundaries.sh` | `scripts/check-module-boundaries.sh` |
+| `.github/workflows/ci.yml` | `.github/workflows/ci.yml` |
 
 ## Process clone
 
-`ai-sdlc/` is a local nested clone (listed in `.gitignore`). The product repository records the process revision in `ai-sdlc.version` at the product root; CI clones `ai-sdlc/` at that pin.
+`ai-sdlc/` is a local nested clone (listed in `.gitignore`). The product repository records the process revision in `ai-sdlc.version` at the product root; product CI (`.github/workflows/ci.yml`) clones `ai-sdlc/` at that pin before `make build`. Process template regression runs in the canonical ai-sdlc repository, not as a second consumer workflow.
 
 ## Rules
 

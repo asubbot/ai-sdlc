@@ -37,10 +37,11 @@ Post-bootstrap order: bootstrap skeleton → stages **1–2** (scope, strategy) 
 - Use real merge commits, not fast-forward, when merging branches.
 - Never commit secrets; use placeholders and documented patterns.
 
-## Checks
+## Checks (product gates)
 
-- After substantive code edits, run **`make check`** when allowed.
-- For AC and pipeline gates: **`make validate`** or **`./bin/validate`** from repo root (build with `make build`).
+- After substantive code edits, run **`make check`** when allowed (code quality: fmt, vet, vuln, lint, tests).
+- For artefact and pipeline gates: **`make validate`** or **`./bin/validate`** from repo root (build with `make build`).
+- CI: **`.github/workflows/ci.yml`** runs `make build`, `make check`, and `make validate` after checking out `ai-sdlc/` at the pin in `ai-sdlc.version`.
 
 ## Process pin
 

@@ -4,6 +4,11 @@ ai-sdlc/
 # Built validator binary
 bin/
 
+# Coverage profiles from make check
+coverage.out
+coverage.html
+coverage-e2e.out
+
 # Secrets and local config
 .env
 .secrets/

@@ -24,16 +24,16 @@ updated_at: 2026-05-28
 
 ## Scope (features/capabilities)
 
-- Consumer `AGENTS.md`, `.gitignore` (includes `ai-sdlc/`), `Makefile`, and `ai-sdlc-artefacts/` layout.
-- `ai-sdlc.version` records the process revision; CI verifies the pin and checks out `ai-sdlc` at that revision.
-- `make build`, `make validate`, and `make check` work from the product repository root.
+- Consumer `AGENTS.md`, `.gitignore` (includes `ai-sdlc/`), `Makefile`, `.golangci.yml`, `scripts/check-module-boundaries.sh`, and `ai-sdlc-artefacts/` layout.
+- `ai-sdlc.version` records the process revision; product CI (`.github/workflows/ci.yml`) verifies the pin and checks out `ai-sdlc` at that revision.
+- Product gates `make build`, `make validate`, and `make check` work from the product repository root.
 - Project-level [scope.md](../../scope.md) and [strategy.md](../../strategy.md) stubs exist for pipeline gates.
 
 ## Success criteria
 
 - Operator can run `make validate` from the repository root without errors (project validate gate; structure warnings for not-yet-created optional stages are acceptable).
-- Operator can run `make check` from the repository root without errors (`go vet` and bootstrap tests in `tests/`).
-- CI workflow `ai-sdlc.yml` passes on the default branch (`make build`, `make check`, and project `make validate`).
+- Operator can run `make check` from the repository root without errors (fmt, vet, vuln, lint, race tests and coverage on `tests/`).
+- CI workflow `ci.yml` passes on the default branch (`make build`, `make check`, and `make validate`).
 
 ## Traceability
 
