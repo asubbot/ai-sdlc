@@ -35,7 +35,7 @@ cd my-app
 git clone https://github.com/asubbot/ai-sdlc.git ai-sdlc
 ```
 
-Alternatively: initialize the product git repo first, then clone `ai-sdlc/` (layout **A** — see below).
+Alternatively: initialize the product git repo first, then clone `ai-sdlc/`.
 
 ### 3. Ask the agent to bootstrap
 
@@ -64,25 +64,21 @@ my-app/
 ├── README.md
 ├── Makefile
 ├── ai-sdlc.version
-├── .gitignore              # layout A: includes ai-sdlc/
+├── .gitignore              # includes ai-sdlc/
 ├── bin/validate
 ├── .github/workflows/ai-sdlc.yml
-├── ai-sdlc/                 # local clone (not committed in layout A)
+├── ai-sdlc/                 # local clone (gitignored; not in product git)
 └── ai-sdlc-artefacts/
     ├── scope.md            # stub, refine in stage 1
     ├── strategy.md         # stub, refine in stage 2
     └── epics/EP-000/       # adoption epic stubs
 ```
 
-**Layout A (default):** `ai-sdlc/` is in `.gitignore`; CI checks out the process at the pin in `ai-sdlc.version`.
-
-**Layout B:** `ai-sdlc/` is a git submodule (remove `ai-sdlc/` from `.gitignore`).
-
-See [pipeline.spec.md](specification/pipeline.spec.md) (Consumer onboarding) and [templates/consumer/README.md](templates/consumer/README.md).
+`ai-sdlc/` is listed in `.gitignore` and is not committed to the product repository. CI checks out the process at the pin in `ai-sdlc.version`. See [pipeline.spec.md](specification/pipeline.spec.md) (Consumer onboarding) and [templates/consumer/README.md](templates/consumer/README.md).
 
 ### Fresh clone of the product repo only
 
-If `ai-sdlc/` is missing (e.g. layout A), after `git clone` of the product:
+If `ai-sdlc/` is missing after `git clone` of the product:
 
 ```bash
 git clone https://github.com/asubbot/ai-sdlc.git ai-sdlc

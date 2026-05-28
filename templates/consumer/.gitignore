@@ -1,4 +1,4 @@
-# Process tree (layout A): clone locally and in CI; pin is ai-sdlc.version
+# Process tree: clone locally and in CI; pin is ai-sdlc.version
 ai-sdlc/
 
 # Built validator binary

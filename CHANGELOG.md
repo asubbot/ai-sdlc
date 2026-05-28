@@ -8,11 +8,12 @@ All notable changes to this repository are documented in this file.
 
 - [00-project-bootstrap.skill.md](specification/skills/00-project-bootstrap.skill.md) — pre-pipeline skeleton for new product repositories.
 - [templates/consumer/](templates/consumer/) — `AGENTS.md`, `.gitignore`, `Makefile`, `ai-sdlc.version`, CI workflow, `ai-sdlc-artefacts/` stubs including **EP-000** adoption epic.
-- [pipeline.spec.md](specification/pipeline.spec.md) — **Consumer onboarding (greenfield)**; layout A (gitignored `ai-sdlc/`) vs layout B (submodule); normative order bootstrap → stages 1–2 → EP-000 → product epics.
+- [pipeline.spec.md](specification/pipeline.spec.md) — **Consumer onboarding (greenfield)**; gitignored nested `ai-sdlc/` clone; normative order bootstrap → stages 1–2 → EP-000 → product epics.
 - [README.md](README.md) — **Starting a new project** walkthrough and target layout summary.
 - Validator testdata: [tools/validate/testdata/EP-000/](tools/validate/testdata/EP-000/), project-level [scope.md](tools/validate/testdata/scope.md) / [strategy.md](tools/validate/testdata/strategy.md); CI smoke for EP-000 and EP-099.
 - Skills: gate in [01-scope-analysis.skill.md](specification/skills/01-scope-analysis.skill.md); consumer `bin/validate` note in [09-task-execution.skill.md](specification/skills/09-task-execution.skill.md).
 - [tools/scripts/bootstrap-smoke.sh](tools/scripts/bootstrap-smoke.sh) — automated greenfield bootstrap smoke; CI replaces partial Makefile-only consumer smoke.
+- Consumer onboarding: **single process layout** only (gitignored nested `ai-sdlc/` clone); submodule layout removed from normative docs and bootstrap skill.
 
 ### Upgrading to Unreleased (consumer greenfield)
 
@@ -21,7 +22,7 @@ All notable changes to this repository are documented in this file.
 | New projects | Follow README **Starting a new project** + bootstrap skill |
 | Existing repos | No change required; bootstrap is greenfield-only |
 | EP-000 | Optional for mature repos adopting explicit SDLC infra epic |
-| Layout A | Add `ai-sdlc/` to `.gitignore`; CI must checkout process at pin (see template workflow) |
+| Process clone | Add `ai-sdlc/` to `.gitignore`; clone locally and in CI at pin in `ai-sdlc.version` (see template workflow) |
 
 ## v1.0.1 - 2026-05-28
 

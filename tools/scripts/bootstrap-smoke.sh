@@ -114,7 +114,7 @@ main() {
   assert_file "ai-sdlc-artefacts/epics/EP-000/ep-scope.md"
 
   grep -q '^ai-sdlc/$' "${PRODUCT}/.gitignore" \
-    || die ".gitignore missing layout A entry ai-sdlc/"
+    || die ".gitignore missing ai-sdlc/ entry"
 
   pin_matches_checkout "${pin}" || die "ai-sdlc.version pin does not match ai-sdlc/ checkout"
 

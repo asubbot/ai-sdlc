@@ -20,14 +20,14 @@ description: >-
 1. **Product root workspace** — All paths below are relative to the **consumer product repository root** (the directory that will contain `ai-sdlc-artefacts/` and `ai-sdlc.version`). If the workspace root is `ai-sdlc/` only, instruct the operator to reopen the parent folder or create the product root first.
 2. **Do not apply canonical ai-sdlc AGENTS rules** — In a consumer repo, creating `ai-sdlc-artefacts/` is required. Ignore canonical-repo bans on artefacts.
 3. **Templates source** — Copy or adapt from [`templates/consumer/`](../../templates/consumer/) in the pinned `ai-sdlc/` tree unless the operator provides a fork path.
-4. **Layout A default** — Nested clone with `ai-sdlc/` in `.gitignore`; durable process reference is `ai-sdlc.version` only. **Layout B (submodule):** HITL; omit `ai-sdlc/` from `.gitignore`.
+4. **Process clone** — Nested clone at `ai-sdlc/` listed in `.gitignore`; durable process reference is `ai-sdlc.version` only (not the vendored tree in product git).
 5. **Bootstrap ends at skeleton** — Full **EP-000** pipeline (stages 3–11) runs **after** stages 1–2, in separate orchestration sessions if needed.
 
 ---
 
 ## Orchestrator brief
 
-- **Required input:** `ai-sdlc/` directory present (clone or submodule) with `specification/pipeline.spec.md`.
+- **Required input:** `ai-sdlc/` directory present (local clone) with `specification/pipeline.spec.md`.
 - **Greenfield detection:** Missing consumer root `AGENTS.md` **or** missing `ai-sdlc-artefacts/scope.md` while adopting a new product.
 - **Gate check:** Abort if `ai-sdlc/specification/pipeline.spec.md` is missing.
 - **Output signal:** `BOOTSTRAP_COMPLETE: skeleton ready [<paths created>]`
@@ -41,16 +41,14 @@ Follow this order:
 
 1. **Verify process tree** — Confirm `ai-sdlc/specification/pipeline.spec.md` exists. If not, stop with a clear error (clone canonical ai-sdlc into `ai-sdlc/`).
 
-2. **Layout decision** — Default **layout A** (clone + gitignore). Use **layout B** only when the operator explicitly chooses a git submodule.
+2. **Clone if missing** — If `ai-sdlc/` is absent, run `git clone <AI_SDLC_REPO_URL> ai-sdlc` and checkout the revision from `ai-sdlc.version` (or ask operator for URL and pin). Record clone instructions in the product README if clone cannot run in-session.
 
-3. **Clone if missing (layout A)** — If `ai-sdlc/` is absent, run `git clone <AI_SDLC_REPO_URL> ai-sdlc` and checkout the revision from `ai-sdlc.version` (or ask operator for URL and pin). Record clone instructions in the product README if clone cannot run in-session.
-
-4. **Materialize skeleton** — From `ai-sdlc/templates/consumer/`, copy to product root:
+3. **Materialize skeleton** — From `ai-sdlc/templates/consumer/`, copy to product root:
 
    | Template | Product path |
    |----------|----------------|
    | `AGENTS.md` | `AGENTS.md` |
-   | `.gitignore` | `.gitignore` (layout B: remove `ai-sdlc/` line) |
+   | `.gitignore` | `.gitignore` |
    | `Makefile` | `Makefile` |
    | `ai-sdlc.version` | `ai-sdlc.version` |
    | `README.project.md` | `README.md` |
@@ -59,15 +57,15 @@ Follow this order:
 
    Do not overwrite existing operator content without HITL.
 
-5. **Write pin** — Set `ai-sdlc.version` to `git -C ai-sdlc rev-parse HEAD` or an agreed release tag (e.g. `v1.0.1`). One line, no extra whitespace.
+4. **Write pin** — Set `ai-sdlc.version` to `git -C ai-sdlc rev-parse HEAD` or an agreed release tag (e.g. `v1.0.1`). One line, no extra whitespace.
 
-6. **Build validator** — Run `make build` from product root. Fail with actionable message if `ai-sdlc/tools/validate` is missing.
+5. **Build validator** — Run `make build` from product root. Fail with actionable message if `ai-sdlc/tools/validate` is missing.
 
-7. **Git** — If no `.git/`, suggest `git init` (HITL if remote/origin policy matters).
+6. **Git** — If no `.git/`, suggest `git init` (HITL if remote/origin policy matters).
 
-8. **Signal completion** — Emit `BOOTSTRAP_COMPLETE: skeleton ready [<paths>]`.
+7. **Signal completion** — Emit `BOOTSTRAP_COMPLETE: skeleton ready [<paths>]`.
 
-9. **Hand off (normative order)** — Tell the operator:
+8. **Hand off (normative order)** — Tell the operator:
 
    1. **Stage 1** — [01-scope-analysis.skill.md](01-scope-analysis.skill.md) (refine `scope.md`; stubs are starting points).
    2. **Stage 2** — [02-strategy-analysis.skill.md](02-strategy-analysis.skill.md) (refine `strategy.md`).
@@ -91,7 +89,7 @@ Not part of bootstrap **Done when**; run as follow-on work:
 ## Done when (bootstrap skill only)
 
 - [ ] Consumer `AGENTS.md` exists at product root.
-- [ ] `.gitignore` exists (layout A includes `ai-sdlc/`).
+- [ ] `.gitignore` exists and includes `ai-sdlc/`.
 - [ ] `ai-sdlc.version` contains a pin matching the `ai-sdlc/` checkout.
 - [ ] `ai-sdlc-artefacts/README.md` exists.
 - [ ] `Makefile` and `.github/workflows/ai-sdlc.yml` exist.

@@ -12,10 +12,9 @@ Files in this directory are **copied to the product repository root** during gre
 | `ai-sdlc-artefacts/**` | `ai-sdlc-artefacts/**` |
 | `.github/workflows/ai-sdlc.yml` | `.github/workflows/ai-sdlc.yml` |
 
-## Layout
+## Process clone
 
-- **Default (layout A):** `ai-sdlc/` is a local clone (listed in `.gitignore`). Process version is recorded in `ai-sdlc.version` at the product root.
-- **Layout B:** `ai-sdlc/` is a git submodule; remove the `ai-sdlc/` line from `.gitignore`.
+`ai-sdlc/` is a local nested clone (listed in `.gitignore`). The product repository records the process revision in `ai-sdlc.version` at the product root; CI clones `ai-sdlc/` at that pin.
 
 ## Rules
 

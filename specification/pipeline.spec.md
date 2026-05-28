@@ -56,7 +56,7 @@ Full artefacts remain the source of truth. If a compact layer conflicts with a f
 **Prerequisites:**
 
 - Git repository at the **product root** (init locally if needed; remote/origin is HITL).
-- `ai-sdlc/` at the product root: nested clone (**layout A**, default) or git submodule (**layout B**).
+- `ai-sdlc/` at the product root: **local nested clone** listed in `.gitignore` (not committed to the product repository).
 - IDE workspace root = **product root**, not `ai-sdlc/`.
 
 **Bootstrap triggers:** Operator intents such as «start new project», «bootstrap ai-sdlc», or «begin work» when consumer `AGENTS.md` or `ai-sdlc-artefacts/scope.md` is missing while `ai-sdlc/` exists.
@@ -71,12 +71,7 @@ Full artefacts remain the source of truth. If a compact layer conflicts with a f
 4. Refine scope/strategy when the product is known.
 5. **EP-001+** — product epics.
 
-**Consumption layouts:**
-
-| Layout | `ai-sdlc/` in product git | Durable process reference |
-|--------|---------------------------|---------------------------|
-| **A (default)** | No — listed in `.gitignore`; clone locally and in CI | `ai-sdlc.version` |
-| **B** | Yes — git submodule pointer | `ai-sdlc.version` + submodule commit |
+**Process consumption:** Clone `ai-sdlc/` locally and in CI at the revision in `ai-sdlc.version` (tag or commit SHA). Do not commit the process tree to the product repository.
 
 **Validator in consumer repos:** Build with `make build`; run `make validate` or `./bin/validate` from the product root (sources under `ai-sdlc/tools/validate/`). See [VALIDATION.md](../tools/validate/VALIDATION.md).
 

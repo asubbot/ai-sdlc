@@ -23,7 +23,7 @@ updated_at: 2026-05-28
 
 ## Scope (features/capabilities)
 
-- Consumer `AGENTS.md`, `.gitignore` (layout A), `Makefile`, and `ai-sdlc-artefacts/` layout.
+- Consumer `AGENTS.md`, `.gitignore` (includes `ai-sdlc/`), `Makefile`, and `ai-sdlc-artefacts/` layout.
 - `ai-sdlc.version` records the process revision; CI verifies the pin and checks out `ai-sdlc` at that revision.
 - `make build` and `make validate` work from the product repository root.
 - Project-level [scope.md](../../scope.md) and [strategy.md](../../strategy.md) stubs exist for pipeline gates.
