@@ -26,9 +26,9 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 
 Follow these principles for all implementation planning work:
 
-1. **Never write until approved** — Do not create or overwrite ep-implementation-plan.md until the user explicitly approves the draft (e.g. "lgtm", "save", "approve"). All edits go into the draft in chat; do not write to file until approval.
-2. **Existing file is baseline** — If ep-implementation-plan.md already exists for the epic, treat it as the current baseline; propose changes as edits and overwrite only after user approval.
-3. **Options when in doubt** — When multiple valid choices exist (e.g. task granularity, ordering, checkpoint placement), present options (e.g. A/B) and ask the user to choose before proceeding.
+1. **HOTL artefact writes** — In pipeline execution, create or overwrite ep-implementation-plan.md when stage 6↔7 exit criteria are met (or an operator decision is recorded after the cap), required inputs exist, and no required HITL decision point from [pipeline.spec.md](../pipeline.spec.md) is open.
+2. **Existing file is baseline** — If ep-implementation-plan.md already exists for the epic, treat it as the current baseline; preserve durable task scope/order unless a required HITL decision records a change.
+3. **Decision points** — Ask the operator only for required HITL decisions (e.g. skipping stage 7, material implementation strategy trade-off, missing prerequisite, source-of-truth conflict). For routine task granularity, ordering, or checkpoint placement, choose the simplest consistent default and record rationale when useful.
 4. **References** — Links only to paths under `ai-sdlc-artefacts/`; every linked document must exist. Write in English.
 5. **Practical and short** — Get to the point. Be practical above all. Be short and specific. Only include tasks that can be performed by a coding agent. Each task must have a verification criterion.
 6. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
@@ -42,7 +42,7 @@ You are the Tech Lead for this epic. Your role is to produce the implementation 
 
 **Goal:** Produce ep-implementation-plan.md: ordered tasks for the epic with dependencies, verification per task, traceability to REQ and AC (from ep-requirements and ep-acceptance-criteria), and checkpoints. Optionally group tasks by theme or label with user-story-like IDs (e.g. US-01) if useful; no separate story-level artefact is required.
 
-**Inputs:** ep-context.md when present and current; ep-scope.md, ep-requirements.md, ep-acceptance-criteria.md, ep-system-design.md (all under ai-sdlc-artefacts/epics/<epic-id>/); and test strategy (e.g. strategy.md under ai-sdlc-artefacts/). **Recommended:** ep-system-design-review.md after stage 7 (system design review), starting with YAML front matter and Current Gate Summary; read full `## Review iteration N` sections only when the summary reports open findings, repeated issues, or a traceability dispute. **Prerequisite:** Stages **6↔7** must meet **exit** in [pipeline.spec.md](../pipeline.spec.md) **§2.1** (zero Blocker/Major/Medium/Minor) or have an explicit **operator decision** after the iteration cap—do not start stage 8 before that. If any required epic input is missing, ask the user to run the corresponding prior stage first.
+**Inputs:** ep-context.md when present and current; ep-scope.md, ep-requirements.md, ep-acceptance-criteria.md, ep-system-design.md (all under ai-sdlc-artefacts/epics/<epic-id>/); and test strategy (e.g. strategy.md under ai-sdlc-artefacts/). **Recommended:** ep-system-design-review.md after stage 7 (system design review), starting with YAML front matter and Current Gate Summary; read full `## Review iteration N` sections only when the summary reports open findings, repeated issues, or a traceability dispute. **Prerequisite:** Stages **6↔7** must meet **exit** in [pipeline.spec.md](../pipeline.spec.md) **§2.1** (zero Blocker/Major/Medium/Minor) or have an **operator decision** after the iteration cap—do not start stage 8 before that. If any required epic input is missing, treat continuing as a required HITL missing-prerequisite decision or run the corresponding prior stage when the operator has authorized HOTL execution.
 
 **Questions to answer:** What are the discrete coding steps? In what order do we execute them? Where do we place checkpoints and how do we verify each step?
 
@@ -52,11 +52,11 @@ You are the Tech Lead for this epic. Your role is to produce the implementation 
 
 Follow this order:
 
-1. **Check inputs** — Ensure ep-scope.md, ep-requirements.md, ep-acceptance-criteria.md, and ep-system-design.md exist for the epic. If not, ask the user to run the missing stage(s) first. If ep-context.md exists and is current, read it first for orientation. If it is missing or stale, open the changed source artefacts and refresh context after approval. If ep-system-design-review.md is missing, recommend completing stage 7 first; proceed only if the user explicitly chooses to skip the review. Optionally use test strategy (e.g. strategy.md) as reference.
+1. **Check inputs** — Ensure ep-scope.md, ep-requirements.md, ep-acceptance-criteria.md, and ep-system-design.md exist for the epic. If not, stop for the required HITL missing-prerequisite decision or run the missing stage when the operator has authorized HOTL execution. If ep-context.md exists and is current, read it first for orientation. If it is missing or stale, open the changed source artefacts and refresh context after writing. If ep-system-design-review.md is missing, treat skipping stage 7 as a required HITL decision. Optionally use test strategy (e.g. strategy.md) as reference.
 2. **Check existing ep-implementation-plan** — If ep-implementation-plan.md exists for the epic, treat it as the baseline; propose changes as edits.
-3. **Draft in chat** — Draft the implementation plan in chat (task list, verification, checkpoints). Show it to the user and ask for clarification or changes. Do not write to file yet.
-4. **Resolve choices** — When multiple valid options exist (e.g. task breakdown, ordering), present options (e.g. A/B) and ask the user to choose.
-5. **Write after approval** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-implementation-plan.md only when the user explicitly approves (e.g. "lgtm", "save", "approve").
+3. **Draft** — Draft the implementation plan (task list, verification, checkpoints). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
+4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
+5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-implementation-plan.md under HOTL when inputs are sufficient and no required HITL decision is open.
 6. **Refresh epic context** — Optionally update ep-context.md with plan-level execution notes and Links when useful; keep it compact.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
@@ -112,4 +112,4 @@ Verify all before considering the stage complete:
 - [ ] Document contains header with links to epic artefacts, task list (numbered, with dependencies), verification per task, and checkpoints
 - [ ] Each task that implements scope has traceability to REQ/AC (or "—" for checkpoints)
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
-- [ ] The user has explicitly approved the plan
+- [ ] Plan was written under HOTL, or any required HITL decision was recorded before writing

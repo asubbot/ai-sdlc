@@ -23,6 +23,31 @@ Examples below use the canonical repository-root path `./tools/validate/validate
 
 The `--json` flag works in any position (before or after subcommand/epic).
 
+## Pipeline State Validation
+
+The `pipeline` subcommand validates one epic's stage ordering and HOTL gate evidence:
+
+```bash
+./tools/validate/validate pipeline EP-009
+./tools/validate/validate pipeline EP-009 --json
+```
+
+It enforces:
+
+- later stages cannot exist before required earlier artefacts;
+- stage 8 cannot exist unless stage 7 has `gate: pass`, or the stage 7 review artefact records an operator decision for a non-pass gate;
+- stage 11 cannot exist unless stage 10 code-review gate evidence exists and has `gate: pass`, or the code-review artefact records an operator decision for a non-pass gate;
+- open **Blocker**, **Major**, **Medium**, or **Minor** counts make a review gate blocking. `Nit` and `Suggestion` are non-blocking.
+
+Accepted operator decision evidence is the decision record pattern from `pipeline.spec.md`. The validator currently requires both lines below in the affected review artefact:
+
+```markdown
+Decision needed: <type>
+Operator choice: <selected option>
+```
+
+This is intentionally minimal: the validator checks that decision evidence exists, while process review checks whether the decision is appropriate.
+
 ## AC Validation
 
 The `validate` tool automatically validates that all Acceptance Criteria (AC) from an epic's `ep-acceptance-criteria.md` are covered by tests.
@@ -329,8 +354,8 @@ cd tools/validate && go test ./...
 
 ## Exit Codes
 
-- **0** — All checks passed: every in-scope AC is traced, every scanned `Test*` has an AC trace line, and the AGENTS.md gocyclo-suppression policy scan is clean ✅
-- **1** — Failure: at least one in-scope AC has no test trace, **or** at least one top-level `Test*` is missing a bound AC trace comment, **or** `findNolintGocycloViolations` reported one or more paths ❌
+- **0** — Requested validation passed: for `ac`, every in-scope AC is traced, every scanned `Test*` has an AC trace line, and the AGENTS.md gocyclo-suppression policy scan is clean; for `pipeline`, stage ordering and gate evidence are valid ✅
+- **1** — Failure: missing AC traceability, a `Test*` without a bound AC trace comment, a gocyclo policy violation, an artefact structure issue, a pipeline ordering/gate violation, or missing operator decision evidence ❌
 
 ## Common Workflows
 

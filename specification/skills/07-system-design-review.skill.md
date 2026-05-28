@@ -25,7 +25,7 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 When this skill is run as **pipeline stage 7** for an epic, execution MUST follow [pipeline.spec.md](../pipeline.spec.md) **§3**:
 
 - **If you are the orchestrator** (you just helped author `ep-system-design.md` or earlier stages): **do not** perform this review yourself in the same session. **Delegate** to a **subagent** (Cursor Task / equivalent) or start a **new chat** with fresh context and a one-line brief: epic id, paths under `ai-sdlc-artefacts/epics/EP-XXX/`, instruction to run this skill end-to-end.
-- **If you are the delegated reviewer**: treat inputs as read-only; produce the review for the user; write `ep-system-design-review.md` only after explicit user approval to save, per this skill. Do **not** edit `ep-context.md`; the orchestrator applies any accepted gate summary update after the review is accepted or saved.
+- **If you are the delegated reviewer**: treat inputs as read-only; produce and save `ep-system-design-review.md` when running inside the HOTL pipeline so the gate has durable evidence. Outside an orchestrated pipeline, draft in chat unless the user asked to save. Do **not** edit `ep-context.md`; the orchestrator applies any accepted gate summary update after the review is accepted or saved.
 
 ## When to Use
 
@@ -37,7 +37,7 @@ When this skill is run as **pipeline stage 7** for an epic, execution MUST follo
 
 Stages **6** and **7** repeat until **zero** open findings in **Blocker**, **Major**, **Medium**, and **Minor**, or until the **operator decides** after the cap.
 
-1. **Count iterations** — Each completed save of a **`## Review iteration N`** section in `ep-system-design-review.md` is one stage 7 iteration. **N** must not exceed **5** without an explicit operator decision recorded in chat or in the review file (e.g. under the latest iteration).
+1. **Count iterations** — Each completed save of a **`## Review iteration N`** section in `ep-system-design-review.md` is one stage 7 iteration. **N** must not exceed **5** without an operator decision recorded in chat or in the review file (e.g. under the latest iteration).
 2. **Single file** — Use one `ep-system-design-review.md` per epic. For iteration **N**, add (or replace only if the user agrees to discard a draft) a **top-level** heading `## Review iteration N` with a stable increasing **N**. **Retain** all prior `## Review iteration …` sections for history.
 3. **Current Gate Summary** — On save, update YAML front matter, Current Gate Summary, and the latest review iteration atomically. The latest full `## Review iteration N` remains the source of truth.
 4. **Exit loop** — After this iteration’s findings are recorded, set **`Iteration summary — open counts`** for Blocker / Major / Medium / Minor. If all four are **zero**, the iteration loop is **complete**; stage 8 may follow.

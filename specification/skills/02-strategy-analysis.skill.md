@@ -12,14 +12,14 @@ description: Define delivery strategy and test strategy from scope; produce stra
 
 Follow these principles for all strategy analysis work:
 
-1. **Never write until approved** — Do not create or overwrite strategy.md until the user explicitly approves the draft (e.g. "lgtm", "save", "approve").
-2. **Existing file is baseline** — If strategy.md already exists, treat it as the current baseline; propose changes as edits and overwrite only after user approval.
-3. **Options when in doubt** — When multiple valid choices exist (e.g. increment names, test levels, depth of strategy), present options (e.g. A/B) and ask the user to choose before proceeding.
+1. **HOTL artefact writes** — In pipeline execution, create or overwrite strategy.md when the strategy follows scope.md and no required HITL decision point from [pipeline.spec.md](../pipeline.spec.md) is triggered.
+2. **Existing file is baseline** — If strategy.md already exists, treat it as the current baseline; preserve durable delivery/test commitments unless a required HITL decision records a change.
+3. **Decision points** — Ask the operator only for required HITL decisions (e.g. material delivery trade-off, missing prerequisite, source-of-truth conflict). For routine increment naming, structure, or wording choices, choose the simplest consistent default and record rationale when useful.
 4. **Traceability to scope** — Strategy must align with scope.md. Upstream artefacts (scope) have priority over downstream (strategy). If there is a conflict, 
 adapt strategy to scope; do not modify scope from stage 2.
 4. **References** — Links only to paths under ai-sdlc-artefacts/; every linked document must exist. Strategy must align with scope; if conflict, adapt strategy to scope; do not modify scope from stage 2. Do not mention EP-xx, US-xx, REQ-xx, AC-xx in the body. Write in English.
 5. **Practical and short** — Use English. Get to the point. For simple projects, keep the strategy lightweight.
-6. **YAML front matter** — On approved save, start strategy.md with YAML front matter (`artefact`, `status`, `source_of_truth: true`, `updated_at`).
+6. **YAML front matter** — On save, start strategy.md with YAML front matter (`artefact`, `status`, `source_of_truth: true`, `updated_at`).
 
 ---
 
@@ -37,12 +37,12 @@ You are the Product Owner and QA lead. Your role is to define the delivery strat
 
 Follow this order:
 
-1. **Check scope exists** — Ensure ai-sdlc-artefacts/scope.md exists. If not, ask the user to provide scope first.
-2. **Check existing strategy** — If ai-sdlc-artefacts/strategy.md exists, treat it as the baseline; propose changes as edits and ask the user to approve before overwriting.
+1. **Check scope exists** — Ensure ai-sdlc-artefacts/scope.md exists. If not, treat continuing as a required HITL missing-prerequisite decision or run stage 1 when the operator has authorized HOTL execution.
+2. **Check existing strategy** — If ai-sdlc-artefacts/strategy.md exists, treat it as the baseline; do not change durable delivery/test commitments without a required HITL decision.
 3. **Gather inputs** — Use scope.md and any assumptions, risks, priorities from the user. If something essential is missing, ask a few focused questions; do not invent strategy.
 4. **Draft in chat** — Draft the strategy in chat (section by section or as a whole). Do not write to strategy.md yet.
-5. **Resolve choices** — When multiple valid options exist (e.g. increment structure, test pyramid depth), present them (e.g. A/B) and ask the user to choose before proceeding.
-6. **Write after approval** — Update ai-sdlc-artefacts/strategy.md only when the user explicitly approves (e.g. "lgtm", "save", "approve").
+5. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
+6. **Write artefact** — Update ai-sdlc-artefacts/strategy.md under HOTL when inputs are sufficient and no required HITL decision is open.
 
 ## 3. Output structure (strategy.md)
 
@@ -72,4 +72,4 @@ Verify all before considering the stage complete:
 - [ ] Document contains the required sections above (or user-agreed subset)
 - [ ] Every link in the document points to an existing path under ai-sdlc-artefacts/ (no broken links).
 - [ ] Document does not mention downstream identifiers (EP-xx, US-xx, REQ-xx, AC-xx).
-- [ ] User has explicitly approved the content
+- [ ] Content was written under HOTL, or any required HITL decision was recorded before writing

@@ -12,11 +12,11 @@ description: Capture project scope from user request or conversation; produce sc
 
 Follow these principles for all scope analysis work:
 
-1. **Never write until approved** — Do not create or overwrite scope.md until the user explicitly approves the draft (e.g. "lgtm", "save", "approve").
-2. **Existing file is baseline** — If scope.md already exists, treat it as the current baseline; propose changes as edits and overwrite only after user approval.
-3. **Options when in doubt** — When multiple valid choices exist (e.g. scope granularity, depth of glossary, requirements table), present options (e.g. A/B) and ask the user to choose before proceeding.
+1. **HOTL artefact writes** — In pipeline execution, create or overwrite scope.md when the scope draft is internally consistent and no required HITL decision point from [pipeline.spec.md](../pipeline.spec.md) is triggered.
+2. **Existing file is baseline** — If scope.md already exists, treat it as the current baseline; preserve durable scope unless a required HITL decision records a scope change.
+3. **Decision points** — Ask the operator only for required HITL decisions (e.g. missing essential scope input, material scope trade-off, source-of-truth conflict). For routine structure or wording choices, choose the simplest consistent default and record rationale when useful.
 4. **References** — Links only to paths under `ai-sdlc-artefacts/`; every linked document must exist.
-5. **YAML front matter** — On approved save, start scope.md with YAML front matter (`artefact`, `status`, `source_of_truth: true`, `updated_at`).
+5. **YAML front matter** — On save, start scope.md with YAML front matter (`artefact`, `status`, `source_of_truth: true`, `updated_at`).
 
 ---
 
@@ -32,11 +32,11 @@ You are an expert requirements analyst. Your role is to capture project scope fr
 
 Follow this order:
 
-1. **Check existing scope** — If ai-sdlc-artefacts/scope.md exists, treat it as the baseline; propose changes as edits and ask the user to approve before overwriting.
+1. **Check existing scope** — If ai-sdlc-artefacts/scope.md exists, treat it as the baseline; do not change durable scope without a required HITL decision.
 2. **Gather inputs** — Use chat and any references. If something essential is missing, ask a few focused questions; do not invent scope.
 3. **Draft in chat** — Draft the scope in chat (section by section or as a whole). Do not write to scope.md yet.
-4. **Resolve choices** — When multiple valid options exist, present them (e.g. A/B) and ask the user to choose before proceeding.
-5. **Write after approval** — Update ai-sdlc-artefacts/scope.md only when the user explicitly approves (e.g. "lgtm", "save", "approve").
+4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
+5. **Write artefact** — Update ai-sdlc-artefacts/scope.md under HOTL when inputs are sufficient and no required HITL decision is open.
 
 ## 3. Output structure (scope.md)
 
@@ -67,4 +67,4 @@ Verify all before considering the stage complete:
 - [ ] Document contains the required sections above (or user-agreed subset)
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links).
 - [ ] Document does not mention downstream identifiers (EP-xx, US-xx, AC-xx).
-- [ ] User has explicitly approved the content
+- [ ] Content was written under HOTL, or any required HITL decision was recorded before writing

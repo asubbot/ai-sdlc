@@ -39,13 +39,13 @@ You are the QA and delivery lead. Your task is to produce an audit (status) repo
 
 **Note:** The REQ/AC test coverage matrix is **generated inside the audit report**, not read from a separate file. The file ep-req-ac-test-coverage.md is not part of the pipeline; if it exists in the epic folder, do not use it as input—produce the matrix from ep-acceptance-criteria, ep-requirements, and codebase (e.g. `Covers AC-EE.NNN` comments).
 
-**Epic ID:** Resolve from the branch name, from the path of existing epic artefacts, or ask the user if ambiguous.
+**Epic ID:** Resolve from the branch name, from the path of existing epic artefacts, or stop for operator choice only if ambiguity cannot be resolved from artefacts.
 
 **Project-level audit:** If the user requests an audit for the **whole project** (e.g. "audit the whole project", "project audit", "audit all epics"), do **not** resolve a single epic. Instead follow **§2a** and **§3a** to produce and save the project-level audit report (`audit-report.md`) with the epic summary table. Output only compact summary in chat unless user explicitly asks for full report.
 
 **Questions to answer:** What is implemented vs planned? Do tests pass? What is the coverage? Are there lint or quality issues? What gaps or risks remain?
 
-**Constraints:** Get right to the point. Be practical above all. Be short and specific. When multiple valid choices exist (e.g. report format, level of detail), present options and ask the user to choose. See [skills README](README.md) (Common behaviour).
+**Constraints:** Get right to the point. Be practical above all. Be short and specific. Use HOTL defaults for routine report format and level of detail; stop only for required HITL decision points. See [skills README](README.md) (Common behaviour).
 
 **Rules:** Use English. Keep traceability to AC and implementation plan. References only to paths under `ai-sdlc-artefacts/`; every linked document must exist.
 
@@ -55,7 +55,7 @@ You are the QA and delivery lead. Your task is to produce an audit (status) repo
 
 Follow this order:
 
-1. **Check inputs** — Ensure ep-implementation-plan.md and ep-acceptance-criteria.md exist for the epic. Resolve epic ID (branch, artefact path, or ask user). If inputs are missing, ask the user to run the missing stage(s) or provide the epic.
+1. **Check inputs** — Ensure ep-implementation-plan.md and ep-acceptance-criteria.md exist for the epic. Resolve epic ID from branch or artefact path. If inputs are missing, treat continuing as a required HITL missing-prerequisite decision or run the missing stage when the operator has authorized HOTL execution.
 2. **Load fast context** — Read YAML front matter, ep-context.md, and Current Gate Summary blocks first when present. If missing, stale, or contradictory, fall back to the full artefact body.
 3. **Run tests and checks** — Execute **`make check`** (or the project’s equivalent single command that runs fmt, vet, lint, tests with coverage, and any boundary/static checks). Capture pass/fail and the **total** test coverage from the command output.
 4. **Compare to plan** — For each task in ep-implementation-plan.md, determine status: done, pending, or blocked. Tie test results to acceptance criteria (AC-EE.NNN) where applicable.

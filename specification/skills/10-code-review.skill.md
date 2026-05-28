@@ -9,13 +9,13 @@ description: >-
 # Stage 10: Code review
 
 **Pipeline:** [pipeline.spec.md](../pipeline.spec.md). Complements [11-audit.skill.md](11-audit.skill.md) (audit = plan/tests/coverage). Runs after task execution (stage 9) and before audit (stage 11).  
-**Output:** The review is **shown in chat** in full. A file is **not** created unless the user explicitly asks to save (e.g. "save", "write to file", "lgtm"). **Recommended epic path when saving:** `ai-sdlc-artefacts/epics/<epic-id>/ep-code-review.md`; other paths (e.g. `ai-sdlc-artefacts/reviews/...`) only if the user prefers. For the **§2.2** iteration loop, persist each iteration under **`## Review iteration N`** in that file and refresh YAML front matter plus Current Gate Summary when the user approves save (see **Code–review iteration** below).
+**Output:** The review is **shown in chat** in full. Outside an orchestrated HOTL pipeline, a file is created only when the user asks to save (e.g. "save", "write to file", "lgtm"). Inside the **§2.2** stage 9↔10 loop, persist each iteration under **`## Review iteration N`** in `ai-sdlc-artefacts/epics/<epic-id>/ep-code-review.md` and refresh YAML front matter plus Current Gate Summary so downstream gates have durable evidence. Other paths (e.g. `ai-sdlc-artefacts/reviews/...`) only if the operator prefers.
 
 ## Code–review iteration ([pipeline.spec.md](../pipeline.spec.md) §2.2)
 
 Stages **9** and **10** repeat until **zero** open findings in **Blocker**, **Major**, **Medium**, and **Minor**, or until the **operator decides** after the cap.
 
-1. **Count iterations** — Each completed save of a **`## Review iteration N`** section in `ep-code-review.md` (or a full review recorded as iteration **N** per operator agreement) is one stage 10 iteration. **N** must not exceed **5** without an explicit operator decision recorded in chat or in the review file.
+1. **Count iterations** — Each completed save of a **`## Review iteration N`** section in `ep-code-review.md` (or a full review recorded as iteration **N** per operator agreement) is one stage 10 iteration. **N** must not exceed **5** without an operator decision recorded in chat or in the review file.
 2. **Single file** — Use one `ep-code-review.md` per epic when persisting. For iteration **N**, add a **top-level** heading `## Review iteration N` with stable increasing **N**. **Retain** prior iteration sections.
 3. **Current Gate Summary** — On save, update YAML front matter, Current Gate Summary, and the latest review iteration atomically. The latest full `## Review iteration N` remains the source of truth.
 4. **Exit loop** — After this iteration, if **Blocker**, **Major**, **Medium**, and **Minor** open counts are all **zero**, the iteration loop is **complete**; stage 11 may follow. **Nit** and **Suggestion** do not block.
@@ -37,7 +37,7 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 When this skill is run as **pipeline stage 10**, execution MUST follow [pipeline.spec.md](../pipeline.spec.md) **§3**:
 
 - **If you are the orchestrator** (you executed stage 9 / authored the change): **do not** perform the full structured review yourself in the same session. **Delegate** to a **subagent** or a **new chat** with fresh context; pass the agreed scope (PR URL, `base..head`, or file paths) and instruct the delegate to run this skill only.
-- **If you are the delegated reviewer:** follow §1–§4 below; stay **readonly** on the repo unless the user explicitly asks for edits; output in chat first; save `ep-code-review.md` only when the user requests. Do **not** edit `ep-context.md`; the orchestrator applies any accepted code-review gate summary update after the review is accepted or saved.
+- **If you are the delegated reviewer:** follow §1–§4 below; stay **readonly** on the repo unless the operator explicitly asks for edits; output in chat first. In an orchestrated HOTL stage 10 loop, save/update `ep-code-review.md`; outside the pipeline, save only when the user requests. Do **not** edit `ep-context.md`; the orchestrator applies any accepted code-review gate summary update after the review is accepted or saved.
 
 ---
 
@@ -54,7 +54,7 @@ You are a senior reviewer. Your task is to review a **bounded change set** and r
 
 **Questions to answer:** Are there bugs, security issues, or API/contract breaks? Are errors handled explicitly? Are tests and observability adequate for the change? What would you change (suggestions only unless the user requests edits)?
 
-**Constraints:** Be direct and specific (file + symbol or line region when possible). When scope is ambiguous (whole repo vs one PR), present options and ask the user to choose. Do not invent behaviour not visible in the diff/code.
+**Constraints:** Be direct and specific (file + symbol or line region when possible). When scope is ambiguous (whole repo vs one PR), treat scope selection as a required HITL decision. Do not invent behaviour not visible in the diff/code.
 
 **Rules:** All review text in **English**. Comments in code samples must be English. Do **not** commit or edit the repo unless the user explicitly asks.
 
@@ -68,7 +68,7 @@ You are a senior reviewer. Your task is to review a **bounded change set** and r
 4. **Apply the checklist (§3)** — Systematically walk through categories; note **severity** using the definitions below (**Blocker**, **Major**, **Medium**, **Minor** gate **§2.2**; **Nit** and **Suggestion** do not).
 5. **Tests** — If the change is non-trivial and the repo has a standard check command, you **may** suggest the user run **`make check`**; run it **only if** the user asked for verification or Agent mode allows running commands. Record pass/fail in the review when you ran it.
 6. **Output in chat** — Always output the **full** review using the structure in §4 (include **Iteration summary — open counts** for Blocker / Major / Medium / Minor / Nit / Suggestion when **§2.2** applies).
-7. **Save only when requested** — Write a file **only** when the user explicitly asks to save. Prefer `ai-sdlc-artefacts/epics/<epic-id>/ep-code-review.md` for epic-scoped reviews; otherwise e.g. `ai-sdlc-artefacts/reviews/code-review-YYYY-MM-DD-<topic>.md` if the user prefers. For **§2.2**, append **`## Review iteration N`** and refresh YAML front matter plus Current Gate Summary atomically (preserve prior sections). Use relative links if the review references epic artefacts.
+7. **Save gate evidence** — In an orchestrated **§2.2** pipeline loop, append **`## Review iteration N`** to `ep-code-review.md` and refresh YAML front matter plus Current Gate Summary atomically (preserve prior sections). Outside the pipeline, write a file only when the user explicitly asks to save. Use relative links if the review references epic artefacts.
 
 ---
 
@@ -119,7 +119,7 @@ Use this layout (or user-agreed equivalent):
 7. **Test / verification** — What should be run (e.g. `make check`) and result if you ran it.
 8. **Residual risks / follow-ups** — Optional; out-of-scope items for later.
 
-### Saved file layout (`ep-code-review.md`, when user approves save)
+### Saved file layout (`ep-code-review.md`, for HOTL gate evidence or when user asks to save)
 
 On **first** save for an epic, create the file with YAML front matter, a document title, Current Gate Summary, and `## Review iteration 1`. On **later** iterations, update YAML front matter and Current Gate Summary, then **append** `## Review iteration N` at the end; keep prior sections.
 
@@ -182,10 +182,10 @@ Next action: Proceed to stage 11 | Return to stage 9 | Operator decision require
 - [ ] Scope is explicit or confirmed with the user.
 - [ ] Full review delivered in chat using §4.
 - [ ] **If §2.2:** iteration number **N**, open counts, and Gate filled; prior `## Review iteration …` sections preserved when **N > 1** and saving to file.
-- [ ] **If saving:** YAML front matter, Current Gate Summary, and latest `## Review iteration N` are consistent.
+- [ ] **If saving or running under §2.2 HOTL:** YAML front matter, Current Gate Summary, and latest `## Review iteration N` are consistent.
 - [ ] Findings reference concrete locations where possible.
 - [ ] No unsolicited edits or commits; English throughout.
-- [ ] **If** the user asked to save: a markdown file was written under `ai-sdlc-artefacts/` (or path they specified) **after** that request, with **`## Review iteration N`** when **§2.2** applies.
+- [ ] **If** the user asked to save, or this is an orchestrated **§2.2** HOTL run: a markdown file was written under `ai-sdlc-artefacts/` (or path they specified), with **`## Review iteration N`** when **§2.2** applies.
 - [ ] Delegated reviewer did not edit ep-context.md directly; orchestrator owns that update.
 
 ---

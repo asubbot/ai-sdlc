@@ -26,14 +26,14 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 
 Follow these principles for all system design work:
 
-1. **Never write until approved** — Do not create or overwrite ep-system-design.md until the user explicitly approves the draft (e.g. "lgtm", "save", "approve"). All edits go into the draft in chat; do not write to file until approval.
-2. **Existing file is baseline** — If ep-system-design.md already exists for the epic, treat it as the current baseline; propose changes as edits and overwrite only after user approval.
-3. **Options when in doubt** — When multiple valid choices exist (e.g. structure depth, module boundaries, references to research), present options (e.g. A/B) and ask the user to choose before proceeding.
+1. **HOTL artefact writes** — In pipeline execution, create or overwrite ep-system-design.md when requirements and acceptance criteria exist, traceability is maintained, and no required HITL decision point from [pipeline.spec.md](../pipeline.spec.md) is triggered.
+2. **Existing file is baseline** — If ep-system-design.md already exists for the epic, treat it as the current baseline; preserve durable architecture/contract decisions unless a required HITL decision records a change.
+3. **Decision points** — Ask the operator only for required HITL decisions (e.g. material architecture/security/reliability trade-off, missing prerequisite, source-of-truth conflict). For routine structure depth, module grouping, or wording choices, choose the simplest consistent default and record rationale when useful.
 4. **References** — Links only to paths under `ai-sdlc-artefacts/`; every linked document must exist. Keep traceability to ep-requirements. Write in English.
 5. **Full REQ traceability** — Every requirement (REQ-EE.NNN format) from ep-requirements.md must be mentioned at least once in ep-system-design.md; the document must not omit any REQ.
 6. **Practical and short** — Get to the point. Be practical above all. Be short and specific.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only (e.g. technical discovery or research).
-8. **Token-optimized context** — Read current ep-context.md first when present, but open full requirements and acceptance criteria for traceability. On approved save, add YAML front matter to ep-system-design.md and refresh Design Decisions and Interfaces / Contracts in ep-context.md.
+8. **Token-optimized context** — Read current ep-context.md first when present, but open full requirements and acceptance criteria for traceability. On save, add YAML front matter to ep-system-design.md and refresh Design Decisions and Interfaces / Contracts in ep-context.md.
 
 ---
 
@@ -45,7 +45,7 @@ You are the Tech Lead for this epic. Your role is to produce the epic system des
 
 **Design–review iteration ([pipeline.spec.md](../pipeline.spec.md) §2.1):** When **stage 7** reports **Blocker**, **Major**, **Medium**, or **Minor** findings in the latest `## Review iteration N` section of `ep-system-design-review.md` (or in chat before save), run **stage 6** again: revise `ep-system-design.md` to resolve those findings, then the orchestrator schedules another **stage 7** (delegated, fresh session). Repeat until **zero** Blocker/Major/Medium/Minor or until the **operator decides** after **five** stage 7 iterations.
 
-**Inputs:** ep-context.md when present and current, ep-requirements.md and ep-acceptance-criteria.md (ai-sdlc-artefacts/epics/<epic-id>/). If either source artefact is missing, ask the user to run stage 4 (Requirements) or stage 5 (Acceptance criteria) first. When addressing review feedback, read the latest **Current Gate Summary** and latest relevant **`ep-system-design-review.md`** iteration section (and prior sections if needed for context). Platform constraints and research or technical discovery (e.g. under epic `legacy/`) may be used as reference.
+**Inputs:** ep-context.md when present and current, ep-requirements.md and ep-acceptance-criteria.md (ai-sdlc-artefacts/epics/<epic-id>/). If either source artefact is missing, treat continuing as a required HITL missing-prerequisite decision or run the missing stage when the operator has authorized HOTL execution. When addressing review feedback, read the latest **Current Gate Summary** and latest relevant **`ep-system-design-review.md`** iteration section (and prior sections if needed for context). Platform constraints and research or technical discovery (e.g. under epic `legacy/`) may be used as reference.
 
 **Questions to answer:** How is the system structured? What are the main components and interfaces? What are the key design decisions and risks?
 
@@ -55,11 +55,11 @@ You are the Tech Lead for this epic. Your role is to produce the epic system des
 
 Follow this order:
 
-1. **Check inputs** — Ensure ep-requirements.md and ep-acceptance-criteria.md exist for the epic. If not, ask the user to run stage 4 or 5 first. If ep-context.md exists and is current, read it first for orientation; if stale or missing, fall back to source artefacts.
+1. **Check inputs** — Ensure ep-requirements.md and ep-acceptance-criteria.md exist for the epic. If not, treat continuing as a required HITL missing-prerequisite decision or run the missing stage when the operator has authorized HOTL execution. If ep-context.md exists and is current, read it first for orientation; if stale or missing, fall back to source artefacts.
 2. **Check existing ep-system-design** — If ep-system-design.md exists for the epic, treat it as the baseline; propose changes as edits.
-3. **Draft in chat** — Draft the design in chat (section by section or by block). Show each part to the user and ask for clarification or changes. Apply edits only in the draft in chat; do not write to file yet.
-4. **Resolve choices** — When multiple valid options exist (e.g. structure depth, module boundaries), present options (e.g. A/B) and ask the user to choose.
-5. **Write after approval** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md only when the user explicitly approves (e.g. "lgtm", "save", "approve").
+3. **Draft** — Draft the design (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
+4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
+5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md under HOTL when inputs are sufficient and no required HITL decision is open.
 6. **Refresh epic context** — Update ep-context.md Design Decisions, Interfaces / Contracts, Open Questions, and Links concisely; do not copy full design sections.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
@@ -109,4 +109,4 @@ Verify all before considering the stage complete:
 - [ ] Document contains **Overview** (system summary and traceability to REQ), **Architecture** including **C4 C2** (source in `diagrams/c4-container.puml`, PNG in `diagrams/c4-container.png` embedded centered; Source line with regeneration command), **Components and interfaces**, and **Data models** (if applicable); **Error handling** and **Testing strategy** recommended where relevant
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
 - [ ] Traceability to ep-requirements is maintained: **every REQ from ep-requirements.md is referenced at least once** in the document
-- [ ] User has explicitly approved the content
+- [ ] Content was written under HOTL, or any required HITL decision was recorded before writing

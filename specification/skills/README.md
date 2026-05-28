@@ -2,7 +2,19 @@
 
 Agent instructions for the SDLC pipeline. **One numbered skill per pipeline stage (1–11)**, plus **optional cross-cutting** skills (C4 C3 diagram, project comparison, threat model from code). Paths in skills use **ai-sdlc-artefacts/** (project root: `scope.md`, `strategy.md`, optional `analytics/`) and **ai-sdlc-artefacts/epics/<epic-id>/** for epic artefacts: ep-scope, ep-context, ep-requirements, ep-acceptance-criteria, ep-system-design, ep-system-design-review, ep-implementation-plan, **ep-code-review** (when saved; **§2.2** uses per-iteration sections), ep-audit-report. Story-level paths are not used by the pipeline.
 
-**Common behaviour:** The agent works in cooperation with the user. When several valid choices exist (output format, path, scope, or interpretation of the request), present them (e.g. A / B) and ask the user which they prefer. Do not proceed until the user has chosen, except when [pipeline.spec.md](../pipeline.spec.md) §4.5 autonomous mode is explicitly enabled and the orchestrator acts as the approver on the user's behalf.
+**Common behaviour:** The pipeline runs **Human-on-the-loop (HOTL) by default**. Agents proceed through routine stage work, choose sensible defaults, and write/update artefacts when required inputs exist and validation/review gates pass. **Human-in-the-loop (HITL)** is required only for the decision points in [pipeline.spec.md](../pipeline.spec.md): gate overrides, iteration-cap overrides, missing prerequisites, source-of-truth conflicts with durable impact, material scope/architecture/migration/security/reliability trade-offs, destructive or externally visible actions, and weakening security or reliability controls.
+
+For non-listed ambiguities (formatting, local wording, minor structure, routine file placement under the required artefact path), choose the simplest option consistent with the pipeline, this skill, and the consumer repository rules. When that choice affects a durable artefact, record a brief rationale in the artefact or chat summary.
+
+When HITL is required, use this pattern and stop until the operator decides:
+
+```markdown
+Decision needed: <type>
+Context: <one-line why>
+Options: A | B | C
+Operator choice: <selected option>
+Rationale: <short>
+```
 
 **Mandatory delegation:** Stages **7** (system design review) and **10** (code review) MUST run via a **subagent** or equivalent fresh session—see [pipeline.spec.md](../pipeline.spec.md) §3. Each **§2.1** or **§2.2** iteration after material edits requires a **new** delegated review run.
 
@@ -52,7 +64,7 @@ Full source artefacts such as `ep-scope.md`, `ep-requirements.md`, `ep-acceptanc
 
 ### `ep-context.md`
 
-`ep-context.md` is a compact epic handoff file, not a source of truth. If it conflicts with a source artefact, the source artefact wins. If `ep-context.md` is missing for an epic, agents SHOULD create it on the first approved epic artefact write/update during stages 3–11.
+`ep-context.md` is a compact epic handoff file, not a source of truth. If it conflicts with a source artefact, the source artefact wins. If `ep-context.md` is missing for an epic, agents SHOULD create it on the first epic artefact write/update during stages 3–11.
 
 Recommended sections:
 
@@ -100,7 +112,7 @@ Each skill can be invoked by an orchestrator as a standalone subagent ([pipeline
 1. **Input brief:** The orchestrator provides: epic ID, stage number, paths to input artefacts, and optional prior-stage summary or review feedback.
 2. **Context loading:** Read `ep-context.md` first (when present and current), then YAML front matter of required inputs, then full artefacts only as needed — per the token-optimized context rules above.
 3. **Self-contained:** Do not assume access to prior chat history. All context must come from artefacts and the orchestrator brief.
-4. **Artefact write:** Write the output artefact per skill rules. In autonomous mode the orchestrator acts as the approver — the "never write until approved" rule is satisfied by the orchestrator's delegation.
+4. **Artefact write:** Write the output artefact per skill rules. In HOTL execution the orchestrator acts as the approver for routine artefact writes; HITL is required only for the decision points listed above and in [pipeline.spec.md](../pipeline.spec.md).
 5. **Output signal:** On completion, output a structured one-line signal for the orchestrator: `STAGE_<N>_COMPLETE: <artefact_path> [<key_change_summary>]`. For review stages include gate status. For stage 9 tasks: `TASK_COMPLETE: <task_id> [<files_changed>]`.
 6. **No ep-context.md writes:** Subagents (except stage 3 initial creation) do not write `ep-context.md` directly. Report material changes in the output signal; the orchestrator applies them.
 
@@ -128,7 +140,7 @@ Each stage skill below includes an **Orchestrator brief** section that specifies
 
 - **Full pipeline (stages 1–11):** 1 → 2 → 3 → … → 11 — see flowchart in [pipeline.spec.md](../pipeline.spec.md) §1.
 - **Epic elaboration only:** 3 → 4 → 5 → 6 → 7 → 8 (Epic planning → Requirements → Acceptance criteria → System design → System design review → Implementation planning).
-- **After plan approval:** 9 (task execution) → 10 (code review) → 11 (audit).
+- **After implementation planning:** 9 (task execution) → 10 (code review) → 11 (audit).
 
 ---
 

@@ -10,13 +10,14 @@ import (
 
 // StageStatus describes the state of a single pipeline stage artefact.
 type StageStatus struct {
-	Stage   int    `json:"stage"`
-	Name    string `json:"name"`
-	File    string `json:"file"`
-	Exists  bool   `json:"exists"`
-	Status  string `json:"status"`
-	Gate    string `json:"gate"`
-	HasGaps bool   `json:"has_gaps"`
+	Stage            int    `json:"stage"`
+	Name             string `json:"name"`
+	File             string `json:"file"`
+	Exists           bool   `json:"exists"`
+	Status           string `json:"status"`
+	Gate             string `json:"gate"`
+	DecisionEvidence bool   `json:"decision_evidence,omitempty"`
+	HasGaps          bool   `json:"has_gaps"`
 }
 
 // GateSummary holds counts from a "Current Gate Summary" table in a review file.
@@ -58,6 +59,8 @@ var pipelineStages = []struct {
 var (
 	gateSummaryHeaderRe   = regexp.MustCompile(`(?i)##\s+Current\s+Gate\s+Summary`)
 	openCountsPlainTextRe = regexp.MustCompile(`(?i)Open\s+counts?:\s*Blocker\s+(\d+)\s*\|\s*Major\s+(\d+)\s*\|\s*Medium\s+(\d+)\s*\|\s*Minor\s+(\d+)`)
+	decisionNeededRe      = regexp.MustCompile(`(?im)^\s*Decision needed:\s*\S`)
+	operatorChoiceRe      = regexp.MustCompile(`(?im)^\s*Operator choice:\s*\S`)
 )
 
 // parseGateSummary extracts blocker/major/medium/minor counts from a
@@ -133,6 +136,50 @@ func parseCountCells(cells []string) (*GateSummary, error) {
 	}, nil
 }
 
+func hasBlockingCounts(counts *SeverityCounts) bool {
+	return counts != nil && (counts.Blocker > 0 || counts.Major > 0 || counts.Medium > 0 || counts.Minor > 0)
+}
+
+func gateSummaryHasBlockingCounts(summary *GateSummary) bool {
+	return summary != nil && (summary.Blocker > 0 || summary.Major > 0 || summary.Medium > 0 || summary.Minor > 0)
+}
+
+func normalizeGate(gate string) string {
+	gate = strings.ToLower(strings.TrimSpace(gate))
+	switch gate {
+	case "pass", "fail", "cap":
+		return gate
+	default:
+		return gate
+	}
+}
+
+func inferGate(content string, fm *FrontMatter) string {
+	gate := normalizeGate(fm.Gate)
+	if hasBlockingCounts(fm.OpenCounts) {
+		return "fail"
+	}
+	if fm.OpenCounts != nil && gate == "" {
+		return "pass"
+	}
+	if gs, gsErr := parseGateSummary(content); gsErr == nil {
+		if gateSummaryHasBlockingCounts(gs) {
+			if gate == "cap" {
+				return "cap"
+			}
+			return "fail"
+		}
+		if gate == "" {
+			return "pass"
+		}
+	}
+	return gate
+}
+
+func hasOperatorDecisionEvidence(content string) bool {
+	return decisionNeededRe.MatchString(content) && operatorChoiceRe.MatchString(content)
+}
+
 // checkPipelineState validates the pipeline state for a single epic directory.
 func checkPipelineState(epicDir, epicID string) *PipelineResult {
 	result := &PipelineResult{
@@ -172,25 +219,8 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 		} else {
 			ss.Status = fm.Status
 			if ps.hasGate {
-				ss.Gate = fm.Gate
-			}
-		}
-
-		if ps.hasGate && fmErr == nil {
-			if ss.Gate == "" {
-				if fm.OpenCounts != nil {
-					if fm.OpenCounts.Blocker > 0 || fm.OpenCounts.Major > 0 {
-						ss.Gate = "fail"
-					} else {
-						ss.Gate = "pass"
-					}
-				} else if gs, gsErr := parseGateSummary(content); gsErr == nil {
-					if gs.Blocker > 0 || gs.Major > 0 {
-						ss.Gate = "fail"
-					} else {
-						ss.Gate = "pass"
-					}
-				}
+				ss.Gate = inferGate(content, fm)
+				ss.DecisionEvidence = hasOperatorDecisionEvidence(content)
 			}
 		}
 
@@ -217,7 +247,8 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 		}
 	}
 
-	// Gate violation: if stage 8 (impl plan) exists but stage 7 (review) gate != "pass"
+	// Gate violation: if stage 8 (impl plan) exists but stage 7 (review)
+	// gate is not pass and has no recorded operator decision.
 	reviewIdx := -1
 	implIdx := -1
 	for idx, ps := range pipelineStages {
@@ -230,13 +261,43 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 	}
 	if reviewIdx >= 0 && implIdx >= 0 &&
 		result.Stages[implIdx].Exists && result.Stages[reviewIdx].Exists &&
-		result.Stages[reviewIdx].Gate != "pass" {
+		result.Stages[reviewIdx].Gate != "pass" && !result.Stages[reviewIdx].DecisionEvidence {
 		result.Stages[reviewIdx].HasGaps = true
 		result.Errors++
 		result.Findings = append(result.Findings, fmt.Sprintf(
-			"stage 8 (%s) exists but stage 7 gate=%s (must be pass)",
+			"stage 8 (%s) exists but stage 7 gate=%s (must be pass or have recorded operator decision)",
 			pipelineStages[implIdx].file, result.Stages[reviewIdx].Gate,
 		))
+	}
+
+	// Gate violation: if stage 11 (audit) exists, stage 10 (code review)
+	// gate evidence must exist and be pass or have a recorded operator decision.
+	codeReviewIdx := -1
+	auditIdx := -1
+	for idx, ps := range pipelineStages {
+		if ps.stage == 10 {
+			codeReviewIdx = idx
+		}
+		if ps.stage == 11 {
+			auditIdx = idx
+		}
+	}
+	if codeReviewIdx >= 0 && auditIdx >= 0 && result.Stages[auditIdx].Exists {
+		if !result.Stages[codeReviewIdx].Exists {
+			result.Stages[codeReviewIdx].HasGaps = true
+			result.Errors++
+			result.Findings = append(result.Findings, fmt.Sprintf(
+				"stage 11 (%s) exists but stage 10 (%s) gate evidence is missing",
+				pipelineStages[auditIdx].file, pipelineStages[codeReviewIdx].file,
+			))
+		} else if result.Stages[codeReviewIdx].Gate != "pass" && !result.Stages[codeReviewIdx].DecisionEvidence {
+			result.Stages[codeReviewIdx].HasGaps = true
+			result.Errors++
+			result.Findings = append(result.Findings, fmt.Sprintf(
+				"stage 11 (%s) exists but stage 10 gate=%s (must be pass or have recorded operator decision)",
+				pipelineStages[auditIdx].file, result.Stages[codeReviewIdx].Gate,
+			))
+		}
 	}
 
 	result.HasGaps = result.Errors > 0
