@@ -4,7 +4,7 @@ Shell utilities for process maintainers. Not copied to consumer product reposito
 
 ## bootstrap-smoke.sh
 
-Automated regression for greenfield bootstrap: copies [templates/consumer/](../../templates/consumer/) into a temporary consumer layout, runs `make build`, and smoke-validates `EP-000` (`pipeline` + `structure`).
+Automated regression for greenfield bootstrap: copies [templates/consumer/](../../templates/consumer/) into a temporary consumer layout, runs `make build`, `make check`, and project `make validate` (AC all epics + pipeline/structure per epic).
 
 ```bash
 ./tools/scripts/bootstrap-smoke.sh

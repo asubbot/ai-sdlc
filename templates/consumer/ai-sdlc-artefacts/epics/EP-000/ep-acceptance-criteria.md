@@ -12,10 +12,12 @@ updated_at: 2026-05-28
 
 | AC | REQ | Summary |
 |----|-----|---------|
-| [AC-00.001](#ac-00001) | REQ-00.001 | Pin file present |
-| [AC-00.002](#ac-00002) | REQ-00.002 | Artefacts directory layout |
+| [AC-00.001](#ac-00001) | REQ-00.001 | Pin file present and well-formed |
+| [AC-00.002](#ac-00002) | REQ-00.002 | Consumer layout and artefact files |
 | [AC-00.003](#ac-00003) | REQ-00.003 | Validator builds |
-| [AC-00.004](#ac-00004) | REQ-00.004 | CI verifies pin and tests validate tool |
+| [AC-00.004](#ac-00004) | REQ-00.004 | CI verifies pin and runs gates |
+| [AC-00.005](#ac-00005) | REQ-00.005 | Project-wide make validate gate |
+| [AC-00.006](#ac-00006) | REQ-00.006 | make check product gate |
 
 ## Scenarios
 
@@ -23,26 +25,37 @@ updated_at: 2026-05-28
 
 Given a clone of the consumer repository
 When the operator reads `ai-sdlc.version`
-Then it contains a non-empty tag or commit SHA
+Then it contains a non-empty tag or 40-character commit SHA without whitespace
+And WHEN `ai-sdlc/` is checked out locally at a commit pin, THEN `git -C ai-sdlc rev-parse HEAD` matches the pin
 
-### AC-00.002 Artefact layout (Trace: REQ-00.002)
+### AC-00.002 Consumer layout (Trace: REQ-00.002)
 
 Given the repository root
-When the operator lists `ai-sdlc-artefacts/`
-Then `scope.md`, `strategy.md`, and `epics/EP-000/` exist
+When the operator inspects the consumer layout
+Then `AGENTS.md`, `.gitignore`, `Makefile`, and `ai-sdlc.version` exist at the root, `.gitignore` lists `ai-sdlc/`, and under `ai-sdlc-artefacts/` exist `scope.md`, `strategy.md`, and `epics/EP-000/ep-scope.md`, `epics/EP-000/ep-requirements.md`, `epics/EP-000/ep-acceptance-criteria.md`, and `epics/EP-000/ep-context.md`
 
 ### AC-00.003 Validator build (Trace: REQ-00.003)
 
 Given `ai-sdlc/` is present at the pinned revision
-When the operator runs `make build`
-Then `bin/validate` exists and executes without error
-
-**Deferred:** No unit test trace in product `tests/` until product code exists (bootstrap gate; verified by CI and manual `make build`).
+When the operator runs `make build` with no existing `bin/validate`
+Then `bin/validate` is created and executes without error
 
 ### AC-00.004 CI adoption (Trace: REQ-00.004)
 
 Given a push to the default branch
 When GitHub Actions runs `ai-sdlc.yml`
-Then the pin is verified and `go test` in `ai-sdlc/tools/validate` succeeds
+Then the pin is verified, `ai-sdlc` is checked out at the pin, `go test` in `ai-sdlc/tools/validate` succeeds, and steps run `make build`, `make check`, and project `make validate`
 
-**Deferred:** CI-only; no duplicated unit test in product tree for this AC.
+Bootstrap smoke in `tests/bootstrap_test.go` asserts the workflow defines named steps (Verify ai-sdlc pin, Checkout ai-sdlc at pin, Test validate tool, Build validate binary, Bootstrap smoke tests, Project validate gate) and required commands including `make validate` and `make check`.
+
+### AC-00.005 Project make validate gate (Trace: REQ-00.005)
+
+Given `bin/validate` is available at the repository root
+When the operator runs `make validate` with no extra goals
+Then AC coverage passes for all epics and pipeline/structure pass for each epic (structure may emit warnings for optional stages not yet created)
+
+### AC-00.006 make check gate (Trace: REQ-00.006)
+
+Given a product `go.mod` exists at the repository root
+When the operator runs `make check`
+Then `go vet ./...` and `go test ./tests/...` complete without errors

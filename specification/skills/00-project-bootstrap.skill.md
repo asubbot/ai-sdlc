@@ -52,6 +52,8 @@ Follow this order:
    | `Makefile` | `Makefile` |
    | `ai-sdlc.version` | `ai-sdlc.version` |
    | `README.project.md` | `README.md` |
+   | `go.mod` | `go.mod` |
+   | `tests/**` | `tests/**` |
    | `ai-sdlc-artefacts/**` | `ai-sdlc-artefacts/**` |
    | `.github/workflows/ai-sdlc.yml` | `.github/workflows/ai-sdlc.yml` |
 
@@ -108,7 +110,7 @@ After changes to [`templates/consumer/`](../../templates/consumer/) or this skil
 ./tools/scripts/bootstrap-smoke.sh
 ```
 
-See [tools/scripts/README.md](../../tools/scripts/README.md). This is **not** part of consumer bootstrap Done when; it regression-tests that templates still materialize and `make build` / `validate pipeline|structure EP-000` succeed.
+See [tools/scripts/README.md](../../tools/scripts/README.md). This is **not** part of consumer bootstrap Done when; it regression-tests that templates still materialize and `make build` / `make check` / project `make validate` succeed.
 
 ---
 

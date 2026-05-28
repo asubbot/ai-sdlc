@@ -14,7 +14,7 @@ Adopt the ai-sdlc process in this consumer repository (pin, layout, validator, C
 
 ## Current Scope
 
-Bootstrap skeleton and EP-000 elaboration; no product application code required.
+Bootstrap skeleton and EP-000 elaboration (consumer root files, pin, artefacts, `make build` / `make validate` / `make check`, CI); no product application code beyond `tests/` required.
 
 ## Open Questions
 

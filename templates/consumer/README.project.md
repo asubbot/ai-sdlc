@@ -13,6 +13,6 @@ This project uses [ai-sdlc](https://github.com/asubbot/ai-sdlc) (nested under `a
 
 ```bash
 make build      # build bin/validate from ai-sdlc/tools/validate
-make validate   # run validator (optional epic id, e.g. make validate EP-000)
-make check      # product checks when go.mod exists
+make validate   # project gate: AC (all epics) + pipeline/structure per epic
+make check      # go vet + bootstrap smoke tests in tests/
 ```

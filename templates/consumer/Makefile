@@ -2,7 +2,7 @@
 
 help:
 	@echo "  make build    - Build bin/validate from ai-sdlc/tools/validate"
-	@echo "  make validate - Run validator (e.g. make validate EP-000, make validate pipeline EP-000)"
+	@echo "  make validate - Project gate: AC (all epics) + pipeline/structure per epic"
 	@echo "  make check    - Product quality gate (go vet when go.mod exists)"
 
 build: bin/validate
@@ -13,10 +13,23 @@ bin/validate:
 	go build -C ai-sdlc/tools/validate -o $(CURDIR)/bin/validate .
 
 validate: bin/validate
-	@./bin/validate $(filter-out validate,$(MAKECMDGOALS))
+	@if [ -z "$(filter-out validate,$(MAKECMDGOALS))" ]; then \
+		./bin/validate; \
+		set -e; for epic in ai-sdlc-artefacts/epics/EP-*; do \
+			[ -d "$$epic" ] || continue; \
+			id=$$(basename "$$epic"); \
+			./bin/validate pipeline $$id; \
+			./bin/validate structure $$id; \
+		done; \
+	else \
+		./bin/validate $(filter-out validate,$(MAKECMDGOALS)); \
+	fi
 
 check:
-	@if [ -f go.mod ]; then go vet ./...; else echo "check: no go.mod — skipped (add product module when ready)"; fi
+	@if [ -f go.mod ]; then \
+		go vet ./... && \
+		BOOTSTRAP_MAKE_CHECK_INVOKED=1 go test ./tests/... -count=1; \
+	else echo "check: no go.mod — skipped (add product module when ready)"; fi
 
 %:
 	@:

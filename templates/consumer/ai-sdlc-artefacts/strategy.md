@@ -32,5 +32,6 @@ Minimal strategy for greenfield adoption. Aligns with [scope.md](scope.md). Refi
 
 ### 2.2 AC coverage
 
-- Run `./bin/validate EP-XXX` from repo root before treating an epic as AC-complete.
+- Run `make validate` from repo root for the **project gate** (AC coverage for all epics, then pipeline and structure per epic) before treating adoption complete.
+- Run `./bin/validate EP-XXX` (or `make validate EP-XXX`) for a single-epic AC report when debugging.
 - Use **Deferred** in `ep-acceptance-criteria.md` for bootstrap-only ACs without product tests (see [VALIDATION.md](../ai-sdlc/tools/validate/VALIDATION.md)).

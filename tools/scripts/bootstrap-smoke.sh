@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Greenfield bootstrap smoke test for canonical ai-sdlc (maintainer/CI only).
-# Materializes templates/consumer into a temp product repo and runs make build + validate EP-000.
+# Materializes templates/consumer into a temp product repo and runs make build, make check, make validate.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -92,6 +92,8 @@ main() {
   cp "${TEMPLATES}/.gitignore" "${PRODUCT}/.gitignore"
   cp "${TEMPLATES}/Makefile" "${PRODUCT}/Makefile"
   cp "${TEMPLATES}/README.project.md" "${PRODUCT}/README.md"
+  cp "${TEMPLATES}/go.mod" "${PRODUCT}/go.mod"
+  cp -R "${TEMPLATES}/tests" "${PRODUCT}/tests"
   mkdir -p "${PRODUCT}/.github/workflows"
   cp "${TEMPLATES}/.github/workflows/ai-sdlc.yml" "${PRODUCT}/.github/workflows/ai-sdlc.yml"
   cp -R "${TEMPLATES}/ai-sdlc-artefacts" "${PRODUCT}/ai-sdlc-artefacts"
@@ -100,8 +102,8 @@ main() {
     cd "${PRODUCT}"
     make build
     [[ -x bin/validate ]] || die "bin/validate not executable after make build"
-    ./bin/validate pipeline EP-000
-    ./bin/validate structure EP-000
+    make check
+    make validate
   )
 
   assert_file "AGENTS.md"

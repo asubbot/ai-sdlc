@@ -47,11 +47,13 @@ jobs:
       - name: Build validate binary
         run: make build
 
-      - name: Smoke pipeline (EP-000 when artefacts present)
+      - name: Bootstrap smoke tests
+        run: make check
+
+      - name: Project validate gate
         run: |
-          if [ -d ai-sdlc-artefacts/epics/EP-000 ]; then
-            make validate pipeline EP-000
-            make validate structure EP-000
+          if [ -d ai-sdlc-artefacts/epics ] && [ -n "$(ls -d ai-sdlc-artefacts/epics/EP-* 2>/dev/null)" ]; then
+            make validate
           else
-            echo "No EP-000 artefacts yet — skip pipeline smoke"
+            echo "No epic artefacts yet — skip make validate"
           fi

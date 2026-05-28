@@ -20,18 +20,20 @@ updated_at: 2026-05-28
 
 - **Pin** — `ai-sdlc.version` file referencing a tag or commit in the canonical process repository.
 - **Validator** — `bin/validate` built from `ai-sdlc/tools/validate`.
+- **Project validate gate** — `make validate` with no extra goals: AC coverage for all epics, then pipeline and structure for each epic under `ai-sdlc-artefacts/epics/`.
 
 ## Scope (features/capabilities)
 
 - Consumer `AGENTS.md`, `.gitignore` (includes `ai-sdlc/`), `Makefile`, and `ai-sdlc-artefacts/` layout.
 - `ai-sdlc.version` records the process revision; CI verifies the pin and checks out `ai-sdlc` at that revision.
-- `make build` and `make validate` work from the product repository root.
+- `make build`, `make validate`, and `make check` work from the product repository root.
 - Project-level [scope.md](../../scope.md) and [strategy.md](../../strategy.md) stubs exist for pipeline gates.
 
 ## Success criteria
 
-- Operator can run `make validate pipeline EP-000` without errors when epic artefacts are complete through stage 7 gate pass.
-- CI workflow `ai-sdlc.yml` passes on the default branch.
+- Operator can run `make validate` from the repository root without errors (project validate gate; structure warnings for not-yet-created optional stages are acceptable).
+- Operator can run `make check` from the repository root without errors (`go vet` and bootstrap tests in `tests/`).
+- CI workflow `ai-sdlc.yml` passes on the default branch (`make build`, `make check`, and project `make validate`).
 
 ## Traceability
 
