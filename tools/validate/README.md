@@ -38,6 +38,17 @@ If no subcommand is given, or the first argument is not a known subcommand (e.g.
 
 Scans all `*.go` files under `tests/`, `internal/`, and `cmd/` for the forbidden golangci-lint cyclomatic-complexity suppression (substring `nolint:gocyclo` **outside** double-quoted string literals, so tests that assert on source text are not false positives). Violations are listed as `path/to/file.go:LINE`. On failure, human mode prints a dedicated block; JSON includes `nolint_gocyclo_violations` and sets `has_gaps` to true (single-epic JSON includes the same field on the epic report object).
 
+### Pipeline State Validation — `pipeline` subcommand
+
+Validates stage ordering and HOTL gate evidence for one epic:
+
+- later stages cannot exist before required earlier artefacts;
+- stage 8 requires stage 7 gate evidence with `gate: pass`, or a recorded operator decision when the gate is `fail` / `cap`;
+- stage 11 requires stage 10 code-review gate evidence with `gate: pass`, or a recorded operator decision when the gate is `fail` / `cap`;
+- open **Blocker**, **Major**, **Medium**, or **Minor** counts make a gate blocking unless an operator decision is recorded.
+
+Operator decision evidence is the minimal decision record from the pipeline spec, including both `Decision needed:` and `Operator choice:` lines in the affected review artefact.
+
 ### AC (Acceptance Criteria) Validation — `ac` subcommand
 
 Validates that all Acceptance Criteria from an epic's `ep-acceptance-criteria.md` are covered by tests (with separate metrics for **automated** vs **manual-only** traceability; deferred ACs do not inflate the traceability percentage). It also checks the **reverse**: every top-level `Test*` under `tests/`, `internal/`, and `cmd/` must have at least one trace line that both matches the coverage declaration rules **and** contains a real `AC-EE.NNN` code bound to that test (see [VALIDATION.md](./VALIDATION.md#test-functions-must-declare-ac-trace-reverse-check)).
@@ -93,8 +104,8 @@ See [VALIDATION.md](./VALIDATION.md) for full documentation (metrics JSON schema
 
 ## Exit Codes
 
-- **0** — All validations passed (AC coverage, per-`Test*` AC trace, and policy scan) ✅
-- **1** — Validation failed (missing AC coverage, `Test*` without bound AC trace, and/or forbidden gocyclo suppression in product trees) ❌
+- **0** — Requested validation passed (for `ac`: AC coverage, per-`Test*` AC trace, and policy scan; for `pipeline`: stage ordering and gate evidence) ✅
+- **1** — Requested validation failed (missing coverage, policy violation, artefact structure issue, pipeline ordering/gate violation, or missing operator decision evidence) ❌
 
 JSON (`--json`): failures set `"has_gaps": true` when any in-scope AC is untraced, when `tests_missing_ac_trace` is non-empty, or when `nolint_gocyclo_violations` is non-empty. The `tests_missing_ac_trace` and `nolint_gocyclo_violations` arrays are always **project-wide**, including when you run `./tools/validate/validate EP-009 --json`.
 

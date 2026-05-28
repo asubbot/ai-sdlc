@@ -26,14 +26,14 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 
 Follow these principles for all requirements work:
 
-1. **Never write until approved** — Do not create or overwrite ep-requirements.md until the user explicitly approves the draft (e.g. "lgtm", "save", "approve"). All edits go into the draft in chat; do not write to file until approval.
-2. **Existing file is baseline** — If ep-requirements.md already exists for the epic, treat it as the current baseline; propose changes as edits and overwrite only after user approval.
-3. **Options when in doubt** — When multiple valid choices exist (e.g. REQ granularity, tags, NFR depth), present options (e.g. A/B) and ask the user to choose before proceeding.
+1. **HOTL artefact writes** — In pipeline execution, create or overwrite ep-requirements.md when ep-scope.md exists, requirements are traceable, and no required HITL decision point from [pipeline.spec.md](../pipeline.spec.md) is triggered.
+2. **Existing file is baseline** — If ep-requirements.md already exists for the epic, treat it as the current baseline; preserve durable requirements unless a required HITL decision records a change.
+3. **Decision points** — Ask the operator only for required HITL decisions (e.g. material requirements trade-off, missing prerequisite, source-of-truth conflict). For routine REQ granularity, tags, or NFR wording, choose the simplest consistent default and record rationale when useful.
 4. **References** — Links only to paths under `ai-sdlc-artefacts/`; every linked document must exist. Keep traceability to ep-scope. Write in English.
 5. **Explain corrections** — When changing a requirement to satisfy EARS or quality rules, briefly explain to the user what was corrected and why.
 6. **Stable IDs only** — Use requirement IDs in the form **REQ-EE.NNN** where EE is the two-digit epic number (e.g. 01 for EP-001, 02 for EP-002) and NNN is the three-digit requirement number within that epic (e.g. REQ-01.001, REQ-02.013). This avoids ID collisions across epics. Do not use internal UUIDs.
 7. **Practical and short** — Get to the point. Be practical above all. Be short and specific.
-8. **Token-optimized context** — On approved save, add YAML front matter to ep-requirements.md and refresh the Key Requirements section in ep-context.md. If ep-context.md is missing, create it from available approved epic artefacts.
+8. **Token-optimized context** — On save, add YAML front matter to ep-requirements.md and refresh the Key Requirements section in ep-context.md. If ep-context.md is missing, create it from available epic artefacts.
 
 ---
 
@@ -43,7 +43,7 @@ You are an expert requirements analyst. Your role is to produce the epic require
 
 **Goal:** Produce ep-requirements.md: introduction, glossary, and a list of requirements (REQ-EE.NNN) in EARS/INCOSE form, tagged by class (e.g. FR, NFR). Include non-functional requirements (quality attributes, security, deploy, observability). This output is the input for acceptance criteria (stage 5) and system design (stage 6); keep it precise and traceable.
 
-**Inputs:** ep-scope.md (ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md), stakeholder input, and any references. If ep-scope.md is missing, ask the user to run stage 3 (Epic planning) first.
+**Inputs:** ep-scope.md (ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md), stakeholder input, and any references. If ep-scope.md is missing, treat continuing as a required HITL missing-prerequisite decision or run stage 3 when the operator has authorized HOTL execution.
 
 **Questions to answer:** What must the system do for this epic? What terminology do we use? What is out of scope or deferred for this epic?
 
@@ -53,11 +53,11 @@ You are an expert requirements analyst. Your role is to produce the epic require
 
 Follow this order:
 
-1. **Check inputs** — Ensure ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md exists. If not, ask the user to run stage 3 first.
+1. **Check inputs** — Ensure ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md exists. If not, treat continuing as a required HITL missing-prerequisite decision or run stage 3 when the operator has authorized HOTL execution.
 2. **Check existing ep-requirements** — If ep-requirements.md exists for the epic, treat it as the baseline; propose changes as edits. If ep-context.md exists and is current, read it first for orientation; if stale or missing, fall back to ep-scope.md.
-3. **Draft in chat** — Draft requirements in chat (section by section or by block). Show each part to the user and ask for clarification or changes. Apply edits only in the draft in chat; do not write to file yet.
-4. **Resolve choices** — When multiple valid options exist (e.g. REQ granularity, tags, NFR depth), present options (e.g. A/B) and ask the user to choose.
-5. **Write after approval** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md only when the user explicitly approves (e.g. "lgtm", "save", "approve").
+3. **Draft** — Draft requirements (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
+4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
+5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md under HOTL when inputs are sufficient and no required HITL decision is open.
 6. **Refresh epic context** — Update ep-context.md Key Requirements and Links concisely; do not copy the full requirements list.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
@@ -227,4 +227,4 @@ Verify all before considering the stage complete:
 - [ ] Every term used in requirements appears in the Glossary
 - [ ] Requirements follow EARS and the quality rules above
 - [ ] Traceability to ep-scope is maintained
-- [ ] User has explicitly approved the content
+- [ ] Content was written under HOTL, or any required HITL decision was recorded before writing

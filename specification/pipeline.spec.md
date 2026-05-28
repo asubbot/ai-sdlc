@@ -7,7 +7,24 @@ Paths in this spec and in skills use that convention; no references to outside o
 
 **Artefact levels:** Project-level (scope.md, strategy.md) in `ai-sdlc-artefacts/`. Epic-level artefacts (ep-scope, ep-context, ep-requirements, ep-acceptance-criteria, ep-system-design, ep-system-design-review, ep-implementation-plan, **ep-code-review** when saved, ep-audit-report) live in `epics/<epic-id>/`. **`ep-context.md`** is a compact context summary and is not a source of truth. **`ep-code-review.md`** may hold **§2.2** per-iteration sections (see **§2.2** and stage 10 skill).
 
-**Human-in-the-loop:** Pipeline execution is cooperative. When a stage has multiple valid outcomes (e.g. artefact naming, document structure, file placement), the agent MUST list options and ask the user to choose before proceeding. See also skills [README](skills/README.md) (Common behaviour).
+**Execution model:** Pipeline execution is **Human-on-the-loop (HOTL) by default**. The orchestrator may proceed through routine stage work, write/update stage artefacts, and choose sensible defaults while required inputs exist and validation/review gates pass. **Human-in-the-loop (HITL)** is required only for the decision points listed below: the agent MUST stop, present options, obtain an operator decision, and record the decision before proceeding.
+
+**Definitions:**
+
+- **HOTL (Human-on-the-loop):** Supervisory operator oversight. The agent may continue autonomously through routine execution; the operator can observe and intervene.
+- **HITL (Human-in-the-loop):** Blocking operator participation. The agent cannot proceed until the operator chooses a path and that decision is recorded.
+
+**Required HITL decision points:**
+
+- Review-gate override while **Blocker**, **Major**, **Medium**, or **Minor** findings remain open.
+- Iteration-cap override after the bounded stage **6↔7** or **9↔10** loop reaches its cap.
+- Missing required input, skipped prerequisite stage, or proposal to continue without a required artefact.
+- Conflict between source-of-truth artefacts, or between source artefacts and the product codebase, where the resolution changes durable scope, requirements, design, or delivery commitments.
+- Material scope, architecture, migration, security, or reliability trade-off.
+- Destructive, irreversible, or externally visible action.
+- Weakening security or reliability controls.
+
+For non-listed ambiguities, the orchestrator SHOULD choose the simplest default consistent with this specification, the stage skill, and the consumer repository rules; when the choice affects durable artefacts, record a brief rationale in the affected artefact or chat summary.
 
 ---
 
@@ -17,7 +34,7 @@ Paths in this spec and in skills use that convention; no references to outside o
 
 **Relationship to [ai-sdlc README](../README.md):** That file is the **directory index** for `ai-sdlc/` (what lives where). **This specification** and the **stage skills** define pipeline behaviour.
 
-- **Single process:** Execute stages using the table in §2, **Human-in-the-loop** above, **§3** for delegated stages **7** and **10**, and **§4** for subagent orchestration. Do **not** invent a parallel SDLC.
+- **Single process:** Execute stages using the table in §2, the **HOTL/HITL execution model** above, **§3** for delegated stages **7** and **10**, and **§4** for subagent orchestration. Do **not** invent a parallel SDLC.
 - **Repository truth:** Prefer approved content under **`ai-sdlc-artefacts/`** and the product codebase over unofficial external write-ups when deciding how *this* project should behave.
 - **Implementation plan (stages 8 → 9):** The epic **`ep-implementation-plan.md`** is produced by pipeline **stage 8** ([08-implementation-planning.skill.md](skills/08-implementation-planning.skill.md)). **Executing** that plan is **stage 9** only — follow [09-task-execution.skill.md](skills/09-task-execution.skill.md) (one task at a time from the plan, verification and checkpoints per skill; do not treat the plan as an informal checklist outside stage 9).
 - **Acceptance criteria coverage:** Before treating an epic as complete from an AC↔test perspective, run `./tools/validate/validate EP-XXX` from the repository root. For project-wide AC coverage, run `./tools/validate/validate` with no arguments. If the binary is missing, build it from `tools/validate/` with `go build -o validate .`. See [VALIDATION.md](../tools/validate/VALIDATION.md) and the [validate tool README](../tools/validate/README.md) under `ai-sdlc/tools/validate/`.
@@ -30,7 +47,7 @@ The pipeline uses three lightweight context layers to reduce repeated full-docum
 2. **Current Gate Summary** — current review-gate state at the top of review artefacts.
 3. **`ep-context.md`** — compact semantic context for an epic.
 
-Full artefacts remain the source of truth. If a compact layer conflicts with a full artefact, the full artefact wins. If YAML front matter is absent, agents MUST fall back to reading the body. If `ep-context.md` is absent, agents SHOULD create it on the first approved epic artefact write/update in stages 3–11. If `ep-context.md` is older than any source artefact it summarizes, agents MUST treat it as stale and open the changed source artefacts before relying on it.
+Full artefacts remain the source of truth. If a compact layer conflicts with a full artefact, the full artefact wins. If YAML front matter is absent, agents MUST fall back to reading the body. If `ep-context.md` is absent, agents SHOULD create it on the first epic artefact write/update in stages 3–11. If `ep-context.md` is older than any source artefact it summarizes, agents MUST treat it as stale and open the changed source artefacts before relying on it.
 
 ---
 
@@ -67,7 +84,7 @@ Each stage lists its **skill file** (under `specification/skills/`), purpose, ma
 |-------|-------|-----------------|-------------|--------------------------|
 | 1. Scope analysis | [01-scope-analysis.skill.md](skills/01-scope-analysis.skill.md) | Project scope from chat/request | Chat / request | scope.md |
 | 2. Strategy analysis | [02-strategy-analysis.skill.md](skills/02-strategy-analysis.skill.md) | Delivery + test strategy | scope.md | strategy.md |
-| 3. Epic planning | [03-epic-planning.skill.md](skills/03-epic-planning.skill.md) | Epic scope per epic; **creates epic git branch at start** of stage (see skill), writes `ep-scope.md` after approval **on that branch** | scope, strategy | epics/<epic-id>/ep-scope.md; creates/updates ep-context.md |
+| 3. Epic planning | [03-epic-planning.skill.md](skills/03-epic-planning.skill.md) | Epic scope per epic; **creates epic git branch at start** of stage (see skill), writes `ep-scope.md` under HOTL **on that branch** | scope, strategy | epics/<epic-id>/ep-scope.md; creates/updates ep-context.md |
 | 4. Requirements | [04-requirements.skill.md](skills/04-requirements.skill.md) | Epic requirements | ep-scope.md; ep-context.md if present | epics/<epic-id>/ep-requirements.md; updates ep-context.md |
 | 5. Acceptance criteria | [05-acceptance-criteria.skill.md](skills/05-acceptance-criteria.skill.md) | Epic-level testable conditions | ep-scope.md, ep-requirements.md; ep-context.md if present | epics/<epic-id>/ep-acceptance-criteria.md; updates ep-context.md |
 | 6. System design | [06-system-design.skill.md](skills/06-system-design.skill.md) | Components, interfaces, decisions (may repeat per **§2.1** after stage 7) | ep-context.md if current; ep-requirements.md, ep-acceptance-criteria.md; optional: latest `ep-system-design-review.md` summary/iteration | epics/<epic-id>/ep-system-design.md; updates ep-context.md |
@@ -97,7 +114,7 @@ Stages **9** and **10** are **re-entrant** for a bounded change set (e.g. epic b
 
 **Iteration cap:** After **five** completed **stage 10** iterations, if any **Blocker**, **Major**, **Medium**, or **Minor** finding **remains**, **stop** the cycle and obtain an explicit **operator decision** before **stage 11** or further automated passes.
 
-**Artefact `ep-code-review.md`:** **One file per epic** when persisting reviews, containing YAML front matter, a **Current Gate Summary**, and a **separate top-level section per iteration** (e.g. `## Review iteration 1` … `## Review iteration N`) as specified in the stage 10 skill—preserve prior iterations when appending. (Reviews may still be drafted in chat first; save per skill and user approval.)
+**Artefact `ep-code-review.md`:** **One file per epic** when persisting reviews, containing YAML front matter, a **Current Gate Summary**, and a **separate top-level section per iteration** (e.g. `## Review iteration 1` … `## Review iteration N`) as specified in the stage 10 skill—preserve prior iterations when appending. (Reviews may still be drafted in chat first outside orchestrated HOTL runs.)
 
 **Delegation:** Each **stage 10** run MUST follow [§3](#3-delegated-execution-mandatory-subagent-stages-7-and-10) (fresh reviewer context), including **every** iteration after **material code changes** from stage 9.
 
@@ -105,17 +122,17 @@ Stages **9** and **10** are **re-entrant** for a bounded change set (e.g. epic b
 
 ## 3. Delegated execution (mandatory subagent: stages 7 and 10)
 
-**Relationship to §4:** This section defines the **mandatory** delegation rules for review stages. **§4** generalises the subagent model to all stages (SHOULD) and defines the orchestrator protocol, autonomous mode, and task-level isolation for stage 9.
+**Relationship to §4:** This section defines the **mandatory** delegation rules for review stages. **§4** generalises the subagent model to all stages (SHOULD) and defines the orchestrator protocol, HOTL execution, and task-level isolation for stage 9.
 
 **Purpose:** Stages **7** (system design review) and **10** (code review) MUST run in a **separate agent session** from the work they critique, so the reviewer has clean context and is not biased by having just authored the design or the code.
 
 **MUST (when the environment supports subagents):**
 
-- **Stage 7** — The **orchestrating** agent (or human) **delegates** stage 7 to a **subagent** (or Cursor **Task** / equivalent) whose only job is to execute [07-system-design-review.skill.md](skills/07-system-design-review.skill.md) for the given epic: read `ep-scope.md`, `ep-requirements.md`, `ep-acceptance-criteria.md`, `ep-system-design.md`, and produce the review (draft in chat until user approves **save**, per skill). The subagent may read `ep-context.md` for orientation, but must not use it instead of source artefacts and must not edit it directly. The subagent MUST NOT be the same linear chat session that **wrote** `ep-system-design.md` in one uninterrupted flow without handoff (start a new delegated run for the review). This applies to **every** stage 7 iteration in the **§2.1** cycle (each pass after material design changes needs a new delegated review).
+- **Stage 7** — The **orchestrating** agent (or human) **delegates** stage 7 to a **subagent** (or Cursor **Task** / equivalent) whose only job is to execute [07-system-design-review.skill.md](skills/07-system-design-review.skill.md) for the given epic: read `ep-scope.md`, `ep-requirements.md`, `ep-acceptance-criteria.md`, `ep-system-design.md`, and produce/save the review artefact when running inside the HOTL pipeline. The subagent may read `ep-context.md` for orientation, but must not use it instead of source artefacts and must not edit it directly. The subagent MUST NOT be the same linear chat session that **wrote** `ep-system-design.md` in one uninterrupted flow without handoff (start a new delegated run for the review). This applies to **every** stage 7 iteration in the **§2.1** cycle (each pass after material design changes needs a new delegated review).
 
-- **Stage 10** — The **orchestrating** agent **delegates** stage 10 to a **subagent** whose only job is to execute [10-code-review.skill.md](skills/10-code-review.skill.md) on the agreed change set (PR, branch range, or paths). Review stays **readonly** on the repo unless the user explicitly asks the reviewer to edit. The reviewer may read `ep-context.md` to identify focused epic context, but must not edit it directly. Output is chat-first; optional `ep-code-review.md` when the user asks to save (for **§2.2**, update Current Gate Summary and append **`## Review iteration N`** per skill). This applies to **every** stage 10 iteration in the **§2.2** cycle (each pass after material code changes needs a new delegated review).
+- **Stage 10** — The **orchestrating** agent **delegates** stage 10 to a **subagent** whose only job is to execute [10-code-review.skill.md](skills/10-code-review.skill.md) on the agreed change set (PR, branch range, or paths). Review stays **readonly** on the repo unless the operator explicitly asks the reviewer to edit. The reviewer may read `ep-context.md` to identify focused epic context, but must not edit it directly. Output is chat-first outside an orchestrated pipeline; in the **§2.2** HOTL pipeline loop, persist `ep-code-review.md`, update Current Gate Summary, and append **`## Review iteration N`** per skill so downstream gates have evidence. This applies to **every** stage 10 iteration in the **§2.2** cycle (each pass after material code changes needs a new delegated review).
 
-**Orchestrator responsibilities:** Provide epic id (`EP-XXX`) or explicit paths, confirm inputs exist, invoke the subagent with a short brief (e.g. “Run pipeline **stage 7** per skill …” or “Run pipeline **stage 10** per skill …”), then present the subagent’s output to the user for approval and file writes per skill rules.
+**Orchestrator responsibilities:** Provide epic id (`EP-XXX`) or explicit paths, confirm inputs exist, invoke the subagent with a short brief (e.g. “Run pipeline **stage 7** per skill …” or “Run pipeline **stage 10** per skill …”), then consume the subagent’s gate output. Under HOTL, routine review artefact writes are allowed when stage prerequisites are satisfied; HITL is required only for review-gate overrides, iteration-cap decisions, ambiguous scope, or other required decision points above.
 
 **Enforcement:** This is a **process rule** in git (this spec + skills). **CI cannot verify** that a subagent was used; compliance depends on agents following **this specification** (including **Agent execution expectations** above), the mapped **stage skills**, and—when locating process files—the [ai-sdlc README](../README.md).
 
@@ -172,15 +189,35 @@ Stage 9 (task execution) supports **per-task** subagent isolation within a singl
 6. On validation failure: the orchestrator launches a **new** subagent for the same task, appending the error output to the brief. Maximum **3** retries per task before requiring operator decision.
 7. After all tasks complete, the orchestrator proceeds to stage 10 (code review, mandatory delegation per §3).
 
-### 4.5 Autonomous mode (self-approve gates)
+### 4.5 HOTL execution
 
-When the user instructs the orchestrator to run stages N..M autonomously:
+HOTL is the default pipeline execution model:
 
-- The orchestrator SHOULD **self-approve** intermediate artefacts (stages 3–6, 8) and proceed without a human gate. The "never write until approved" rule in skills is satisfied by the orchestrator acting as the approver on the user's behalf.
-- The orchestrator MUST NOT self-approve **review gates** (stages 7, 10): review subagents produce findings with severity counts; the orchestrator checks `open_counts` from the gate summary and decides programmatically (zero Blocker/Major/Medium/Minor = pass; otherwise return to stage 6 or 9 per §2.1/§2.2).
+- The orchestrator MAY authorize routine intermediate artefact writes (stages 3–6, 8) and proceed without a human gate when required inputs exist and validation passes. Stage skills' draft/write rules are satisfied by the orchestrator for routine HOTL execution.
+- The orchestrator MUST NOT override **review gates** (stages 7, 10) without HITL: review subagents produce findings with severity counts; the orchestrator checks `open_counts` from the gate summary and decides programmatically (zero Blocker/Major/Medium/Minor = pass; otherwise return to stage 6 or 9 per §2.1/§2.2).
 - The orchestrator MUST run `./tools/validate/validate pipeline EP-XXX` between stages to catch structural violations (when the tool is available).
 - The orchestrator SHOULD run `./tools/validate/validate structure EP-XXX` after each artefact-producing stage to verify format compliance (when the tool is available).
 - When validation tools are not yet available (bootstrap), the orchestrator falls back to verifying artefact existence and basic YAML front matter presence.
+
+**Enforcement model:**
+
+| Requirement | Enforcement | Evidence |
+|-------------|-------------|----------|
+| Stage ordering and required artefacts | Hard | `validate pipeline`, file presence, front matter checks |
+| Review gate pass before downstream progression | Hard | Current Gate Summary, open severity counts, validator checks |
+| AC↔test coverage before epic completion | Hard | `./tools/validate/validate EP-XXX` |
+| Mandatory delegation for stages 7 and 10 | Soft | Orchestrator run notes, subagent output signal, operator review |
+| Required HITL decisions | Soft now; validator-assisted where available | Decision record in chat or affected artefact |
+
+**Decision record format:**
+
+```markdown
+Decision needed: <type>
+Context: <one-line why>
+Options: A | B | C
+Operator choice: <selected option>
+Rationale: <short>
+```
 
 ### 4.6 Fallback (subagents unavailable)
 
@@ -220,7 +257,7 @@ When the environment does not support subagents: execute stages sequentially in 
 
 **References:** Links in artefacts may point only to paths under `ai-sdlc-artefacts/`. Every linked document must exist (no broken links). Skills must enforce this rule.
 
-If an upstream artefact changes, downstream stages and artefacts must be reviewed and updated so traceability is preserved (no dedicated pipeline stage—cooperate with the user on scope of updates). When multiple valid levels of change exist for alignment, ask the user.
+If an upstream artefact changes, downstream stages and artefacts must be reviewed and updated so traceability is preserved (no dedicated pipeline stage). The orchestrator may apply routine alignment updates under HOTL; if the update changes durable scope, requirements, design, security, reliability, or delivery commitments, treat it as a required HITL decision point.
 
 ---
 

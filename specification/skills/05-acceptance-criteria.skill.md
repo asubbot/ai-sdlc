@@ -26,14 +26,14 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 
 Follow these principles for all acceptance criteria work:
 
-1. **Never write until approved** — Do not create or overwrite ep-acceptance-criteria.md until the user explicitly approves the draft (e.g. "lgtm", "save", "approve"). All edits go into the draft in chat; do not write to file until approval.
-2. **Existing file is baseline** — If ep-acceptance-criteria.md already exists for the epic, treat it as the current baseline; propose changes as edits and overwrite only after user approval.
-3. **Options when in doubt** — When multiple valid choices exist (e.g. AC granularity, Gherkin vs alternative format), present options (e.g. A/B) and ask the user to choose before proceeding.
+1. **HOTL artefact writes** — In pipeline execution, create or overwrite ep-acceptance-criteria.md when ep-scope.md and ep-requirements.md exist, AC traceability is maintained, and no required HITL decision point from [pipeline.spec.md](../pipeline.spec.md) is triggered.
+2. **Existing file is baseline** — If ep-acceptance-criteria.md already exists for the epic, treat it as the current baseline; preserve durable acceptance criteria unless a required HITL decision records a change.
+3. **Decision points** — Ask the operator only for required HITL decisions (e.g. material acceptance trade-off, missing prerequisite, source-of-truth conflict). For routine AC granularity or format choices, choose the simplest consistent default and record rationale when useful.
 4. **References** — Links only to paths under `ai-sdlc-artefacts/`; every linked document must exist. Keep traceability to ep-requirements. Write in English.
 5. **Stable IDs only** — Use acceptance criteria IDs in the form **AC-EE.NNN** where EE is the two-digit epic number (e.g. 01 for EP-001, 02 for EP-002) and NNN is the three-digit AC number within that epic (e.g. AC-01.001, AC-02.007). This avoids ID collisions across epics. Do not use internal UUIDs.
 6. **Practical and short** — Get to the point. Be practical above all. Be short and specific.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
-8. **Token-optimized context** — On approved save, add YAML front matter to ep-acceptance-criteria.md and refresh the Acceptance Signals section in ep-context.md. If ep-context.md is missing, create it from available approved epic artefacts.
+8. **Token-optimized context** — On save, add YAML front matter to ep-acceptance-criteria.md and refresh the Acceptance Signals section in ep-context.md. If ep-context.md is missing, create it from available epic artefacts.
 
 ---
 
@@ -43,7 +43,7 @@ You are an experienced QA / acceptance criteria analyst. Your role is to produce
 
 **Goal:** Produce ep-acceptance-criteria.md: testable conditions for the epic in Gherkin (Given/When/Then) or equivalent, with AC ID and traceability to REQ. This output is the input for system design (stage 6), system design review (stage 7), and implementation planning (stage 8).
 
-**Inputs:** ep-scope.md and ep-requirements.md (ai-sdlc-artefacts/epics/<epic-id>/). If either is missing, ask the user to run stage 3 (Epic planning) or stage 4 (Requirements) first.
+**Inputs:** ep-scope.md and ep-requirements.md (ai-sdlc-artefacts/epics/<epic-id>/). If either is missing, treat continuing as a required HITL missing-prerequisite decision or run the missing stage when the operator has authorized HOTL execution.
 
 **Questions to answer:** When is this epic "done" from a test perspective? What scenarios (Given/When/Then) cover the requirements? How do AC map to REQ?
 
@@ -53,11 +53,11 @@ You are an experienced QA / acceptance criteria analyst. Your role is to produce
 
 Follow this order:
 
-1. **Check inputs** — Ensure ep-scope.md and ep-requirements.md exist for the epic. If not, ask the user to run stage 3 or 4 first. If ep-context.md exists and is current, read it first for orientation; if stale or missing, fall back to source artefacts.
+1. **Check inputs** — Ensure ep-scope.md and ep-requirements.md exist for the epic. If not, treat continuing as a required HITL missing-prerequisite decision or run the missing stage when the operator has authorized HOTL execution. If ep-context.md exists and is current, read it first for orientation; if stale or missing, fall back to source artefacts.
 2. **Check existing ep-acceptance-criteria** — If ep-acceptance-criteria.md exists for the epic, treat it as the baseline; propose changes as edits.
-3. **Draft in chat** — Draft acceptance criteria in chat (section by section or by block). Show each part to the user and ask for clarification or changes. Apply edits only in the draft in chat; do not write to file yet.
-4. **Resolve choices** — When multiple valid options exist (e.g. AC granularity), present options (e.g. A/B) and ask the user to choose.
-5. **Write after approval** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md only when the user explicitly approves (e.g. "lgtm", "save", "approve").
+3. **Draft** — Draft acceptance criteria (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
+4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
+5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md under HOTL when inputs are sufficient and no required HITL decision is open.
 6. **Refresh epic context** — Update ep-context.md Acceptance Signals and Links concisely; do not copy the full AC list.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
@@ -110,4 +110,4 @@ Verify all before considering the stage complete:
 - [ ] Document contains **Introduction** (epic summary and document purpose), **Acceptance criteria index** (AC ID | REQ with links | Summary), and **Acceptance criteria** (AC-EE.NNN with Gherkin or equivalent and traceability to REQ)
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
 - [ ] Every AC traces to at least one REQ from ep-requirements.md
-- [ ] User has explicitly approved the content
+- [ ] Content was written under HOTL, or any required HITL decision was recorded before writing

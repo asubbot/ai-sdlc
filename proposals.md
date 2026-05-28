@@ -1,6 +1,6 @@
 # ai-sdlc Pipeline Proposals
 
-This document captures proposed improvements to the `ai-sdlc` pipeline. The main goal is to reduce token usage while preserving traceability, review quality, and human-in-the-loop control.
+This document captures proposed improvements to the `ai-sdlc` pipeline. The main goal is to reduce token usage while preserving traceability, review quality, and operator control through a HOTL-by-default pipeline with HITL decision points.
 
 The proposal has three optimization layers:
 
@@ -261,6 +261,8 @@ Success criteria should include both cost and quality:
 - Better current-state visibility without losing full traceability.
 
 ## 8. Align Human-in-the-loop with enforceability reality
+
+**Status: Adopted** (implemented as HOTL-by-default execution in `pipeline.spec.md`; measurement ideas remain future work outside the current implementation plan)
 
 Current documentation states Human-in-the-loop as a strict MUST behavior, while practical enforcement is mixed: some rules are machine-checkable, others are process-only. This proposal makes that explicit without weakening operator control.
 
