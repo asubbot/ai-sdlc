@@ -1,0 +1,3 @@
+# Pin for the canonical ai-sdlc process (tag or full commit SHA).
+# Bootstrap replaces this with git -C ai-sdlc rev-parse HEAD or an agreed release tag.
+v1.0.1

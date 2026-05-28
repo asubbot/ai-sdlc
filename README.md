@@ -11,16 +11,87 @@ This repository is the canonical source of truth for the shared **agentic SDLC p
 | Path | Role |
 |------|------|
 | **[specification/pipeline.spec.md](specification/pipeline.spec.md)** | **Normative process:** stage order, inputs/outputs, stage→skill mapping, **HOTL by default** (HITL at decision points), delegated execution, artefact naming, traceability, **agent execution expectations** (single process, AC validation, etc.). |
-| **[specification/skills/](specification/skills/)** | **Per-stage agent instructions** (`01-` … `11-` plus optional cross-cutting skills). Each skill defines workflow and artefact structure for its stage. |
+| **[specification/skills/](specification/skills/)** | **Per-stage agent instructions** (`00-` bootstrap, `01-` … `11-` plus optional cross-cutting skills). Each skill defines workflow and artefact structure for its stage. |
 | **[specification/skills/README.md](specification/skills/README.md)** | Index and **common behaviour** across skills. |
+| **[templates/consumer/](templates/consumer/)** | **Greenfield templates** copied to new product repositories during bootstrap. |
 | **[proposals.md](proposals.md)** | Proposed pipeline improvements and measurement notes; a living document, not the normative process. |
 | **[tools/validate/](tools/validate/)** | AC↔test coverage checker (`./tools/validate/validate` from repo root); see [VALIDATION.md](tools/validate/VALIDATION.md) and [README](tools/validate/README.md). |
 
 ---
 
+## Starting a new project
+
+Use this flow when the **product repository** is greenfield and you adopt ai-sdlc via a nested process clone.
+
+### 1. Create the product folder and open it in the IDE
+
+The workspace root must be the **product repository root** (e.g. `my-app/`), not `my-app/ai-sdlc/`.
+
+### 2. Clone the process
+
+```bash
+cd my-app
+git clone https://github.com/asubbot/ai-sdlc.git ai-sdlc
+```
+
+Alternatively: initialize the product git repo first, then clone `ai-sdlc/` (layout **A** — see below).
+
+### 3. Ask the agent to bootstrap
+
+Example prompt:
+
+> New consumer project. Run project bootstrap, then stage 1 scope analysis — ask me what we are building.
+
+The agent runs [00-project-bootstrap.skill.md](specification/skills/00-project-bootstrap.skill.md) and materializes files from [templates/consumer/](templates/consumer/).
+
+### 4. Continue the pipeline (normative order)
+
+1. **Bootstrap** — skeleton (`AGENTS.md`, `Makefile`, `ai-sdlc.version`, `ai-sdlc-artefacts/`, CI).
+2. **Stages 1–2** — refine [scope.md](specification/skills/01-scope-analysis.skill.md) and [strategy.md](specification/skills/02-strategy-analysis.skill.md).
+3. **EP-000** — adoption epic (stages 3→11).
+4. **EP-001+** — product epics.
+
+### Target directory layout (summary)
+
+**After bootstrap (minimum):**
+
+```text
+my-app/
+├── AGENTS.md
+├── README.md
+├── Makefile
+├── ai-sdlc.version
+├── .gitignore              # layout A: includes ai-sdlc/
+├── bin/validate
+├── .github/workflows/ai-sdlc.yml
+├── ai-sdlc/                 # local clone (not committed in layout A)
+└── ai-sdlc-artefacts/
+    ├── scope.md            # stub, refine in stage 1
+    ├── strategy.md         # stub, refine in stage 2
+    └── epics/EP-000/       # adoption epic stubs
+```
+
+**Layout A (default):** `ai-sdlc/` is in `.gitignore`; CI checks out the process at the pin in `ai-sdlc.version`.
+
+**Layout B:** `ai-sdlc/` is a git submodule (remove `ai-sdlc/` from `.gitignore`).
+
+See [pipeline.spec.md](specification/pipeline.spec.md) (Consumer onboarding) and [templates/consumer/README.md](templates/consumer/README.md).
+
+### Fresh clone of the product repo only
+
+If `ai-sdlc/` is missing (e.g. layout A), after `git clone` of the product:
+
+```bash
+git clone https://github.com/asubbot/ai-sdlc.git ai-sdlc
+git -C ai-sdlc checkout "$(tr -d '[:space:]' < ai-sdlc.version)"
+make build
+```
+
+---
+
 ## Consumption model (workspace-only)
 
-Projects consume this repository as a separate workspace root. To keep reproducibility:
+Projects consume this repository as a separate workspace root or as a **nested clone** under the product root (`ai-sdlc/`). To keep reproducibility:
 
 1. Each consumer project stores an `ai-sdlc.version` file with a pinned tag or commit SHA.
 2. CI in consumer projects verifies that the pinned revision exists in this canonical repository.
@@ -57,3 +128,5 @@ Verify the pin exists in the canonical repository (set `AI_SDLC_REPO` to your fo
       exit 1
     fi
 ```
+
+A full consumer workflow template is in [templates/consumer/.github/workflows/ai-sdlc.yml](templates/consumer/.github/workflows/ai-sdlc.yml) (pin verify + checkout `ai-sdlc` at pin).

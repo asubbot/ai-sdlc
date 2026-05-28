@@ -26,7 +26,7 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 
 - **Required input:** user request / chat context; optional existing `ai-sdlc-artefacts/scope.md`
 - **Context:** project-level only; no `ep-context.md`
-- **Gate check before launch:** none (first pipeline stage)
+- **Gate check before launch:** none (first pipeline stage). If consumer layout is incomplete (no root `AGENTS.md` and no `ai-sdlc-artefacts/scope.md` while `ai-sdlc/` exists), run [00-project-bootstrap.skill.md](00-project-bootstrap.skill.md) first.
 - **Output signal:** `STAGE_1_COMPLETE: ai-sdlc-artefacts/scope.md [<summary>]`
 - **Validation after:** confirm `scope.md` exists with YAML front matter and required sections (no epic `validate structure` for project-level artefacts)
 

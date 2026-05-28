@@ -4,7 +4,8 @@ Instructions for AI agents working in the **canonical ai-sdlc** repository (shar
 
 ## How to use this file
 
-- This file applies when the workspace root **is** this repository.
+- This file applies when the workspace root **is** this repository (the canonical ai-sdlc checkout itself).
+- **New consumer product repositories** use [templates/consumer/AGENTS.md](templates/consumer/AGENTS.md) and [00-project-bootstrap.skill.md](specification/skills/00-project-bootstrap.skill.md) — not the rules below about forbidding `ai-sdlc-artefacts/` at the repo root.
 - The normative SDLC pipeline lives in **[specification/pipeline.spec.md](specification/pipeline.spec.md)** and the stage skills under **[specification/skills/](specification/skills/)**.
 - Use **[README.md](README.md)** as the directory index. **[proposals.md](proposals.md)** is a living ideas document, not normative process.
 

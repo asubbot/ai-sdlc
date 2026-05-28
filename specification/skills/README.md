@@ -1,6 +1,6 @@
 # specification/skills — Agent instructions
 
-Agent instructions for the SDLC pipeline. **One numbered skill per pipeline stage (1–11)**, plus **optional cross-cutting** skills (C4 C3 diagram, project comparison, threat model from code). Paths in skills use **ai-sdlc-artefacts/** (project root: `scope.md`, `strategy.md`, optional `analytics/`) and **ai-sdlc-artefacts/epics/<epic-id>/** for epic artefacts: ep-scope, ep-context, ep-requirements, ep-acceptance-criteria, ep-system-design, ep-system-design-review, ep-implementation-plan, **ep-code-review** (when saved; **§2.2** uses per-iteration sections), ep-audit-report. Story-level paths are not used by the pipeline.
+Agent instructions for the SDLC pipeline. **`00` bootstrap** plus **numbered skills per pipeline stage (`01`–`11`)**, plus **optional cross-cutting** skills (C4 C3 diagram, project comparison, threat model from code). Paths in skills use **ai-sdlc-artefacts/** (project root: `scope.md`, `strategy.md`, optional `analytics/`) and **ai-sdlc-artefacts/epics/<epic-id>/** for epic artefacts: ep-scope, ep-context, ep-requirements, ep-acceptance-criteria, ep-system-design, ep-system-design-review, ep-implementation-plan, **ep-code-review** (when saved; **§2.2** uses per-iteration sections), ep-audit-report. Story-level paths are not used by the pipeline.
 
 **Common behaviour:** The pipeline runs **Human-on-the-loop (HOTL) by default**. Agents proceed through routine stage work, choose sensible defaults, and write/update artefacts when required inputs exist and validation/review gates pass. **Human-in-the-loop (HITL)** is required only for the decision points in [pipeline.spec.md](../pipeline.spec.md): gate overrides, iteration-cap overrides, missing prerequisites, source-of-truth conflicts with durable impact, material scope/architecture/migration/security/reliability trade-offs, destructive or externally visible actions, and weakening security or reliability controls.
 
@@ -152,6 +152,7 @@ Each stage skill below includes an **Orchestrator brief** section that specifies
 
 | Skill | Use when |
 |-------|----------|
+| [00-project-bootstrap.skill.md](00-project-bootstrap.skill.md) | **New consumer project** / greenfield / bootstrap ai-sdlc layout before stage 1 |
 | [ep-C4-component.skill.md](ep-C4-component.skill.md) | C4 **C3** Go component diagram for `ep-system-design.md` (optional; complements mandatory C2 container) |
 | [project-comparison-report.skill.md](project-comparison-report.skill.md) | Compare an external repo with the consumer product; analytics report under `ai-sdlc-artefacts/analytics/` |
 | [user-documentation.skill.md](user-documentation.skill.md) | End-user / operator docs under `docs/` and root `README.md` (installation, config, Docker, operations) |
@@ -165,6 +166,7 @@ When a user request matches an intent below, use the corresponding skill.
 
 | Intent / trigger | Skill |
 |------------------|--------|
+| **Start new project** / bootstrap ai-sdlc / greenfield consumer layout | [00-project-bootstrap.skill.md](00-project-bootstrap.skill.md) |
 | Plan or refine **project** scope (`scope.md`) | [01-scope-analysis.skill.md](01-scope-analysis.skill.md) |
 | **Epic** planning (`ep-scope.md` per epic) | [03-epic-planning.skill.md](03-epic-planning.skill.md) |
 | Define delivery or test **strategy** (`strategy.md`) | [02-strategy-analysis.skill.md](02-strategy-analysis.skill.md) |
@@ -185,6 +187,6 @@ When a user request matches an intent below, use the corresponding skill.
 
 ## All skill files in this folder
 
-Numbered pipeline stages: `01-scope-analysis` through `06-system-design`, then `07-system-design-review`, `08-implementation-planning`, `09-task-execution`, `10-code-review`, `11-audit`. Cross-cutting: `ep-C4-component.skill.md`, `project-comparison-report.skill.md`, `user-documentation.skill.md`, `threat-model-report.skill.md`.
+Numbered pipeline stages: `01-scope-analysis` through `06-system-design`, then `07-system-design-review`, `08-implementation-planning`, `09-task-execution`, `10-code-review`, `11-audit`. Cross-cutting: `00-project-bootstrap.skill.md`, `ep-C4-component.skill.md`, `project-comparison-report.skill.md`, `user-documentation.skill.md`, `threat-model-report.skill.md`.
 
 **Single source of stage I/O:** [pipeline.spec.md](../pipeline.spec.md) §2 (table of stages, inputs, outputs).

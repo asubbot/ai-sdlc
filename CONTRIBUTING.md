@@ -17,4 +17,4 @@ This repository defines the shared SDLC process for multiple projects. Keep chan
 2. Consumer repositories update their `ai-sdlc.version` pin via a dedicated PR.
 3. Do not make direct process edits in consumer repository copies after cutover.
 
-See [README.md](README.md) (Consumption model) for `ai-sdlc.version` format and a minimal CI verification snippet. When bumping from an earlier tag, read the **Upgrading from v1.0.0** section in [CHANGELOG.md](CHANGELOG.md).
+See [README.md](README.md) (Consumption model and **Starting a new project**) for `ai-sdlc.version` format, greenfield bootstrap, and CI templates under [templates/consumer/](templates/consumer/). When bumping from an earlier tag, read the **Upgrading from v1.0.0** section in [CHANGELOG.md](CHANGELOG.md).

@@ -7,6 +7,7 @@ on:
       - '.github/workflows/validate.yml'
       - 'tools/validate/**'
       - 'specification/**'
+      - 'templates/**'
       - 'README.md'
       - 'CHANGELOG.md'
       - 'proposals.md'
@@ -18,6 +19,7 @@ on:
       - '.github/workflows/validate.yml'
       - 'tools/validate/**'
       - 'specification/**'
+      - 'templates/**'
       - 'README.md'
       - 'CHANGELOG.md'
       - 'proposals.md'
@@ -43,10 +45,22 @@ jobs:
 
       - run: go build -o validate .
 
+      - name: Smoke consumer Makefile build
+        working-directory: ${{ github.workspace }}
+        run: |
+          tmp=$(mktemp -d)
+          cp templates/consumer/Makefile "$tmp/"
+          ln -sfn "$GITHUB_WORKSPACE" "$tmp/ai-sdlc"
+          make -C "$tmp" build
+          test -x "$tmp/bin/validate"
+
       - name: Smoke validate CLI (consumer layout)
         working-directory: ${{ github.workspace }}
         run: |
           mkdir -p ai-sdlc-artefacts/epics
-          cp -r tools/validate/testdata/* ai-sdlc-artefacts/epics/
+          cp tools/validate/testdata/scope.md tools/validate/testdata/strategy.md ai-sdlc-artefacts/
+          cp -r tools/validate/testdata/EP-000 tools/validate/testdata/EP-099 ai-sdlc-artefacts/epics/
+          ./tools/validate/validate pipeline EP-000
+          ./tools/validate/validate structure EP-000
           ./tools/validate/validate pipeline EP-099
           ./tools/validate/validate structure EP-099

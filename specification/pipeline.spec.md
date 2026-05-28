@@ -49,6 +49,37 @@ The pipeline uses three lightweight context layers to reduce repeated full-docum
 
 Full artefacts remain the source of truth. If a compact layer conflicts with a full artefact, the full artefact wins. If YAML front matter is absent, agents MUST fall back to reading the body. If `ep-context.md` is absent, agents SHOULD create it on the first epic artefact write/update in stages 3–11. If `ep-context.md` is older than any source artefact it summarizes, agents MUST treat it as stale and open the changed source artefacts before relying on it.
 
+### Consumer onboarding (greenfield)
+
+**Pre-pipeline:** Before stage 1 in a new consumer repository, run [00-project-bootstrap.skill.md](skills/00-project-bootstrap.skill.md). Templates live under `templates/consumer/` in the pinned `ai-sdlc/` tree.
+
+**Prerequisites:**
+
+- Git repository at the **product root** (init locally if needed; remote/origin is HITL).
+- `ai-sdlc/` at the product root: nested clone (**layout A**, default) or git submodule (**layout B**).
+- IDE workspace root = **product root**, not `ai-sdlc/`.
+
+**Bootstrap triggers:** Operator intents such as «start new project», «bootstrap ai-sdlc», or «begin work» when consumer `AGENTS.md` or `ai-sdlc-artefacts/scope.md` is missing while `ai-sdlc/` exists.
+
+**Bootstrap outputs:** Consumer `AGENTS.md`, `.gitignore`, `Makefile`, `ai-sdlc.version`, `ai-sdlc-artefacts/` (including stubs), `.github/workflows/ai-sdlc.yml`, buildable `bin/validate`. Signal: `BOOTSTRAP_COMPLETE: skeleton ready`.
+
+**Post-bootstrap order (normative):**
+
+1. Bootstrap skeleton ([00-project-bootstrap.skill.md](skills/00-project-bootstrap.skill.md)).
+2. **Stages 1–2** — `scope.md`, `strategy.md` (minimal stubs may be refined; required before epic stage 3).
+3. **EP-000** — adoption epic (stages 3→11; Deferred ACs allowed when product test dirs are absent).
+4. Refine scope/strategy when the product is known.
+5. **EP-001+** — product epics.
+
+**Consumption layouts:**
+
+| Layout | `ai-sdlc/` in product git | Durable process reference |
+|--------|---------------------------|---------------------------|
+| **A (default)** | No — listed in `.gitignore`; clone locally and in CI | `ai-sdlc.version` |
+| **B** | Yes — git submodule pointer | `ai-sdlc.version` + submodule commit |
+
+**Validator in consumer repos:** Build with `make build`; run `make validate` or `./bin/validate` from the product root (sources under `ai-sdlc/tools/validate/`). See [VALIDATION.md](../tools/validate/VALIDATION.md).
+
 ---
 
 ## 1. Pipeline overview
@@ -261,6 +292,7 @@ When the environment does not support subagents: execute stages sequentially in 
 
 ## 6. Traceability
 
+- **Greenfield:** [00-project-bootstrap.skill.md](skills/00-project-bootstrap.skill.md) (skeleton) → **scope.md** → **strategy.md** → **EP-000** (adoption) → product epics.
 - **scope.md** → strategy.md → ep-scope.md → ep-requirements.md → ep-acceptance-criteria.md → **(ep-system-design.md ↔ ep-system-design-review.md)** — iterate per **§2.1** until exit criteria or operator decision → ep-implementation-plan.md → **(task execution / repo ↔ code review stage 10)** — iterate per **§2.2** until exit criteria or operator decision → chat and/or **ep-code-review.md** (per-iteration sections when saved) → **stage 11** → ep-audit-report.md.
 - **ep-context.md** is a compact sidecar maintained from approved epic artefacts and gate summaries. It supports token-optimized handoff but does not replace traceability through source artefacts.
 

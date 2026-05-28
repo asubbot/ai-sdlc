@@ -355,3 +355,11 @@ Where to store:
 - No contradiction between normative docs and actual enforcement capability.
 - Operators can clearly distinguish auto-validated vs process-validated requirements.
 - Review and audit stages can verify that required operator decisions were recorded.
+
+---
+
+## 9. Greenfield consumer bootstrap (implemented)
+
+**Status:** Implemented in [CHANGELOG.md](CHANGELOG.md) **Unreleased** (greenfield bootstrap); ships in upcoming **v1.1.0** (see [README.md](README.md) *Starting a new project*, [00-project-bootstrap.skill.md](specification/skills/00-project-bootstrap.skill.md), [templates/consumer/](templates/consumer/)).
+
+Not normative — see pipeline spec and bootstrap skill for the authoritative process.

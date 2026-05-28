@@ -1,0 +1,15 @@
+# Process tree (layout A): clone locally and in CI; pin is ai-sdlc.version
+ai-sdlc/
+
+# Built validator binary
+bin/
+
+# Secrets and local config
+.env
+.secrets/
+
+# Editor / OS
+.vscode/
+.cursor/
+.DS_Store
+Thumbs.db
