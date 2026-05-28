@@ -4,11 +4,21 @@ on:
   push:
     branches: [main]
     paths:
+      - '.github/workflows/validate.yml'
       - 'tools/validate/**'
+      - 'specification/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'proposals.md'
   pull_request:
     branches: [main]
     paths:
+      - '.github/workflows/validate.yml'
       - 'tools/validate/**'
+      - 'specification/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'proposals.md'
 
 jobs:
   test:

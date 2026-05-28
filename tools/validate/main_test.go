@@ -366,6 +366,7 @@ func TestLineDeclaresACCoverage(t *testing.T) {
 		{"// AC-30.013: tools.text_based_enabled rejection", true},
 		{"// each … (AC-06.005, AC-06.010 / REQ-06.013).", true},
 		{"// (AC-06.005, AC-06.006, AC-06.010 / REQ-06.013)", true},
+		{`message := "this covers AC-09.001"`, false},
 		{"// no keyword and no pattern", false},
 		{"func foo() {}", false},
 	}
@@ -373,6 +374,27 @@ func TestLineDeclaresACCoverage(t *testing.T) {
 		if got := lineDeclaresACCoverage(tt.line); got != tt.want {
 			t.Errorf("lineDeclaresACCoverage(%q) = %v, want %v", tt.line, got, tt.want)
 		}
+	}
+}
+
+func TestParseACsFromFile_ThreeDigitEpic(t *testing.T) {
+	dir := t.TempDir()
+	f := filepath.Join(dir, "ac-100.md")
+	content := `# EP-100 Acceptance Criteria
+
+### AC-100.001 First three-digit epic criterion
+Trace: REQ-100.001
+`
+	if err := os.WriteFile(f, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	acs, _, err := parseACsFromFile(f)
+	if err != nil {
+		t.Fatalf("parseACsFromFile failed: %v", err)
+	}
+	if _, ok := acs[ACCode("AC-100.001")]; !ok {
+		t.Fatalf("expected AC-100.001 to be parsed, got %v", acs)
 	}
 }
 

@@ -25,7 +25,7 @@ type REQACTraceResult struct {
 	HasGaps       bool                `json:"has_gaps"`
 }
 
-var reqHeadingPattern = regexp.MustCompile(`^###\s+(REQ-\d{2}\.\d{3})\s*[—–]\s*(.*)`)
+var reqHeadingPattern = regexp.MustCompile(`^###\s+(REQ-\d{2,3}\.\d{3})\s*[—–]\s*(.*)`)
 
 // parseREQsFromFile extracts REQ codes and their summary text from headings like
 // ### REQ-EE.NNN — Summary
@@ -53,7 +53,7 @@ func parseREQsFromFile(path string) (map[REQCode]string, error) {
 	return reqs, nil
 }
 
-var reqCodePattern = regexp.MustCompile(`REQ-(\d{2})\.(\d{3})`)
+var reqCodePattern = regexp.MustCompile(`REQ-(\d{2,3})\.(\d{3})`)
 
 // parseREQRefsFromACFile parses ep-acceptance-criteria.md and extracts REQ references
 // from each AC block. Looks for patterns like:
@@ -66,7 +66,7 @@ func parseREQRefsFromACFile(path string) (map[ACCode][]REQCode, error) {
 		return nil, err
 	}
 
-	acPattern := regexp.MustCompile(`AC-(\d{2})\.(\d{3})`)
+	acPattern := regexp.MustCompile(`AC-(\d{2,3})\.(\d{3})`)
 	result := make(map[ACCode][]REQCode)
 	lines := strings.Split(string(content), "\n")
 

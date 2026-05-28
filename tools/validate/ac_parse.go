@@ -85,7 +85,7 @@ func parseACsFromFile(path string) (map[ACCode]string, map[ACCode]acExclusionKin
 	excluded := make(map[ACCode]acExclusionKind)
 	lines := strings.Split(string(content), "\n")
 
-	acCodePattern := regexp.MustCompile(`AC-(\d{2})\.(\d{3})`)
+	acCodePattern := regexp.MustCompile(`AC-(\d{2,3})\.(\d{3})`)
 
 	for i, line := range lines {
 		matches := acCodePattern.FindAllStringSubmatch(line, -1)
@@ -122,7 +122,7 @@ func parseREQCountFromFile(path string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	re := regexp.MustCompile(`REQ-(\d{2})\.(\d{3})`)
+	re := regexp.MustCompile(`REQ-(\d{2,3})\.(\d{3})`)
 	matches := re.FindAllStringSubmatch(string(content), -1)
 	seen := make(map[string]struct{}, len(matches))
 	for _, m := range matches {
@@ -151,13 +151,13 @@ func normalizeCriterionPreview(c string) string {
 
 // Regexes for common traceability comment shapes (see project test style).
 var (
-	reEpicACLine = regexp.MustCompile(`EP-\d+\s+AC-\d{2}\.\d{3}`)
-	reACLabel    = regexp.MustCompile(`\bAC-\d{2}\.\d{3}\s*:`)
-	reACSlashReq = regexp.MustCompile(`\bAC-\d{2}\.\d{3}\s*/\s*REQ-`)
-	reACCode     = regexp.MustCompile(`AC-\d{2}\.\d{3}`)
+	reEpicACLine = regexp.MustCompile(`EP-\d+\s+AC-\d{2,3}\.\d{3}`)
+	reACLabel    = regexp.MustCompile(`\bAC-\d{2,3}\.\d{3}\s*:`)
+	reACSlashReq = regexp.MustCompile(`\bAC-\d{2,3}\.\d{3}\s*/\s*REQ-`)
+	reACCode     = regexp.MustCompile(`AC-\d{2,3}\.\d{3}`)
 	reManualWord = regexp.MustCompile(`(?i)\bmanual\b`)
-	reSingleAC   = regexp.MustCompile(`AC-(\d{2})\.(\d{3})`)
-	reACRange    = regexp.MustCompile(`AC-(\d{2})\.(\d{3})[–-](\d{3})`)
+	reSingleAC   = regexp.MustCompile(`AC-(\d{2,3})\.(\d{3})`)
+	reACRange    = regexp.MustCompile(`AC-(\d{2,3})\.(\d{3})[–-](\d{3})`)
 )
 
 // lineDeclaresManualTrace is true when the traceability line explicitly marks manual-only intent.
@@ -167,13 +167,13 @@ func lineDeclaresManualTrace(line string) bool {
 
 // lineDeclaresACCoverage returns true if a line in a *_test.go file should be scanned for AC codes.
 func lineDeclaresACCoverage(line string) bool {
-	lineLower := strings.ToLower(line)
-	if strings.Contains(lineLower, "covers") || strings.Contains(lineLower, "supporting") {
-		return true
-	}
 	trimmed := strings.TrimSpace(line)
 	if !strings.HasPrefix(trimmed, "//") {
 		return false
+	}
+	lineLower := strings.ToLower(line)
+	if strings.Contains(lineLower, "covers") || strings.Contains(lineLower, "supporting") {
+		return true
 	}
 	if reEpicACLine.MatchString(line) {
 		return true

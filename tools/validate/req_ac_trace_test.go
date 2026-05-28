@@ -64,6 +64,28 @@ func TestParseREQsFromFile_Summaries(t *testing.T) {
 	}
 }
 
+func TestParseREQsFromFile_ThreeDigitEpic(t *testing.T) {
+	dir := t.TempDir()
+	reqPath := filepath.Join(dir, "ep-requirements.md")
+	content := `# Requirements
+
+### REQ-100.001 — Three-digit epic requirement
+
+THE validator SHALL parse this requirement.
+`
+	if err := os.WriteFile(reqPath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	reqs, err := parseREQsFromFile(reqPath)
+	if err != nil {
+		t.Fatalf("parseREQsFromFile failed: %v", err)
+	}
+	if got := reqs[REQCode("REQ-100.001")]; got != "Three-digit epic requirement" {
+		t.Fatalf("REQ-100.001 summary = %q", got)
+	}
+}
+
 func TestParseREQRefsFromACFile(t *testing.T) {
 	refs, err := parseREQRefsFromACFile("testdata/EP-099/ep-acceptance-criteria.md")
 	if err != nil {
@@ -134,6 +156,30 @@ Do not map this to ACs: REQ-99.999
 	want := []REQCode{"REQ-99.001"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("AC-99.001 refs = %v, want %v", got, want)
+	}
+}
+
+func TestParseREQRefsFromACFile_ThreeDigitEpic(t *testing.T) {
+	dir := t.TempDir()
+	acPath := filepath.Join(dir, "ep-acceptance-criteria.md")
+	content := `# ACs
+
+### AC-100.001 — Three-digit criterion
+Trace: REQ-100.001
+`
+	if err := os.WriteFile(acPath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	refs, err := parseREQRefsFromACFile(acPath)
+	if err != nil {
+		t.Fatalf("parseREQRefsFromACFile failed: %v", err)
+	}
+
+	got := refs["AC-100.001"]
+	want := []REQCode{"REQ-100.001"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("AC-100.001 refs = %v, want %v", got, want)
 	}
 }
 
