@@ -1,12 +1,12 @@
-# ai-sdlc — directory index
+# ai-sdlc — canonical process repository
 
-This folder holds the **agentic SDLC process definition** for this repository: where the pipeline is specified, where per-stage agent instructions live, and where supporting tools live. It does **not** store pipeline execution outputs (artefacts).
+This repository is the canonical source of truth for the shared **agentic SDLC process** used by multiple product repositories.
 
-**If you are an agent:** repo-wide behaviour (permissions, commits, secrets, language, **`make check`**) is in the root **[AGENTS.md](../AGENTS.md)**. **Pipeline rules and expectations** (stages, delegation, validation commands) are in **[specification/pipeline.spec.md](specification/pipeline.spec.md)** and the skills it references.
+`ai-sdlc` describes the process only; project execution outputs are stored in each product repository under `ai-sdlc-artefacts/`.
 
 ---
 
-## Layout (what is where)
+## Repository layout
 
 | Path | Role |
 |------|------|
@@ -18,6 +18,10 @@ This folder holds the **agentic SDLC process definition** for this repository: w
 
 ---
 
-## Artefacts (outputs of the pipeline)
+## Consumption model (workspace-only)
 
-Execution results (scope, strategy, epic documents, saved reviews, audit reports, etc.) are stored in **`ai-sdlc-artefacts/`** at the repository root (`../ai-sdlc-artefacts/` from here), not under `ai-sdlc/`. Paths and filenames are defined in **pipeline.spec.md** §4 and in the relevant skills.
+Projects consume this repository as a separate workspace root. To keep reproducibility:
+
+1. Each consumer project stores an `ai-sdlc.version` file with a pinned tag or commit SHA.
+2. CI in consumer projects verifies that the pinned revision exists in this canonical repository.
+3. Process changes are made here via PR; product repositories update only their pinned version.
