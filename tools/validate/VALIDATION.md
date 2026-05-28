@@ -1,6 +1,24 @@
 # Validation Tool
 
-Multi-purpose validation tool for SDLC pipeline. Currently validates Acceptance Criteria (AC) coverage.
+Multi-purpose validation tool for SDLC pipeline.
+
+## Subcommands
+
+The CLI supports subcommand dispatch. If the first non-flag argument is a known subcommand, it is dispatched. Otherwise the tool defaults to `ac` (backwards compatible).
+
+```
+validate [subcommand] [EP-XXX] [--json]
+```
+
+| Subcommand  | Description | Status |
+|-------------|-------------|--------|
+| `ac`        | AC coverage validation (default) | Implemented |
+| `req`       | REQ ↔ AC traceability check | Placeholder |
+| `pipeline`  | Pipeline state and gate validation | Placeholder |
+| `structure` | Artefact structure validation | Placeholder |
+| `ears`      | EARS requirements linting | Placeholder |
+
+The `--json` flag works in any position (before or after subcommand/epic).
 
 ## AC Validation
 

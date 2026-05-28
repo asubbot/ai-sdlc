@@ -8,12 +8,8 @@ import (
 )
 
 func TestParseACsFromFile(t *testing.T) {
-	// Create temporary markdown file
-	tmpFile, err := os.CreateTemp("", "ac-test-*.md")
-	if err != nil {
-		t.Fatalf("Failed to create temp file: %v", err)
-	}
-	defer func() { _ = os.Remove(tmpFile.Name()) }()
+	dir := t.TempDir()
+	f := filepath.Join(dir, "ac-test.md")
 
 	content := `# EP-009 Acceptance Criteria
 
@@ -29,30 +25,25 @@ Expected: something works
 Some requirement
 `
 
-	if _, err := tmpFile.WriteString(content); err != nil {
+	if err := os.WriteFile(f, []byte(content), 0o644); err != nil {
 		t.Fatalf("Failed to write temp file: %v", err)
 	}
-	_ = tmpFile.Close()
 
-	acs, excluded, err := parseACsFromFile(tmpFile.Name())
+	acs, excluded, err := parseACsFromFile(f)
 	if err != nil {
 		t.Fatalf("parseACsFromFile failed: %v", err)
 	}
 
-	// Check that we found the ACs
 	if len(acs) == 0 {
 		t.Fatal("Expected to find ACs, but got none")
 	}
 
-	// Check specific ACs
 	if _, ok := acs[ACCode("AC-09.003")]; !ok {
 		t.Error("Expected AC-09.003 to be found")
 	}
 	if len(excluded) != 0 {
 		t.Errorf("Expected no excluded ACs, got %d", len(excluded))
 	}
-
-	t.Logf("Found %d ACs: %v", len(acs), acs)
 }
 
 func TestGetEpicNumber(t *testing.T) {
@@ -78,154 +69,172 @@ func TestGetEpicNumber(t *testing.T) {
 }
 
 func TestGenerateReport(t *testing.T) {
-	acs := map[ACCode]string{
-		"AC-09.001": "First criterion",
-		"AC-09.002": "Second criterion",
-		"AC-09.003": "Third criterion",
+	tests := []struct {
+		name              string
+		acs               map[ACCode]string
+		excluded          map[ACCode]acExclusionKind
+		coverage          map[ACCode][]CoverageRef
+		totalACs          int
+		inScopeACs        int
+		automatedCovered  int
+		manualOnly        int
+		deferredACs       int
+		obsoleteACs       int
+		traceabilityRatio float64
+		gapCount          int
+		hasBlockingGaps   bool
+	}{
+		{
+			name: "partial coverage",
+			acs: map[ACCode]string{
+				"AC-09.001": "First criterion",
+				"AC-09.002": "Second criterion",
+				"AC-09.003": "Third criterion",
+			},
+			excluded: map[ACCode]acExclusionKind{},
+			coverage: map[ACCode][]CoverageRef{
+				"AC-09.001": {{Ref: "tests/test.go::TestFunc1", Manual: false}},
+				"AC-09.002": {{Ref: "tests/test.go::TestFunc2", Manual: false}},
+			},
+			totalACs:          3,
+			inScopeACs:        3,
+			automatedCovered:  2,
+			manualOnly:        0,
+			deferredACs:       0,
+			obsoleteACs:       0,
+			traceabilityRatio: 2.0 / 3.0,
+			gapCount:          1,
+			hasBlockingGaps:   true,
+		},
+		{
+			name: "full coverage",
+			acs: map[ACCode]string{
+				"AC-09.001": "First criterion",
+				"AC-09.002": "Second criterion",
+			},
+			excluded: map[ACCode]acExclusionKind{},
+			coverage: map[ACCode][]CoverageRef{
+				"AC-09.001": {{Ref: "tests/test.go::TestFunc1", Manual: false}},
+				"AC-09.002": {{Ref: "tests/test.go::TestFunc2", Manual: false}},
+			},
+			totalACs:          2,
+			inScopeACs:        2,
+			automatedCovered:  2,
+			manualOnly:        0,
+			deferredACs:       0,
+			obsoleteACs:       0,
+			traceabilityRatio: 1.0,
+			gapCount:          0,
+			hasBlockingGaps:   false,
+		},
+		{
+			name: "deferred AC",
+			acs: map[ACCode]string{
+				"AC-09.001": "First criterion",
+				"AC-09.002": "Second criterion",
+				"AC-09.003": "Third criterion",
+			},
+			excluded: map[ACCode]acExclusionKind{
+				"AC-09.003": acExclusionDeferred,
+			},
+			coverage: map[ACCode][]CoverageRef{
+				"AC-09.001": {{Ref: "tests/test.go::TestFunc1", Manual: false}},
+				"AC-09.002": {{Ref: "tests/test.go::TestFunc2", Manual: false}},
+			},
+			totalACs:          3,
+			inScopeACs:        2,
+			automatedCovered:  2,
+			manualOnly:        0,
+			deferredACs:       1,
+			obsoleteACs:       0,
+			traceabilityRatio: 1.0,
+			gapCount:          1,
+			hasBlockingGaps:   false,
+		},
+		{
+			name: "obsolete AC",
+			acs: map[ACCode]string{
+				"AC-09.001": "First",
+				"AC-09.002": "Second",
+			},
+			excluded: map[ACCode]acExclusionKind{
+				"AC-09.002": acExclusionObsolete,
+			},
+			coverage: map[ACCode][]CoverageRef{
+				"AC-09.001": {{Ref: "tests/x.go::TestA", Manual: false}},
+			},
+			totalACs:          2,
+			inScopeACs:        1,
+			automatedCovered:  1,
+			manualOnly:        0,
+			deferredACs:       0,
+			obsoleteACs:       1,
+			traceabilityRatio: 1.0,
+			gapCount:          1,
+			hasBlockingGaps:   false,
+		},
+		{
+			name:     "manual only",
+			acs:      map[ACCode]string{"AC-09.001": "c1"},
+			excluded: map[ACCode]acExclusionKind{},
+			coverage: map[ACCode][]CoverageRef{
+				"AC-09.001": {{Ref: "t.go::TestX", Manual: true}},
+			},
+			totalACs:          1,
+			inScopeACs:        1,
+			automatedCovered:  0,
+			manualOnly:        1,
+			deferredACs:       0,
+			obsoleteACs:       0,
+			traceabilityRatio: 1.0,
+			gapCount:          0,
+			hasBlockingGaps:   false,
+		},
 	}
-	excluded := map[ACCode]acExclusionKind{}
 
-	coverage := map[ACCode][]CoverageRef{
-		"AC-09.001": {{Ref: "tests/test.go::TestFunc1", Manual: false}},
-		"AC-09.002": {{Ref: "tests/test.go::TestFunc2", Manual: false}},
-		// AC-09.003 has no coverage
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := generateReport("EP-009", tt.acs, tt.excluded, tt.coverage)
 
-	r := generateReport("EP-009", acs, excluded, coverage)
-
-	if r.Epic != "EP-009" {
-		t.Errorf("Epic = %s, want EP-009", r.Epic)
-	}
-
-	if r.TotalACs != 3 {
-		t.Errorf("TotalACs = %d, want 3", r.TotalACs)
-	}
-
-	if r.InScopeACs != 3 {
-		t.Errorf("InScopeACs = %d, want 3", r.InScopeACs)
-	}
-
-	if r.AutomatedCoveredACs != 2 {
-		t.Errorf("AutomatedCoveredACs = %d, want 2", r.AutomatedCoveredACs)
-	}
-
-	if r.ManualOnlyTracedACs != 0 {
-		t.Errorf("ManualOnlyTracedACs = %d, want 0", r.ManualOnlyTracedACs)
-	}
-
-	if len(r.Gaps) != 1 {
-		t.Errorf("Gaps = %d, want 1", len(r.Gaps))
-	}
-
-	if r.Gaps[0].Code != "AC-09.003" {
-		t.Errorf("First gap = %s, want AC-09.003", r.Gaps[0].Code)
-	}
-
-	expectedRatio := 2.0 / 3.0
-	if r.TraceabilityRatio != expectedRatio {
-		t.Errorf("TraceabilityRatio = %f, want %f", r.TraceabilityRatio, expectedRatio)
-	}
-}
-
-func TestGenerateReport_FullCoverage(t *testing.T) {
-	acs := map[ACCode]string{
-		"AC-09.001": "First criterion",
-		"AC-09.002": "Second criterion",
-	}
-	excluded := map[ACCode]acExclusionKind{}
-
-	coverage := map[ACCode][]CoverageRef{
-		"AC-09.001": {{Ref: "tests/test.go::TestFunc1", Manual: false}},
-		"AC-09.002": {{Ref: "tests/test.go::TestFunc2", Manual: false}},
-	}
-
-	r := generateReport("EP-009", acs, excluded, coverage)
-
-	if r.AutomatedCoveredACs+r.ManualOnlyTracedACs != r.InScopeACs {
-		t.Errorf("traced = %d, want in-scope %d (full coverage)", r.AutomatedCoveredACs+r.ManualOnlyTracedACs, r.InScopeACs)
-	}
-
-	if r.TraceabilityRatio != 1.0 {
-		t.Errorf("TraceabilityRatio = %f, want 1.0", r.TraceabilityRatio)
-	}
-
-	if len(r.Gaps) != 0 {
-		t.Errorf("Gaps = %d, want 0", len(r.Gaps))
-	}
-}
-
-func TestGenerateReport_DeferredAC(t *testing.T) {
-	acs := map[ACCode]string{
-		"AC-09.001": "First criterion",
-		"AC-09.002": "Second criterion",
-		"AC-09.003": "Third criterion",
-	}
-	excluded := map[ACCode]acExclusionKind{
-		"AC-09.003": acExclusionDeferred,
-	}
-
-	coverage := map[ACCode][]CoverageRef{
-		"AC-09.001": {{Ref: "tests/test.go::TestFunc1", Manual: false}},
-		"AC-09.002": {{Ref: "tests/test.go::TestFunc2", Manual: false}},
-	}
-
-	r := generateReport("EP-009", acs, excluded, coverage)
-
-	if r.DeferredACs != 1 {
-		t.Errorf("DeferredACs = %d, want 1", r.DeferredACs)
-	}
-	if r.ObsoleteACs != 0 {
-		t.Errorf("ObsoleteACs = %d, want 0", r.ObsoleteACs)
-	}
-	if r.InScopeACs != 2 {
-		t.Errorf("InScopeACs = %d, want 2", r.InScopeACs)
-	}
-	if r.TraceabilityRatio != 1.0 {
-		t.Errorf("TraceabilityRatio = %f, want 1.0", r.TraceabilityRatio)
-	}
-	if hasBlockingGaps(r) {
-		t.Error("Expected no blocking gaps when uncovered AC is deferred")
-	}
-}
-
-func TestGenerateReport_ObsoleteAC(t *testing.T) {
-	acs := map[ACCode]string{
-		"AC-09.001": "First",
-		"AC-09.002": "Second",
-	}
-	excluded := map[ACCode]acExclusionKind{
-		"AC-09.002": acExclusionObsolete,
-	}
-	coverage := map[ACCode][]CoverageRef{
-		"AC-09.001": {{Ref: "tests/x.go::TestA", Manual: false}},
-	}
-	r := generateReport("EP-009", acs, excluded, coverage)
-	if r.ObsoleteACs != 1 || r.DeferredACs != 0 {
-		t.Fatalf("ObsoleteACs=%d DeferredACs=%d, want 1 and 0", r.ObsoleteACs, r.DeferredACs)
-	}
-	if r.InScopeACs != 1 {
-		t.Fatalf("InScopeACs = %d, want 1", r.InScopeACs)
-	}
-	if hasBlockingGaps(r) {
-		t.Error("obsolete AC must not create blocking gaps")
+			if r.TotalACs != tt.totalACs {
+				t.Errorf("TotalACs = %d, want %d", r.TotalACs, tt.totalACs)
+			}
+			if r.InScopeACs != tt.inScopeACs {
+				t.Errorf("InScopeACs = %d, want %d", r.InScopeACs, tt.inScopeACs)
+			}
+			if r.AutomatedCoveredACs != tt.automatedCovered {
+				t.Errorf("AutomatedCoveredACs = %d, want %d", r.AutomatedCoveredACs, tt.automatedCovered)
+			}
+			if r.ManualOnlyTracedACs != tt.manualOnly {
+				t.Errorf("ManualOnlyTracedACs = %d, want %d", r.ManualOnlyTracedACs, tt.manualOnly)
+			}
+			if r.DeferredACs != tt.deferredACs {
+				t.Errorf("DeferredACs = %d, want %d", r.DeferredACs, tt.deferredACs)
+			}
+			if r.ObsoleteACs != tt.obsoleteACs {
+				t.Errorf("ObsoleteACs = %d, want %d", r.ObsoleteACs, tt.obsoleteACs)
+			}
+			if r.TraceabilityRatio != tt.traceabilityRatio {
+				t.Errorf("TraceabilityRatio = %f, want %f", r.TraceabilityRatio, tt.traceabilityRatio)
+			}
+			if len(r.Gaps) != tt.gapCount {
+				t.Errorf("Gaps = %d, want %d", len(r.Gaps), tt.gapCount)
+			}
+			if hasBlockingGaps(r) != tt.hasBlockingGaps {
+				t.Errorf("hasBlockingGaps = %v, want %v", hasBlockingGaps(r), tt.hasBlockingGaps)
+			}
+		})
 	}
 }
 
 func TestFindCoverageInCodebase(t *testing.T) {
-	// Create temporary test directory structure
-	tmpDir, err := os.MkdirTemp("", "coverage-test-*")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	tmpDir := t.TempDir()
 
-	// Create tests subdirectory
 	testsDir := filepath.Join(tmpDir, "tests")
 	if err := os.Mkdir(testsDir, 0o755); err != nil {
 		t.Fatalf("Failed to create tests dir: %v", err)
 	}
 
-	// Create test file with Covers comments
 	testFile := filepath.Join(testsDir, "example_test.go")
 	testContent := `package tests
 
@@ -244,7 +253,6 @@ func TestFunc2(t *testing.T) {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 
-	// Find coverage
 	coverage, skipCount, err := findCoverageInCodebase(tmpDir)
 	if err != nil {
 		t.Fatalf("findCoverageInCodebase failed: %v", err)
@@ -253,7 +261,6 @@ func TestFunc2(t *testing.T) {
 		t.Errorf("skipCount = %d, want 0", skipCount)
 	}
 
-	// Check that we found coverage for AC-09.001
 	if tests, ok := coverage[ACCode("AC-09.001")]; !ok {
 		t.Error("Expected AC-09.001 to be found in coverage")
 	} else if len(tests) == 0 {
@@ -261,18 +268,18 @@ func TestFunc2(t *testing.T) {
 	} else if tests[0].Manual {
 		t.Error("Expected non-manual trace for AC-09.001")
 	}
-
-	t.Logf("Coverage: %v", coverage)
 }
 
-func TestParseACsFromFile_Deferred(t *testing.T) {
-	tmpFile, err := os.CreateTemp("", "ac-deferred-*.md")
-	if err != nil {
-		t.Fatalf("Failed to create temp file: %v", err)
-	}
-	defer func() { _ = os.Remove(tmpFile.Name()) }()
-
-	content := `# EP-009 Acceptance Criteria
+func TestParseACsFromFile_Exclusions(t *testing.T) {
+	tests := []struct {
+		name          string
+		content       string
+		wantACCode    ACCode
+		wantExclusion acExclusionKind
+	}{
+		{
+			name: "deferred",
+			content: `# EP-009 Acceptance Criteria
 
 **AC-09.005** (Trace: [REQ-09.005](ep-requirements.md#docker-sandbox-execution))
 
@@ -280,52 +287,40 @@ Given something
 When something
 Then something
 **Status:** Deferred to operations team.
-`
-
-	if _, err := tmpFile.WriteString(content); err != nil {
-		t.Fatalf("Failed to write temp file: %v", err)
-	}
-	_ = tmpFile.Close()
-
-	acs, excluded, err := parseACsFromFile(tmpFile.Name())
-	if err != nil {
-		t.Fatalf("parseACsFromFile failed: %v", err)
-	}
-
-	if len(acs) != 1 {
-		t.Fatalf("Expected 1 AC, got %d", len(acs))
-	}
-	if excluded[ACCode("AC-09.005")] != acExclusionDeferred {
-		t.Fatalf("Expected AC-09.005 to be marked deferred, got %q", excluded[ACCode("AC-09.005")])
-	}
-}
-
-func TestParseACsFromFile_Obsolete(t *testing.T) {
-	tmpFile, err := os.CreateTemp("", "ac-obsolete-*.md")
-	if err != nil {
-		t.Fatalf("Failed to create temp file: %v", err)
-	}
-	defer func() { _ = os.Remove(tmpFile.Name()) }()
-
-	content := `# EP-009 Acceptance Criteria
+`,
+			wantACCode:    "AC-09.005",
+			wantExclusion: acExclusionDeferred,
+		},
+		{
+			name: "obsolete",
+			content: `# EP-009 Acceptance Criteria
 
 | [AC-09.006](#ac-09-006) | REQ | **Obsolete:** superseded by refactor. |
-`
+`,
+			wantACCode:    "AC-09.006",
+			wantExclusion: acExclusionObsolete,
+		},
+	}
 
-	if _, err := tmpFile.WriteString(content); err != nil {
-		t.Fatalf("Failed to write temp file: %v", err)
-	}
-	_ = tmpFile.Close()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			f := filepath.Join(dir, "ac.md")
+			if err := os.WriteFile(f, []byte(tt.content), 0o644); err != nil {
+				t.Fatal(err)
+			}
 
-	acs, excluded, err := parseACsFromFile(tmpFile.Name())
-	if err != nil {
-		t.Fatalf("parseACsFromFile failed: %v", err)
-	}
-	if excluded[ACCode("AC-09.006")] != acExclusionObsolete {
-		t.Fatalf("want obsolete exclusion, got %q for AC-09.006", excluded[ACCode("AC-09.006")])
-	}
-	if len(acs) < 1 {
-		t.Fatalf("expected ACs parsed, got %d", len(acs))
+			acs, excluded, err := parseACsFromFile(f)
+			if err != nil {
+				t.Fatalf("parseACsFromFile failed: %v", err)
+			}
+			if len(acs) < 1 {
+				t.Fatal("expected at least 1 AC")
+			}
+			if excluded[tt.wantACCode] != tt.wantExclusion {
+				t.Fatalf("want %q exclusion for %s, got %q", tt.wantExclusion, tt.wantACCode, excluded[tt.wantACCode])
+			}
+		})
 	}
 }
 
@@ -382,11 +377,7 @@ func TestLineDeclaresACCoverage(t *testing.T) {
 }
 
 func TestFindCoverageInCodebase_CmdAndFormats(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "coverage-cmd-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	tmpDir := t.TempDir()
 
 	for _, sub := range []string{"tests", "internal", "cmd"} {
 		if err := os.Mkdir(filepath.Join(tmpDir, sub), 0o755); err != nil {
@@ -394,7 +385,6 @@ func TestFindCoverageInCodebase_CmdAndFormats(t *testing.T) {
 		}
 	}
 
-	// cmd/pa — EP-008 style
 	cmdTest := filepath.Join(tmpDir, "cmd", "pa", "x_test.go")
 	if err := os.MkdirAll(filepath.Join(tmpDir, "cmd", "pa"), 0o755); err != nil {
 		t.Fatal(err)
@@ -407,7 +397,6 @@ func TestA(t *testing.T) {}
 		t.Fatal(err)
 	}
 
-	// internal — lowercase covers
 	intTest := filepath.Join(tmpDir, "internal", "pkg", "y_test.go")
 	if err := os.MkdirAll(filepath.Join(tmpDir, "internal", "pkg"), 0o755); err != nil {
 		t.Fatal(err)
@@ -470,27 +459,8 @@ func TestLineDeclaresManualTrace(t *testing.T) {
 	}
 }
 
-func TestGenerateReport_ManualOnly(t *testing.T) {
-	acs := map[ACCode]string{"AC-09.001": "c1"}
-	excluded := map[ACCode]acExclusionKind{}
-	coverage := map[ACCode][]CoverageRef{
-		"AC-09.001": {{Ref: "t.go::TestX", Manual: true}},
-	}
-	r := generateReport("EP-009", acs, excluded, coverage)
-	if r.ManualOnlyTracedACs != 1 || r.AutomatedCoveredACs != 0 {
-		t.Fatalf("manual-only AC: got auto=%d manual=%d", r.AutomatedCoveredACs, r.ManualOnlyTracedACs)
-	}
-	if r.AutomatedRatio != 0 {
-		t.Errorf("AutomatedRatio = %f, want 0", r.AutomatedRatio)
-	}
-}
-
 func TestFindCoverageInCodebase_ManualAndSkip(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "cov-manual-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	tmpDir := t.TempDir()
 	testsDir := filepath.Join(tmpDir, "tests")
 	if err := os.Mkdir(testsDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -608,12 +578,39 @@ func TestReal(t *testing.T) {}
 	}
 }
 
-func TestFindTestsMissingACTrace_tempDir(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "missing-trace-*")
-	if err != nil {
-		t.Fatal(err)
+func TestResolveSubcommand(t *testing.T) {
+	tests := []struct {
+		name     string
+		args     []string
+		wantCmd  string
+		wantEpic string
+	}{
+		{"no args", []string{}, "ac", "all"},
+		{"epic only", []string{"EP-009"}, "ac", "EP-009"},
+		{"explicit ac", []string{"ac"}, "ac", "all"},
+		{"explicit ac with epic", []string{"ac", "EP-009"}, "ac", "EP-009"},
+		{"req subcommand", []string{"req", "EP-009"}, "req", "EP-009"},
+		{"pipeline subcommand", []string{"pipeline", "EP-009"}, "pipeline", "EP-009"},
+		{"structure subcommand", []string{"structure", "EP-009"}, "structure", "EP-009"},
+		{"ears subcommand", []string{"ears", "EP-009"}, "ears", "EP-009"},
+		{"req no epic", []string{"req"}, "req", "all"},
+		{"all keyword", []string{"all"}, "ac", "all"},
 	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd, epic := resolveSubcommand(tt.args)
+			if cmd != tt.wantCmd {
+				t.Errorf("resolveSubcommand(%v) cmd = %q, want %q", tt.args, cmd, tt.wantCmd)
+			}
+			if epic != tt.wantEpic {
+				t.Errorf("resolveSubcommand(%v) epic = %q, want %q", tt.args, epic, tt.wantEpic)
+			}
+		})
+	}
+}
+
+func TestFindTestsMissingACTrace_tempDir(t *testing.T) {
+	tmpDir := t.TempDir()
 	testsDir := filepath.Join(tmpDir, "tests")
 	if err := os.Mkdir(testsDir, 0o755); err != nil {
 		t.Fatal(err)

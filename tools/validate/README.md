@@ -2,31 +2,52 @@
 
 Multi-purpose validation tool for the PersonalAssistant SDLC pipeline.
 
+## CLI
+
+```
+validate [subcommand] [EP-XXX] [--json]
+```
+
+### Subcommands
+
+| Subcommand  | Description | Status |
+|-------------|-------------|--------|
+| `ac`        | AC coverage validation (default) | ✅ Implemented |
+| `req`       | REQ ↔ AC traceability check | 🚧 Placeholder |
+| `pipeline`  | Pipeline state and gate validation | 🚧 Placeholder |
+| `structure` | Artefact structure validation | 🚧 Placeholder |
+| `ears`      | EARS requirements linting | 🚧 Placeholder |
+
+If no subcommand is given, or the first argument is not a known subcommand (e.g. `EP-XXX`), the tool defaults to `ac` (backwards compatible).
+
+### Examples
+
+```bash
+./bin/validate                    # AC coverage for all epics
+./bin/validate EP-009             # AC coverage for single epic
+./bin/validate ac EP-009          # Same as above (explicit)
+./bin/validate req EP-009         # REQ-AC traceability
+./bin/validate ears EP-009        # EARS linter
+./bin/validate --json             # JSON output (any subcommand)
+./bin/validate req EP-009 --json  # JSON for specific subcommand
+```
+
 ## Current Validators
 
 ### Policy: no gocyclo suppressions (AGENTS.md)
 
 Scans all `*.go` files under `tests/`, `internal/`, and `cmd/` for the forbidden golangci-lint cyclomatic-complexity suppression (substring `nolint:gocyclo` **outside** double-quoted string literals, so tests that assert on source text are not false positives). Violations are listed as `path/to/file.go:LINE`. On failure, human mode prints a dedicated block; JSON includes `nolint_gocyclo_violations` and sets `has_gaps` to true (single-epic JSON includes the same field on the epic report object).
 
-### AC (Acceptance Criteria) Validation
+### AC (Acceptance Criteria) Validation — `ac` subcommand
 
 Validates that all Acceptance Criteria from an epic's `ep-acceptance-criteria.md` are covered by tests (with separate metrics for **automated** vs **manual-only** traceability; deferred ACs do not inflate the traceability percentage). It also checks the **reverse**: every top-level `Test*` under `tests/`, `internal/`, and `cmd/` must have at least one trace line that both matches the coverage declaration rules **and** contains a real `AC-EE.NNN` code bound to that test (see [VALIDATION.md](./VALIDATION.md#test-functions-must-declare-ac-trace-reverse-check)).
 
-**All Epics (Default):**
 ```bash
 make build
-./bin/validate
-```
-
-**Single Epic:**
-```bash
-./bin/validate EP-009
-```
-
-**With JSON Output:**
-```bash
-./bin/validate --json
-./bin/validate --json EP-009
+./bin/validate              # all epics (default)
+./bin/validate EP-009       # single epic
+./bin/validate ac EP-009    # explicit subcommand
+./bin/validate --json       # JSON output
 ```
 
 Output (human mode) includes **Trace%** per epic (in-scope traceability), an **OVERALL** line with `in-scope … traced`, **automated** / **manual-only** counts, **deferred**, **Project-wide: Test functions with t.Skip** (count of `Test*` bodies with `t.Skip` in scanned trees), and — on failure — a list of **`path/to/file_test.go::TestName`** entries for `Test*` functions missing an AC trace.
@@ -77,7 +98,10 @@ JSON (`--json`): failures set `"has_gaps": true` when any in-scope AC is untrace
 
 ## Future Validators
 
-- [ ] REQ (Requirements) traceability
+- [ ] `req` — REQ ↔ AC traceability (placeholder wired)
+- [ ] `pipeline` — Pipeline state and gate validation (placeholder wired)
+- [ ] `structure` — Artefact structure validation (placeholder wired)
+- [ ] `ears` — EARS requirements linting (placeholder wired)
 - [ ] Design specification consistency
 - [ ] Code coverage thresholds
 - [ ] Dependency graph validation

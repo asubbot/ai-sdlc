@@ -1024,23 +1024,131 @@ func validateSingleEpic(epic string, jsonOut bool) {
 	runSingleEpicValidation(epic, epicNum, cwd, acs, excluded, nolintViolations, jsonOut)
 }
 
+var subcommands = map[string]bool{
+	"ac":        true,
+	"req":       true,
+	"pipeline":  true,
+	"structure": true,
+	"ears":      true,
+}
+
+func resolveSubcommand(args []string) (subcmd, epic string) {
+	subcmd = "ac"
+	epic = "all"
+	cmdArgs := args
+	if len(args) > 0 && subcommands[args[0]] {
+		subcmd = args[0]
+		cmdArgs = args[1:]
+	}
+	if len(cmdArgs) > 0 {
+		epic = cmdArgs[0]
+	}
+	return subcmd, epic
+}
+
 func main() {
 	jsonFlag := flag.Bool("json", false, "Output report as JSON instead of table")
 	flag.Parse()
 	jsonOut := jsonOutputRequested(*jsonFlag, os.Args[1:])
 
-	args := flag.Args()
-	epic := "all"
-	if len(args) > 0 {
-		epic = args[0]
-	}
+	subcmd, epic := resolveSubcommand(flag.Args())
 
-	if epic == "all" {
+	switch subcmd {
+	case "ac":
+		runACValidation(epic, jsonOut)
+	case "req":
+		runREQValidation(epic, jsonOut)
+	case "pipeline":
+		runPipelineValidation(epic, jsonOut)
+	case "structure":
+		runStructureValidation(epic, jsonOut)
+	case "ears":
+		runEARSValidation(epic, jsonOut)
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcmd)
+		printUsage()
+		os.Exit(1)
+	}
+}
+
+func runACValidation(epic string, jsonOut bool) {
+	if epic == "all" || epic == "" {
 		validateAllEpics(jsonOut)
 		return
 	}
-
 	validateSingleEpic(epic, jsonOut)
+}
+
+// runREQValidation is implemented in req_ac_trace.go
+
+func runPipelineValidation(epic string, jsonOut bool) {
+	if epic == "all" {
+		fmt.Fprintf(os.Stderr, "pipeline subcommand requires an epic ID (e.g., validate pipeline EP-009)\n")
+		os.Exit(1)
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error getting current directory: %v\n", err)
+		os.Exit(1)
+	}
+	epicDir := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic)
+	result := checkPipelineState(epicDir, epic)
+	if jsonOut {
+		data, _ := json.MarshalIndent(result, "", "  ")
+		writelnStdout(string(data))
+	} else {
+		printPipelineHuman(result)
+	}
+	if result.HasGaps {
+		os.Exit(1)
+	}
+}
+
+// runStructureValidation is implemented in artefact_structure.go
+
+func runEARSValidation(epic string, jsonOut bool) {
+	if epic == "all" {
+		fmt.Fprintf(os.Stderr, "ears subcommand requires an epic ID\n")
+		os.Exit(1)
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+	reqPath := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic, "ep-requirements.md")
+	result := lintEARSFile(reqPath)
+	result.Epic = epic
+	if jsonOut {
+		data, _ := json.MarshalIndent(result, "", "  ")
+		writelnStdout(string(data))
+	} else {
+		printEARSHuman(result)
+	}
+	if result.HasGaps {
+		os.Exit(1)
+	}
+}
+
+func printUsage() {
+	fmt.Fprintf(os.Stderr, `Usage: validate [subcommand] [EP-XXX] [--json]
+
+Subcommands:
+  ac          AC coverage validation (default)
+  req         REQ <-> AC traceability check
+  pipeline    Pipeline state and gate validation
+  structure   Artefact structure validation
+  ears        EARS requirements linting
+
+Examples:
+  validate                    # AC coverage for all epics
+  validate EP-009             # AC coverage for single epic
+  validate ac EP-009          # Same as above (explicit)
+  validate req EP-009         # REQ-AC traceability
+  validate ears EP-009        # EARS linter
+  validate --json             # JSON output
+  validate req EP-009 --json  # JSON for specific subcommand
+`)
 }
 
 func normalizeEpicNumber(epic string) (string, error) {
