@@ -18,7 +18,7 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Context:** `ep-context.md` — not expected to exist yet (stage 3 creates it)
 - **Gate check before launch:** stages 1–2 artefacts must exist (`scope.md`, `strategy.md`)
 - **Output signal:** `STAGE_3_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md [<epic title>]`
-- **Validation after:** `./bin/validate structure EP-XXX` (when available)
+- **Validation after:** `./tools/validate/validate structure EP-XXX` (when available, from repo root)
 - **Note:** Stage 3 is the only stage where the subagent creates `ep-context.md` directly
 
 ---

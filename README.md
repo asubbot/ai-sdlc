@@ -14,7 +14,7 @@ This repository is the canonical source of truth for the shared **agentic SDLC p
 | **[specification/skills/](specification/skills/)** | **Per-stage agent instructions** (`01-` … `11-` plus optional cross-cutting skills). Each skill defines workflow and artefact structure for its stage. |
 | **[specification/skills/README.md](specification/skills/README.md)** | Index and **common behaviour** across skills. |
 | **[proposals.md](proposals.md)** | Proposed pipeline improvements and measurement notes; a living document, not the normative process. |
-| **[tools/validate/](tools/validate/)** | AC↔test coverage checker (`./bin/validate`); see [VALIDATION.md](tools/validate/VALIDATION.md) and [README](tools/validate/README.md). |
+| **[tools/validate/](tools/validate/)** | AC↔test coverage checker (`./tools/validate/validate` from repo root); see [VALIDATION.md](tools/validate/VALIDATION.md) and [README](tools/validate/README.md). |
 
 ---
 

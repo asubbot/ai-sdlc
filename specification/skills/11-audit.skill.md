@@ -18,7 +18,7 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Context:** `ep-context.md` (read first); `ep-code-review.md` Current Gate Summary
 - **Gate check before launch:** §2.2 exit criteria must be met (stage 10 gate = pass or operator decision)
 - **Output signal:** `STAGE_11_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-audit-report.md [gate=<pass|fail>, coverage=<N%>, gaps=<n>]`
-- **Runs internally:** `make check`, `./bin/validate EP-XXX`, `./bin/validate EP-XXX --json`
+- **Runs internally:** `make check`, `./tools/validate/validate EP-XXX`, `./tools/validate/validate EP-XXX --json`
 
 ---
 
@@ -35,7 +35,7 @@ You are the QA and delivery lead. Your task is to produce an audit (status) repo
 - **Prerequisite (epic delivery path):** Do not treat the epic as past the code-review gate until **§2.2** exit criteria are met (zero Blocker/Major/Medium/Minor) or the operator has recorded a decision after the iteration cap—see [10-code-review.skill.md](10-code-review.skill.md).
 - **Test strategy:** e.g. ai-sdlc-artefacts/strategy.md or project-defined test/coverage commands.
 - **Test and coverage outputs:** Run **`make check`** (or the project’s equivalent). This single command is sufficient, as it runs all defined checks (e.g. fmt, vet, lint, tests with coverage, module boundaries). Use its terminal output for pass/fail and for the **total** test coverage figure.
-- **AC Coverage (DEFAULT-FIRST):** Before audit, run `./bin/validate EP-XXX --json` and use it as the primary source for AC↔test mapping. Fall back to manual code scan only when validator output is missing or inconsistent. See [VALIDATION.md](../../tools/validate/VALIDATION.md).
+- **AC Coverage (DEFAULT-FIRST):** Before audit, run `./tools/validate/validate EP-XXX --json` and use it as the primary source for AC↔test mapping. Fall back to manual code scan only when validator output is missing or inconsistent. See [VALIDATION.md](../../tools/validate/VALIDATION.md).
 
 **Note:** The REQ/AC test coverage matrix is **generated inside the audit report**, not read from a separate file. The file ep-req-ac-test-coverage.md is not part of the pipeline; if it exists in the epic folder, do not use it as input—produce the matrix from ep-acceptance-criteria, ep-requirements, and codebase (e.g. `Covers AC-EE.NNN` comments).
 
@@ -101,7 +101,7 @@ Use these elements (or user-agreed equivalents):
 - **Summary** — Pass/fail or overall status in one short paragraph.
 - **Implementation vs plan** — For each task (or task group) from ep-implementation-plan, state status: done / pending / blocked. Reference task identifiers (e.g. Task 1.1, 1.2). Link to ep-implementation-plan.md where helpful.
 - **Test results and coverage** — Command run (e.g. `make check`), pass/fail, and **total test coverage** (the total line from the coverage output, e.g. `total: (statements) XX.X%`). Optionally include per-package breakdown. Reference which AC (AC-EE.NNN) are covered by which tests where applicable.
-- **REQ/AC test coverage matrix** — **Generate this inside the report** (do not reference a separate ep-req-ac-test-coverage.md; that file is not a pipeline artefact). Use `./bin/validate EP-XXX --json` as primary source. Build a table that maps each AC to test levels and links:
+- **REQ/AC test coverage matrix** — **Generate this inside the report** (do not reference a separate ep-req-ac-test-coverage.md; that file is not a pipeline artefact). Use `./tools/validate/validate EP-XXX --json` as primary source. Build a table that maps each AC to test levels and links:
   - Columns: AC | REQ | Unit | Integration | E2E | Manual | Link.
   - One row per AC from ep-acceptance-criteria.md. **AC and REQ columns must use markdown links** to the epic artefacts: e.g. `[AC-01.001](ep-acceptance-criteria.md#ac-01-001)`, `[REQ-01.001](ep-requirements.md#...)` (adjust anchors to match the document structure; AC anchors use hyphen form e.g. ac-01-001). REQ/AC IDs use the **REQ-EE.NNN** and **AC-EE.NNN** format (epic EE, number NNN). REQ values come from ep-requirements.md; fill Unit/Integration/E2E/Manual (e.g. ✓ or —) and Link (test file paths or manual scenario links) by scanning the codebase for `Covers AC-EE.NNN` / `Supporting AC-EE.NNN` comments and any project test strategy (e.g. strategy.md, ep-manual-test-scenarios.md). Deferred AC mark as deferred in Link.
   - Optionally add a short **Notes** subsection under the table (e.g. what Unit/Integration mean in this project, Make commands for test/coverage).

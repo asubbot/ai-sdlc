@@ -20,7 +20,7 @@ Paths in this spec and in skills use that convention; no references to outside o
 - **Single process:** Execute stages using the table in §2, **Human-in-the-loop** above, **§3** for delegated stages **7** and **10**, and **§4** for subagent orchestration. Do **not** invent a parallel SDLC.
 - **Repository truth:** Prefer approved content under **`ai-sdlc-artefacts/`** and the product codebase over unofficial external write-ups when deciding how *this* project should behave.
 - **Implementation plan (stages 8 → 9):** The epic **`ep-implementation-plan.md`** is produced by pipeline **stage 8** ([08-implementation-planning.skill.md](skills/08-implementation-planning.skill.md)). **Executing** that plan is **stage 9** only — follow [09-task-execution.skill.md](skills/09-task-execution.skill.md) (one task at a time from the plan, verification and checkpoints per skill; do not treat the plan as an informal checklist outside stage 9).
-- **Acceptance criteria coverage:** Before treating an epic as complete from an AC↔test perspective, run `./bin/validate EP-XXX` from the repository root (after `make build` if needed). For project-wide AC coverage, run `./bin/validate` with no arguments. See [VALIDATION.md](../tools/validate/VALIDATION.md) and the [validate tool README](../tools/validate/README.md) under `ai-sdlc/tools/validate/`.
+- **Acceptance criteria coverage:** Before treating an epic as complete from an AC↔test perspective, run `./tools/validate/validate EP-XXX` from the repository root. For project-wide AC coverage, run `./tools/validate/validate` with no arguments. If the binary is missing, build it from `tools/validate/` with `go build -o validate .`. See [VALIDATION.md](../tools/validate/VALIDATION.md) and the [validate tool README](../tools/validate/README.md) under `ai-sdlc/tools/validate/`.
 
 ### Token-optimized context loading
 
@@ -132,10 +132,10 @@ Stages **9** and **10** are **re-entrant** for a bounded change set (e.g. epic b
 The **orchestrator** is the agent (or human) that drives the pipeline. It does not execute stage skills itself (except in fallback); instead it:
 
 1. **Reads** `pipeline.spec.md` and `ep-context.md` for the target epic.
-2. **Checks gates** before each stage: runs `./bin/validate pipeline EP-XXX` (when available) to verify that prior stages are complete and review gates are passed.
+2. **Checks gates** before each stage: runs `./tools/validate/validate pipeline EP-XXX` (when available) to verify that prior stages are complete and review gates are passed.
 3. **Launches a subagent** for each stage with a short brief containing: epic ID, stage number, skill file path, and paths to required input artefacts.
 4. **Receives the output signal** from the subagent (see §4.2) and verifies that the expected artefact was written.
-5. **Runs applicable validation** after each stage: `./bin/validate structure EP-XXX` for artefact format, `./bin/validate ears EP-XXX` after stage 4, `./bin/validate req EP-XXX` after stage 5, `./bin/validate EP-XXX` (AC coverage) after stage 9 tasks.
+5. **Runs applicable validation** after each stage: `./tools/validate/validate structure EP-XXX` for artefact format, `./tools/validate/validate ears EP-XXX` after stage 4, `./tools/validate/validate req EP-XXX` after stage 5, `./tools/validate/validate EP-XXX` (AC coverage) after stage 9 tasks.
 6. **Updates `ep-context.md`** if the subagent reports material changes. The orchestrator owns `ep-context.md` writes; subagents report changes but do not write `ep-context.md` directly (except stage 3, which creates it).
 
 ### 4.2 Output signal protocol
@@ -167,7 +167,7 @@ Stage 9 (task execution) supports **per-task** subagent isolation within a singl
 1. The orchestrator reads `ep-implementation-plan.md` and finds the first unchecked task (or sub-task).
 2. Launches a subagent with: epic ID, the task block text (copied from the plan), paths to `ep-context.md`, `ep-acceptance-criteria.md`, and `ep-system-design.md`.
 3. The subagent implements **only** that task, runs relevant checks (`go test`, `make check`, or equivalent), and outputs: `TASK_COMPLETE: <task_id> [<files changed>]`.
-4. The orchestrator runs `./bin/validate EP-XXX` (AC coverage) and `make check` after each task.
+4. The orchestrator runs `./tools/validate/validate EP-XXX` (AC coverage) and `make check` after each task.
 5. On validation pass: the orchestrator marks the task checkbox `[x]` in `ep-implementation-plan.md` and proceeds to the next task.
 6. On validation failure: the orchestrator launches a **new** subagent for the same task, appending the error output to the brief. Maximum **3** retries per task before requiring operator decision.
 7. After all tasks complete, the orchestrator proceeds to stage 10 (code review, mandatory delegation per §3).
@@ -178,8 +178,8 @@ When the user instructs the orchestrator to run stages N..M autonomously:
 
 - The orchestrator SHOULD **self-approve** intermediate artefacts (stages 3–6, 8) and proceed without a human gate. The "never write until approved" rule in skills is satisfied by the orchestrator acting as the approver on the user's behalf.
 - The orchestrator MUST NOT self-approve **review gates** (stages 7, 10): review subagents produce findings with severity counts; the orchestrator checks `open_counts` from the gate summary and decides programmatically (zero Blocker/Major/Medium/Minor = pass; otherwise return to stage 6 or 9 per §2.1/§2.2).
-- The orchestrator MUST run `./bin/validate pipeline EP-XXX` between stages to catch structural violations (when the tool is available).
-- The orchestrator SHOULD run `./bin/validate structure EP-XXX` after each artefact-producing stage to verify format compliance (when the tool is available).
+- The orchestrator MUST run `./tools/validate/validate pipeline EP-XXX` between stages to catch structural violations (when the tool is available).
+- The orchestrator SHOULD run `./tools/validate/validate structure EP-XXX` after each artefact-producing stage to verify format compliance (when the tool is available).
 - When validation tools are not yet available (bootstrap), the orchestrator falls back to verifying artefact existence and basic YAML front matter presence.
 
 ### 4.6 Fallback (subagents unavailable)

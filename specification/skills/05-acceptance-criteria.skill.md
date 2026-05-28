@@ -18,7 +18,7 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Context:** `ep-context.md` (read first for orientation)
 - **Gate check before launch:** `ep-scope.md` and `ep-requirements.md` must exist
 - **Output signal:** `STAGE_5_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md [<N> ACs]`
-- **Validation after:** `./bin/validate req EP-XXX` (REQ↔AC traceability), `./bin/validate structure EP-XXX` (artefact structure)
+- **Validation after:** `./tools/validate/validate req EP-XXX` (REQ↔AC traceability), `./tools/validate/validate structure EP-XXX` (artefact structure, from repo root)
 
 ---
 

@@ -1,6 +1,6 @@
 # validate — SDLC Validation Tool
 
-Multi-purpose validation tool for the PersonalAssistant SDLC pipeline.
+Multi-purpose validation tool for the `ai-sdlc` pipeline.
 
 ## CLI
 
@@ -23,13 +23,13 @@ If no subcommand is given, or the first argument is not a known subcommand (e.g.
 ### Examples
 
 ```bash
-./bin/validate                    # AC coverage for all epics
-./bin/validate EP-009             # AC coverage for single epic
-./bin/validate ac EP-009          # Same as above (explicit)
-./bin/validate req EP-009         # REQ-AC traceability
-./bin/validate ears EP-009        # EARS linter
-./bin/validate --json             # JSON output (any subcommand)
-./bin/validate req EP-009 --json  # JSON for specific subcommand
+./tools/validate/validate                    # AC coverage for all epics (from repo root)
+./tools/validate/validate EP-009             # AC coverage for single epic
+./tools/validate/validate ac EP-009          # Same as above (explicit)
+./tools/validate/validate req EP-009         # REQ-AC traceability
+./tools/validate/validate ears EP-009        # EARS linter
+./tools/validate/validate --json             # JSON output (any subcommand)
+./tools/validate/validate req EP-009 --json  # JSON for specific subcommand
 ```
 
 ## Current Validators
@@ -43,11 +43,13 @@ Scans all `*.go` files under `tests/`, `internal/`, and `cmd/` for the forbidden
 Validates that all Acceptance Criteria from an epic's `ep-acceptance-criteria.md` are covered by tests (with separate metrics for **automated** vs **manual-only** traceability; deferred ACs do not inflate the traceability percentage). It also checks the **reverse**: every top-level `Test*` under `tests/`, `internal/`, and `cmd/` must have at least one trace line that both matches the coverage declaration rules **and** contains a real `AC-EE.NNN` code bound to that test (see [VALIDATION.md](./VALIDATION.md#test-functions-must-declare-ac-trace-reverse-check)).
 
 ```bash
-make build
-./bin/validate              # all epics (default)
-./bin/validate EP-009       # single epic
-./bin/validate ac EP-009    # explicit subcommand
-./bin/validate --json       # JSON output
+cd tools/validate
+go build -o validate .
+cd ../..
+./tools/validate/validate              # all epics (default)
+./tools/validate/validate EP-009       # single epic
+./tools/validate/validate ac EP-009    # explicit subcommand
+./tools/validate/validate --json       # JSON output
 ```
 
 Output (human mode) includes **Trace%** per epic (in-scope traceability), an **OVERALL** line with `in-scope … traced`, **automated** / **manual-only** counts, **deferred**, **Project-wide: Test functions with t.Skip** (count of `Test*` bodies with `t.Skip` in scanned trees), and — on failure — a list of **`path/to/file_test.go::TestName`** entries for `Test*` functions missing an AC trace.
@@ -94,7 +96,7 @@ See [VALIDATION.md](./VALIDATION.md) for full documentation (metrics JSON schema
 - **0** — All validations passed (AC coverage, per-`Test*` AC trace, and policy scan) ✅
 - **1** — Validation failed (missing AC coverage, `Test*` without bound AC trace, and/or forbidden gocyclo suppression in product trees) ❌
 
-JSON (`--json`): failures set `"has_gaps": true` when any in-scope AC is untraced, when `tests_missing_ac_trace` is non-empty, or when `nolint_gocyclo_violations` is non-empty. The `tests_missing_ac_trace` and `nolint_gocyclo_violations` arrays are always **project-wide**, including when you run `./bin/validate EP-009 --json`.
+JSON (`--json`): failures set `"has_gaps": true` when any in-scope AC is untraced, when `tests_missing_ac_trace` is non-empty, or when `nolint_gocyclo_violations` is non-empty. The `tests_missing_ac_trace` and `nolint_gocyclo_violations` arrays are always **project-wide**, including when you run `./tools/validate/validate EP-009 --json`.
 
 ## Future Validators
 

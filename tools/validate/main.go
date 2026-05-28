@@ -787,7 +787,7 @@ func printAllEpicsHuman(
 		printNolintGocycloViolationsHuman(nolintGocycloViolations)
 	}
 
-	writelnStdout("Tip: run `./bin/validate EP-XXX` for per-AC detail and test refs.")
+	writelnStdout("Tip: run `./tools/validate/validate EP-XXX` for per-AC detail and test refs.")
 	os.Exit(1)
 }
 

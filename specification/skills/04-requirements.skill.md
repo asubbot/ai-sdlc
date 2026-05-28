@@ -18,7 +18,7 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Context:** `ep-context.md` (read first for orientation)
 - **Gate check before launch:** `ep-scope.md` must exist
 - **Output signal:** `STAGE_4_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md [<N> REQs, <n> FR, <n> NFR]`
-- **Validation after:** `./bin/validate ears EP-XXX` (EARS format), `./bin/validate structure EP-XXX` (artefact structure)
+- **Validation after:** `./tools/validate/validate ears EP-XXX` (EARS format), `./tools/validate/validate structure EP-XXX` (artefact structure, from repo root)
 
 ---
 

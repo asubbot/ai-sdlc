@@ -10,6 +10,9 @@ The CLI supports subcommand dispatch. If the first non-flag argument is a known 
 validate [subcommand] [EP-XXX] [--json]
 ```
 
+For this canonical `ai-sdlc` repository, invoke the binary from repo root as `./tools/validate/validate ...`.  
+Examples below use the canonical repository-root path `./tools/validate/validate`.
+
 | Subcommand  | Description | Status |
 |-------------|-------------|--------|
 | `ac`        | AC coverage validation (default) | Implemented |
@@ -37,19 +40,21 @@ Before completing an epic's audit, use this tool to ensure:
 #### Build
 
 ```bash
-make build
+cd tools/validate
+go build -o validate .
+cd ../..
 ```
 
 #### Validate All Epics (Default)
 
 ```bash
-./bin/validate
+./tools/validate/validate
 ```
 
 #### Validate Single Epic
 
 ```bash
-./bin/validate EP-009
+./tools/validate/validate EP-009
 ```
 
 Output:
@@ -75,7 +80,7 @@ EP-009
   • AC-09.001
   ...
 
-Tip: run `./bin/validate EP-XXX` for per-AC detail and test refs.
+Tip: run `./tools/validate/validate EP-XXX` for per-AC detail and test refs.
 
 ❌ Test functions without AC trace comment (project-wide): N
   • internal/foo/bar_test.go::TestBaz
@@ -129,8 +134,8 @@ Action: Add tests for missing ACs, or mark them **Obsolete** / **Deferred** in e
 #### JSON output: Parse results programmatically
 
 ```bash
-./bin/validate --json EP-009
-./bin/validate --json
+./tools/validate/validate --json EP-009
+./tools/validate/validate --json
 ```
 
 **Single epic** output:
@@ -160,9 +165,9 @@ Action: Add tests for missing ACs, or mark them **Obsolete** / **Deferred** in e
 }
 ```
 
-**All epics** (`./bin/validate --json`) includes the same aggregate fields (`in_scope_acs`, `traceability_ratio`, `automated_ratio`, `test_funcs_with_skip`, …), plus `not_covered_acs` (flat list with `epic`, `code`, optional `criterion`) and `not_covered_count`, and **`tests_missing_ac_trace`**: a sorted list of `path/to/file_test.go::TestName` for top-level tests missing an AC trace (same scan roots as coverage).
+**All epics** (`./tools/validate/validate --json`) includes the same aggregate fields (`in_scope_acs`, `traceability_ratio`, `automated_ratio`, `test_funcs_with_skip`, …), plus `not_covered_acs` (flat list with `epic`, `code`, optional `criterion`) and `not_covered_count`, and **`tests_missing_ac_trace`**: a sorted list of `path/to/file_test.go::TestName` for top-level tests missing an AC trace (same scan roots as coverage).
 
-For **`./bin/validate EP-XXX --json`**, `tests_missing_ac_trace` is still the **full repository** list (not limited to ACs belonging to that epic), so CI and local runs can fix every stray `Test*` in one pass.
+For **`./tools/validate/validate EP-XXX --json`**, `tests_missing_ac_trace` is still the **full repository** list (not limited to ACs belonging to that epic), so CI and local runs can fix every stray `Test*` in one pass.
 
 ## Metrics
 
@@ -253,7 +258,7 @@ Operator scenarios live in `ai-sdlc-artefacts/epics/EP-XXX/ep-manual-tests.md` (
 
 - [`ep001_manual_test.go`](../../../tests/integration/ep001_manual_test.go), [`ep004_manual_test.go`](../../../tests/integration/ep004_manual_test.go), [`ep009_manual_test.go`](../../../tests/integration/ep009_manual_test.go) (EP-002 and EP-006 use automated-only traces; no dedicated `ep002` / `ep006` manual files)
 
-Conventions: `//go:build integration`, `package integration_test`, `// manual Covers AC-…` on the trace line, `t.Skip("manual: …")` with a pointer to the epic manual doc (and optional anchor). `./bin/validate` reads these files like any other `*_test.go` under `tests/`.
+Conventions: `//go:build integration`, `package integration_test`, `// manual Covers AC-…` on the trace line, `t.Skip("manual: …")` with a pointer to the epic manual doc (and optional anchor). `./tools/validate/validate` reads these files like any other `*_test.go` under `tests/`.
 
 ## Integration Points
 
@@ -263,14 +268,14 @@ Add to `settings.json` (hooks) to validate before every commit:
 ```json
 {
   "hooks": {
-    "before_git_commit": "epic=$(git rev-parse --abbrev-ref HEAD | grep -o 'EP-[0-9]*'); if [ -n \"$epic\" ]; then ./bin/validate \"$epic\"; fi"
+    "before_git_commit": "epic=$(git rev-parse --abbrev-ref HEAD | grep -o 'EP-[0-9]*'); if [ -n \"$epic\" ]; then ./tools/validate/validate \"$epic\"; fi"
   }
 }
 ```
 
 Or validate manually before committing:
 ```bash
-./bin/validate EP-009
+./tools/validate/validate EP-009
 git commit -m "feat(EP-009): implement create_tool..."
 ```
 
@@ -280,7 +285,7 @@ Example GitHub Actions:
 ```yaml
 - name: Validate AC coverage
   run: |
-    ./bin/validate --json EP-009 > /tmp/report.json
+    ./tools/validate/validate --json EP-009 > /tmp/report.json
     coverage=$(jq '.traceability_ratio' /tmp/report.json)
     if (( $(echo "$coverage < 1.0" | bc -l) )); then
       echo "❌ Not all ACs covered"
@@ -290,7 +295,7 @@ Example GitHub Actions:
 
 ### In SDLC Pipeline
 
-See [Stage 9 (Task Execution)](../specification/skills/09-task-execution.skill.md), [Stage 10 (Code review)](../specification/skills/10-code-review.skill.md), and [Stage 11 (Audit)](../specification/skills/11-audit.skill.md).
+See [Stage 9 (Task Execution)](../../specification/skills/09-task-execution.skill.md), [Stage 10 (Code review)](../../specification/skills/10-code-review.skill.md), and [Stage 11 (Audit)](../../specification/skills/11-audit.skill.md).
 
 ## Architecture
 
@@ -314,7 +319,7 @@ See [Stage 9 (Task Execution)](../specification/skills/09-task-execution.skill.m
 
 ```bash
 # Build all binaries (pa + validate)
-make build
+cd tools/validate && go build -o validate . && cd ../..
 
 # Run tests
 go test ./ai-sdlc/tools/validate/...
@@ -334,7 +339,7 @@ make validate
 
 ```bash
 # Quick overview of all epics
-./bin/validate
+./tools/validate/validate
 
 # Output shows which epics need work
 ```
@@ -344,8 +349,8 @@ make validate
 ```bash
 # Add test, mark it with "// Covers AC-09.001"
 # Build and check coverage for specific epic
-make build
-./bin/validate EP-009
+cd tools/validate && go build -o validate . && cd ../..
+./tools/validate/validate EP-009
 
 # If incomplete: add more tests or mark ACs Obsolete/Deferred in ep-acceptance-criteria.md
 # If complete: ready for code review and audit (stages 10–11)
@@ -355,7 +360,7 @@ make build
 
 ```bash
 # Last check before epic completion
-./bin/validate EP-009
+./tools/validate/validate EP-009
 
 # If gaps exist: list them for manual review/deferral
 # If all covered: proceed to stages 10–11 (code review, then audit)
@@ -395,8 +400,8 @@ The parser matches `AC-EE.NNN` in many line shapes, including `**AC-09.001**`, `
 
 In JSON mode, **stdout** is only the JSON document (no banner lines). Use `--json` before or after the epic id:
 ```bash
-./bin/validate --json EP-009
-./bin/validate EP-009 --json
+./tools/validate/validate --json EP-009
+./tools/validate/validate EP-009 --json
 ```
 Diagnostics and usage errors go to **stderr**.
 

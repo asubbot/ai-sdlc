@@ -18,7 +18,7 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Context:** `ep-context.md` (read first for orientation); `ep-system-design-review.md` Current Gate Summary
 - **Gate check before launch:** §2.1 exit criteria must be met (stage 7 gate = pass or operator decision)
 - **Output signal:** `STAGE_8_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-implementation-plan.md [<N> tasks]`
-- **Validation after:** `./bin/validate structure EP-XXX` (artefact structure)
+- **Validation after:** `./tools/validate/validate structure EP-XXX` (artefact structure, from repo root)
 
 ---
 
