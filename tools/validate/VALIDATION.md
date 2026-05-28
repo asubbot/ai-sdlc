@@ -13,10 +13,10 @@ validate [subcommand] [EP-XXX] [--json]
 | Subcommand  | Description | Status |
 |-------------|-------------|--------|
 | `ac`        | AC coverage validation (default) | Implemented |
-| `req`       | REQ ↔ AC traceability check | Placeholder |
-| `pipeline`  | Pipeline state and gate validation | Placeholder |
-| `structure` | Artefact structure validation | Placeholder |
-| `ears`      | EARS requirements linting | Placeholder |
+| `req`       | REQ ↔ AC traceability check | Implemented |
+| `pipeline`  | Pipeline state and gate validation | Implemented |
+| `structure` | Artefact structure validation | Implemented |
+| `ears`      | EARS requirements linting | Implemented |
 
 The `--json` flag works in any position (before or after subcommand/epic).
 

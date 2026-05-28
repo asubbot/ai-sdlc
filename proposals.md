@@ -247,3 +247,97 @@ Success criteria should include both cost and quality:
 - Faster handoff between agents and delegated reviewers.
 - Less repeated reading of full requirements, acceptance criteria, designs, and review histories.
 - Better current-state visibility without losing full traceability.
+
+## 8. Align Human-in-the-loop with enforceability reality
+
+Current documentation states Human-in-the-loop as a strict MUST behavior, while practical enforcement is mixed: some rules are machine-checkable, others are process-only. This proposal makes that explicit without weakening operator control.
+
+### 8.1 Reframe Human-in-the-loop as policy + controls
+
+Define Human-in-the-loop in two layers:
+
+1. **Process policy (mandatory):** operator choice is required on defined decision points.
+2. **Enforcement model (explicit):**
+   - **Hard controls:** validated by tooling/CI;
+   - **Soft controls:** validated by process discipline and review, not by CI.
+
+This avoids over-claiming technical enforcement while keeping the rule normative.
+
+### 8.1.1 HITL vs HOTL definitions for this pipeline
+
+To avoid ambiguity, define both terms explicitly:
+
+- **Human-in-the-loop (HITL):** blocking human participation in the decision path. The agent must stop and get operator choice before proceeding.
+- **Human-on-the-loop (HOTL):** supervisory human oversight. The agent may proceed autonomously; the operator monitors and intervenes when needed.
+
+Operational distinction:
+
+- HITL is used where risk or irreversibility is high.
+- HOTL is used for routine execution between explicit decision gates.
+
+Recommended model for `ai-sdlc`: **hybrid control** — HITL on required decision points, HOTL for non-decision-path execution and routine validation steps.
+
+### 8.2 Introduce required decision points
+
+Replace broad wording like "when multiple valid choices exist" with a concrete list of decision points where agent must stop and ask the operator before proceeding.
+
+Suggested required decision points:
+
+- conflict resolution between competing artefact sources;
+- review-gate override (stage 7 or 10) when blocking severities remain;
+- iteration-cap override after bounded retry loops;
+- skipping a prerequisite stage or proceeding with missing required input;
+- migration or cutover strategy when multiple materially different paths exist.
+
+For non-listed ambiguities, the orchestrator may proceed with defaults and log rationale.
+
+### 8.3 Add an enforceability matrix to the spec
+
+Add a table in `pipeline.spec.md`:
+
+| Requirement | Enforcement | Evidence |
+|---|---|---|
+| Stage ordering and required artefacts | Hard | `validate pipeline`, file presence, front matter checks |
+| Gate pass before stage progression | Hard | gate summary/open counts + validator |
+| Subagent usage for stages 7/10 | Soft (currently) | run notes, operator review |
+| Operator choice at decision points | Soft (currently) | decision log entries |
+
+This makes expectations auditable and truthful.
+
+### 8.4 Standardize decision logging
+
+Add a minimal decision record format for any required decision point:
+
+```markdown
+Decision needed: <type>
+Context: <one-line why>
+Options: A | B | C
+Operator choice: <selected option>
+Rationale: <short>
+```
+
+Where to store:
+
+- in chat output for transient decisions;
+- in the affected epic artefact section when decision impacts long-lived traceability;
+- optionally in a dedicated decision log file if frequent.
+
+### 8.5 Documentation changes (minimal and recommended)
+
+**Minimal (fast, low-risk):**
+
+1. In `pipeline.spec.md`, clarify that Human-in-the-loop is policy-level and only partially machine-verifiable.
+2. In `skills/README.md`, replace absolute wording with "required decision points" wording.
+3. In `tools/validate/VALIDATION.md`, explicitly list what validators do and do not enforce.
+
+**Recommended (stronger governance):**
+
+1. Add the decision-point list and enforceability matrix to `pipeline.spec.md`.
+2. Update stage skills 6-11 to use a consistent "Decision needed" output pattern.
+3. Require decision-log evidence for gate overrides and iteration-cap overrides.
+
+### 8.6 Success criteria
+
+- No contradiction between normative docs and actual enforcement capability.
+- Operators can clearly distinguish auto-validated vs process-validated requirements.
+- Review and audit stages can verify that required operator decisions were recorded.

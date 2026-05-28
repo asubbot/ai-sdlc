@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"testing"
@@ -105,6 +107,33 @@ func TestParseREQRefsFromACFile_MissingFile(t *testing.T) {
 	_, err := parseREQRefsFromACFile("testdata/nonexistent.md")
 	if err == nil {
 		t.Fatal("expected error for missing file")
+	}
+}
+
+func TestParseREQRefsFromACFile_DoesNotLeakAcrossSections(t *testing.T) {
+	dir := t.TempDir()
+	acPath := filepath.Join(dir, "ep-acceptance-criteria.md")
+	content := `# ACs
+
+### AC-99.001 — First criterion
+Trace: REQ-99.001
+
+## Notes
+Do not map this to ACs: REQ-99.999
+`
+	if err := os.WriteFile(acPath, []byte(content), 0o644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+
+	refs, err := parseREQRefsFromACFile(acPath)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	got := refs["AC-99.001"]
+	want := []REQCode{"REQ-99.001"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("AC-99.001 refs = %v, want %v", got, want)
 	}
 }
 

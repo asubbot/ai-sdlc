@@ -73,17 +73,27 @@ func parseREQRefsFromACFile(path string) (map[ACCode][]REQCode, error) {
 	var currentAC ACCode
 
 	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
 		acMatches := acPattern.FindAllStringSubmatch(line, -1)
 		reqMatches := reqCodePattern.FindAllStringSubmatch(line, -1)
 
+		// Any markdown heading starts a new section; unless it is an AC heading, close AC block.
+		if strings.HasPrefix(trimmed, "#") && !strings.HasPrefix(trimmed, "### AC-") {
+			currentAC = ""
+		}
+
 		// Track current AC from heading lines (### AC-EE.NNN ...)
-		if strings.HasPrefix(strings.TrimSpace(line), "###") || strings.HasPrefix(strings.TrimSpace(line), "**AC-") {
+		if strings.HasPrefix(trimmed, "###") || strings.HasPrefix(trimmed, "**AC-") {
+			// Enter a new AC block when the heading contains AC code.
 			if len(acMatches) > 0 {
 				code := fmt.Sprintf("AC-%s.%s", acMatches[0][1], acMatches[0][2])
 				currentAC = ACCode(code)
 				if _, exists := result[currentAC]; !exists {
 					result[currentAC] = nil
 				}
+			} else {
+				// Any non-AC heading closes the previous AC block.
+				currentAC = ""
 			}
 		}
 

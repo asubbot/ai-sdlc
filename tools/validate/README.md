@@ -13,10 +13,10 @@ validate [subcommand] [EP-XXX] [--json]
 | Subcommand  | Description | Status |
 |-------------|-------------|--------|
 | `ac`        | AC coverage validation (default) | ✅ Implemented |
-| `req`       | REQ ↔ AC traceability check | 🚧 Placeholder |
-| `pipeline`  | Pipeline state and gate validation | 🚧 Placeholder |
-| `structure` | Artefact structure validation | 🚧 Placeholder |
-| `ears`      | EARS requirements linting | 🚧 Placeholder |
+| `req`       | REQ ↔ AC traceability check | ✅ Implemented |
+| `pipeline`  | Pipeline state and gate validation | ✅ Implemented |
+| `structure` | Artefact structure validation | ✅ Implemented |
+| `ears`      | EARS requirements linting | ✅ Implemented |
 
 If no subcommand is given, or the first argument is not a known subcommand (e.g. `EP-XXX`), the tool defaults to `ac` (backwards compatible).
 
@@ -98,10 +98,6 @@ JSON (`--json`): failures set `"has_gaps": true` when any in-scope AC is untrace
 
 ## Future Validators
 
-- [ ] `req` — REQ ↔ AC traceability (placeholder wired)
-- [ ] `pipeline` — Pipeline state and gate validation (placeholder wired)
-- [ ] `structure` — Artefact structure validation (placeholder wired)
-- [ ] `ears` — EARS requirements linting (placeholder wired)
 - [ ] Design specification consistency
 - [ ] Code coverage thresholds
 - [ ] Dependency graph validation
