@@ -20,6 +20,18 @@ Follow these principles for all scope analysis work:
 
 ---
 
+## Orchestrator brief (subagent mode)
+
+When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../pipeline.spec.md) §4):
+
+- **Required input:** user request / chat context; optional existing `ai-sdlc-artefacts/scope.md`
+- **Context:** project-level only; no `ep-context.md`
+- **Gate check before launch:** none (first pipeline stage)
+- **Output signal:** `STAGE_1_COMPLETE: ai-sdlc-artefacts/scope.md [<summary>]`
+- **Validation after:** confirm `scope.md` exists with YAML front matter and required sections (no epic `validate structure` for project-level artefacts)
+
+---
+
 ## 1. Context and goal
 
 You are an expert requirements analyst. Your role is to capture project scope from the user's request or conversation.

@@ -3,7 +3,7 @@
 **Purpose:** This document specifies the agentic SDLC process: **11 stages** from project scope analysis through strategy, epic planning, requirements, acceptance criteria, system design, system design review, implementation planning, task execution, code review, and audit. Stages 3–11 run for each epic in execution order: 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11. **Stages 6 and 7** may repeat as **iterations** (same stage numbers; see **§2.1**) until design review exit criteria are met. **Stages 9 and 10** may repeat as **iterations** (see **§2.2**) until code review exit criteria are met. It is the single source of truth for how epics are elaborated with agent-driven workflows. Each stage maps to a **skill file** under [specification/skills/](skills/); agent instructions live only in skills (no separate roles or prompts).
 
 **Artefact paths:** Project-level artefacts (scope.md, strategy.md) live in the **ai-sdlc-artefacts/** root. Epic-level outputs live under **ai-sdlc-artefacts/epics/<epic-id>/** (e.g. `ai-sdlc-artefacts/epics/EP-001/`).
-Paths in this spec and in skills use that convention; no references to outside of that folders in links.
+Paths in this spec and in skills use that convention; no references outside those folders in links.
 
 **Artefact levels:** Project-level (scope.md, strategy.md) in `ai-sdlc-artefacts/`. Epic-level artefacts (ep-scope, ep-context, ep-requirements, ep-acceptance-criteria, ep-system-design, ep-system-design-review, ep-implementation-plan, **ep-code-review** when saved, ep-audit-report) live in `epics/<epic-id>/`. **`ep-context.md`** is a compact context summary and is not a source of truth. **`ep-code-review.md`** may hold **§2.2** per-iteration sections (see **§2.2** and stage 10 skill).
 

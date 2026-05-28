@@ -17,8 +17,9 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Required input:** epic ID, path to `ep-scope.md`
 - **Context:** `ep-context.md` (read first for orientation)
 - **Gate check before launch:** `ep-scope.md` must exist
-- **Output signal:** `STAGE_4_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md [<N> REQs, <n> FR, <n> NFR]`
+- **Output signal:** `STAGE_4_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md [<N> REQs, <n> FR, <n> NFR] [context_delta: <Key Requirements + Links summary>]`
 - **Validation after:** `./tools/validate/validate ears EP-XXX` (EARS format), `./tools/validate/validate structure EP-XXX` (artefact structure, from repo root)
+- **ep-context.md:** Subagent does **not** write `ep-context.md`; include compact Key Requirements and Links updates in `context_delta` for the orchestrator to apply
 
 ---
 
@@ -33,7 +34,7 @@ Follow these principles for all requirements work:
 5. **Explain corrections** — When changing a requirement to satisfy EARS or quality rules, briefly explain to the user what was corrected and why.
 6. **Stable IDs only** — Use requirement IDs in the form **REQ-EE.NNN** where EE is the two-digit epic number (e.g. 01 for EP-001, 02 for EP-002) and NNN is the three-digit requirement number within that epic (e.g. REQ-01.001, REQ-02.013). This avoids ID collisions across epics. Do not use internal UUIDs.
 7. **Practical and short** — Get to the point. Be practical above all. Be short and specific.
-8. **Token-optimized context** — On save, add YAML front matter to ep-requirements.md and refresh the Key Requirements section in ep-context.md. If ep-context.md is missing, create it from available epic artefacts.
+8. **Token-optimized context** — On save, add YAML front matter to ep-requirements.md. **Orchestrated subagent mode:** report Key Requirements and Links deltas in `context_delta`; orchestrator updates ep-context.md. **Solo/HOTL without orchestrator:** refresh the Key Requirements section in ep-context.md (create from available epic artefacts if missing).
 
 ---
 
@@ -58,7 +59,7 @@ Follow this order:
 3. **Draft** — Draft requirements (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
 4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
 5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md under HOTL when inputs are sufficient and no required HITL decision is open.
-6. **Refresh epic context** — Update ep-context.md Key Requirements and Links concisely; do not copy the full requirements list.
+6. **Refresh epic context** — **Orchestrated subagent mode:** report Key Requirements and Links deltas in the output signal (`context_delta`); do not edit ep-context.md. **Solo/HOTL without orchestrator:** update ep-context.md Key Requirements and Links concisely; do not copy the full requirements list.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
 ---
@@ -220,7 +221,7 @@ Verify all before considering the stage complete:
 
 - [ ] ep-requirements.md exists at ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md
 - [ ] YAML front matter is present and consistent with the saved requirements content
-- [ ] ep-context.md exists or was refreshed with compact Key Requirements and Links
+- [ ] ep-context.md was refreshed with compact Key Requirements and Links, **or** (orchestrated subagent mode) `context_delta` was reported for the orchestrator to apply
 - [ ] Document contains **Introduction** (epic summary; optional "scope in brief" or similar), **Glossary** (table: Term | Definition), **C4 C1** (source in `diagrams/c4-context.puml`, PNG in `diagrams/c4-context.png` embedded centered; Source line with regeneration command)
 - [ ] Document contains "EARS patterns used" reference, Requirement index (Id | Type | Summary), NFR subsection or grouping
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)

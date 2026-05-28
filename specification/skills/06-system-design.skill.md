@@ -17,8 +17,9 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Required input:** epic ID, paths to `ep-requirements.md`, `ep-acceptance-criteria.md`; optional: latest `ep-system-design-review.md` (when iterating per §2.1)
 - **Context:** `ep-context.md` (read first for orientation)
 - **Gate check before launch:** `ep-requirements.md` and `ep-acceptance-criteria.md` must exist
-- **Output signal:** `STAGE_6_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md [<key design decisions>]`
+- **Output signal:** `STAGE_6_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md [<key design decisions>] [context_delta: <Design Decisions + Interfaces + Open Questions + Links summary>]`
 - **Validation after:** `./tools/validate/validate structure EP-XXX` (artefact structure, from repo root)
+- **ep-context.md:** Subagent does **not** write `ep-context.md`; include compact context updates in `context_delta` for the orchestrator to apply
 
 ---
 
@@ -33,7 +34,7 @@ Follow these principles for all system design work:
 5. **Full REQ traceability** — Every requirement (REQ-EE.NNN format) from ep-requirements.md must be mentioned at least once in ep-system-design.md; the document must not omit any REQ.
 6. **Practical and short** — Get to the point. Be practical above all. Be short and specific.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only (e.g. technical discovery or research).
-8. **Token-optimized context** — Read current ep-context.md first when present, but open full requirements and acceptance criteria for traceability. On save, add YAML front matter to ep-system-design.md and refresh Design Decisions and Interfaces / Contracts in ep-context.md.
+8. **Token-optimized context** — Read current ep-context.md first when present, but open full requirements and acceptance criteria for traceability. On save, add YAML front matter to ep-system-design.md. **Orchestrated subagent mode:** report Design Decisions, Interfaces / Contracts, Open Questions, and Links deltas in `context_delta`; orchestrator updates ep-context.md. **Solo/HOTL without orchestrator:** refresh those sections in ep-context.md.
 
 ---
 
@@ -60,7 +61,7 @@ Follow this order:
 3. **Draft** — Draft the design (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
 4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
 5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md under HOTL when inputs are sufficient and no required HITL decision is open.
-6. **Refresh epic context** — Update ep-context.md Design Decisions, Interfaces / Contracts, Open Questions, and Links concisely; do not copy full design sections.
+6. **Refresh epic context** — **Orchestrated subagent mode:** report Design Decisions, Interfaces / Contracts, Open Questions, and Links deltas in the output signal (`context_delta`); do not edit ep-context.md. **Solo/HOTL without orchestrator:** update ep-context.md concisely; do not copy full design sections.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
 ---
@@ -105,7 +106,7 @@ Verify all before considering the stage complete:
 
 - [ ] ep-system-design.md exists at ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md
 - [ ] YAML front matter is present and consistent with the saved system design content
-- [ ] ep-context.md exists or was refreshed with compact Design Decisions, Interfaces / Contracts, Open Questions, and Links
+- [ ] ep-context.md was refreshed with compact Design Decisions, Interfaces / Contracts, Open Questions, and Links, **or** (orchestrated subagent mode) `context_delta` was reported for the orchestrator to apply
 - [ ] Document contains **Overview** (system summary and traceability to REQ), **Architecture** including **C4 C2** (source in `diagrams/c4-container.puml`, PNG in `diagrams/c4-container.png` embedded centered; Source line with regeneration command), **Components and interfaces**, and **Data models** (if applicable); **Error handling** and **Testing strategy** recommended where relevant
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
 - [ ] Traceability to ep-requirements is maintained: **every REQ from ep-requirements.md is referenced at least once** in the document

@@ -15,11 +15,21 @@ Follow these principles for all strategy analysis work:
 1. **HOTL artefact writes** — In pipeline execution, create or overwrite strategy.md when the strategy follows scope.md and no required HITL decision point from [pipeline.spec.md](../pipeline.spec.md) is triggered.
 2. **Existing file is baseline** — If strategy.md already exists, treat it as the current baseline; preserve durable delivery/test commitments unless a required HITL decision records a change.
 3. **Decision points** — Ask the operator only for required HITL decisions (e.g. material delivery trade-off, missing prerequisite, source-of-truth conflict). For routine increment naming, structure, or wording choices, choose the simplest consistent default and record rationale when useful.
-4. **Traceability to scope** — Strategy must align with scope.md. Upstream artefacts (scope) have priority over downstream (strategy). If there is a conflict, 
-adapt strategy to scope; do not modify scope from stage 2.
-4. **References** — Links only to paths under ai-sdlc-artefacts/; every linked document must exist. Strategy must align with scope; if conflict, adapt strategy to scope; do not modify scope from stage 2. Do not mention EP-xx, US-xx, REQ-xx, AC-xx in the body. Write in English.
-5. **Practical and short** — Use English. Get to the point. For simple projects, keep the strategy lightweight.
+4. **Traceability and references** — Strategy must align with scope.md; upstream artefacts (scope) have priority. If there is a conflict, adapt strategy to scope; do not modify scope from stage 2. Links only to paths under `ai-sdlc-artefacts/`; every linked document must exist. Do not mention EP-xx, US-xx, REQ-xx, AC-xx in the body. Write in English.
+5. **Practical and short** — Get to the point. For simple projects, keep the strategy lightweight.
 6. **YAML front matter** — On save, start strategy.md with YAML front matter (`artefact`, `status`, `source_of_truth: true`, `updated_at`).
+
+---
+
+## Orchestrator brief (subagent mode)
+
+When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../pipeline.spec.md) §4):
+
+- **Required input:** path to `ai-sdlc-artefacts/scope.md`
+- **Context:** project-level only; no `ep-context.md`
+- **Gate check before launch:** `scope.md` must exist
+- **Output signal:** `STAGE_2_COMPLETE: ai-sdlc-artefacts/strategy.md [<summary>]`
+- **Validation after:** confirm `strategy.md` exists with YAML front matter and required sections
 
 ---
 

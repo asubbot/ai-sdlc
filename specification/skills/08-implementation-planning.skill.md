@@ -17,8 +17,9 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Required input:** epic ID, paths to `ep-scope.md`, `ep-requirements.md`, `ep-acceptance-criteria.md`, `ep-system-design.md`, `ep-system-design-review.md`
 - **Context:** `ep-context.md` (read first for orientation); `ep-system-design-review.md` Current Gate Summary
 - **Gate check before launch:** §2.1 exit criteria must be met (stage 7 gate = pass or operator decision)
-- **Output signal:** `STAGE_8_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-implementation-plan.md [<N> tasks]`
+- **Output signal:** `STAGE_8_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-implementation-plan.md [<N> tasks] [context_delta: <plan notes + Links summary, if any>]`
 - **Validation after:** `./tools/validate/validate structure EP-XXX` (artefact structure, from repo root)
+- **ep-context.md:** Subagent does **not** write `ep-context.md`; include optional plan-level context deltas in `context_delta` for the orchestrator to apply
 
 ---
 
@@ -32,7 +33,7 @@ Follow these principles for all implementation planning work:
 4. **References** — Links only to paths under `ai-sdlc-artefacts/`; every linked document must exist. Write in English.
 5. **Practical and short** — Get to the point. Be practical above all. Be short and specific. Only include tasks that can be performed by a coding agent. Each task must have a verification criterion.
 6. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
-7. **Token-optimized context** — Read YAML front matter, Current Gate Summary, and current ep-context.md first. Open full source artefacts only for traceability, stale context, missing details, or gate disputes.
+7. **Token-optimized context** — Read YAML front matter, Current Gate Summary, and current ep-context.md first. Open full source artefacts only for traceability, stale context, missing details, or gate disputes. **Orchestrated subagent mode:** report optional plan-level execution notes in `context_delta`; orchestrator updates ep-context.md. **Solo/HOTL without orchestrator:** may update ep-context.md directly when useful.
 
 ---
 
@@ -57,7 +58,7 @@ Follow this order:
 3. **Draft** — Draft the implementation plan (task list, verification, checkpoints). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
 4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
 5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-implementation-plan.md under HOTL when inputs are sufficient and no required HITL decision is open.
-6. **Refresh epic context** — Optionally update ep-context.md with plan-level execution notes and Links when useful; keep it compact.
+6. **Refresh epic context** — **Orchestrated subagent mode:** report optional plan-level execution notes and Links in `context_delta`; do not edit ep-context.md. **Solo/HOTL without orchestrator:** optionally update ep-context.md with plan-level execution notes and Links when useful; keep it compact.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
 ---

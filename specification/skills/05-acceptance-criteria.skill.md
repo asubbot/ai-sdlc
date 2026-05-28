@@ -17,8 +17,9 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Required input:** epic ID, paths to `ep-scope.md` and `ep-requirements.md`
 - **Context:** `ep-context.md` (read first for orientation)
 - **Gate check before launch:** `ep-scope.md` and `ep-requirements.md` must exist
-- **Output signal:** `STAGE_5_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md [<N> ACs]`
+- **Output signal:** `STAGE_5_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md [<N> ACs] [context_delta: <Acceptance Signals + Links summary>]`
 - **Validation after:** `./tools/validate/validate req EP-XXX` (REQ↔AC traceability), `./tools/validate/validate structure EP-XXX` (artefact structure, from repo root)
+- **ep-context.md:** Subagent does **not** write `ep-context.md`; include compact Acceptance Signals and Links updates in `context_delta` for the orchestrator to apply
 
 ---
 
@@ -33,7 +34,7 @@ Follow these principles for all acceptance criteria work:
 5. **Stable IDs only** — Use acceptance criteria IDs in the form **AC-EE.NNN** where EE is the two-digit epic number (e.g. 01 for EP-001, 02 for EP-002) and NNN is the three-digit AC number within that epic (e.g. AC-01.001, AC-02.007). This avoids ID collisions across epics. Do not use internal UUIDs.
 6. **Practical and short** — Get to the point. Be practical above all. Be short and specific.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
-8. **Token-optimized context** — On save, add YAML front matter to ep-acceptance-criteria.md and refresh the Acceptance Signals section in ep-context.md. If ep-context.md is missing, create it from available epic artefacts.
+8. **Token-optimized context** — On save, add YAML front matter to ep-acceptance-criteria.md. **Orchestrated subagent mode:** report Acceptance Signals and Links deltas in `context_delta`; orchestrator updates ep-context.md. **Solo/HOTL without orchestrator:** refresh the Acceptance Signals section in ep-context.md (create from available epic artefacts if missing).
 
 ---
 
@@ -58,7 +59,7 @@ Follow this order:
 3. **Draft** — Draft acceptance criteria (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
 4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
 5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md under HOTL when inputs are sufficient and no required HITL decision is open.
-6. **Refresh epic context** — Update ep-context.md Acceptance Signals and Links concisely; do not copy the full AC list.
+6. **Refresh epic context** — **Orchestrated subagent mode:** report Acceptance Signals and Links deltas in the output signal (`context_delta`); do not edit ep-context.md. **Solo/HOTL without orchestrator:** update ep-context.md Acceptance Signals and Links concisely; do not copy the full AC list.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
 ---
@@ -106,7 +107,7 @@ Verify all before considering the stage complete:
 
 - [ ] ep-acceptance-criteria.md exists at ai-sdlc-artefacts/epics/<epic-id>/ep-acceptance-criteria.md
 - [ ] YAML front matter is present and consistent with the saved acceptance criteria content
-- [ ] ep-context.md exists or was refreshed with compact Acceptance Signals and Links
+- [ ] ep-context.md was refreshed with compact Acceptance Signals and Links, **or** (orchestrated subagent mode) `context_delta` was reported for the orchestrator to apply
 - [ ] Document contains **Introduction** (epic summary and document purpose), **Acceptance criteria index** (AC ID | REQ with links | Summary), and **Acceptance criteria** (AC-EE.NNN with Gherkin or equivalent and traceability to REQ)
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
 - [ ] Every AC traces to at least one REQ from ep-requirements.md

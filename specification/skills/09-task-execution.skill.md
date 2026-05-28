@@ -21,8 +21,9 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Required input:** epic ID, path to `ep-implementation-plan.md`, `ep-acceptance-criteria.md`
 - **Context:** `ep-context.md` (read first for orientation); `ep-system-design.md` for interfaces/contracts
 - **Gate check before launch:** `ep-implementation-plan.md` must exist; §2.1 exit criteria met
-- **Output signal:** `TASK_COMPLETE: <task_id> [<files changed>]` (per-task mode) or `STAGE_9_COMPLETE: <N tasks done>` (full-stage mode)
+- **Output signal:** `TASK_COMPLETE: <task_id> [<files changed>]` (per-task mode) or `STAGE_9_COMPLETE: <N tasks done> [context_delta: <summary, if material design/contract changes>]` (full-stage mode)
 - **Validation after:** `./tools/validate/validate EP-XXX` (AC coverage, from repo root), `make check`
+- **ep-context.md:** Subagent does **not** write `ep-context.md`; report material design/contract changes in `context_delta` for the orchestrator to apply after any required HITL decision
 
 ---
 
@@ -65,7 +66,7 @@ You are the implementation (coding) agent for this epic. Your task is to execute
 3. Make only the code changes that belong to the current task. Do not jump ahead.
 4. Update or create tests as required (**see § AC coverage below**).
 5. Run relevant checks (lint/test/build) before considering the task done.
-6. If implementation causes material design or contract changes, treat it as a required HITL decision point before changing source-of-truth design/requirements. After the decision, update ep-context.md only as a compact summary. Do not use ep-context.md to silently change source-of-truth design or requirements.
+6. If implementation causes material design or contract changes, treat it as a required HITL decision point before changing source-of-truth design/requirements. After the decision, **orchestrated subagent mode:** report a compact summary in `context_delta` for the orchestrator to apply to ep-context.md; **solo/HOTL without orchestrator:** update ep-context.md only as a compact summary. Do not use ep-context.md to silently change source-of-truth design or requirements.
 7. Prepare a short report: what was done, files changed, tests run or skipped.
 8. Mark the task as done after its verification passes. In HOTL execution, proceed to the next task unless a required HITL decision point is open.
 
