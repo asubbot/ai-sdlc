@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/validate.yml'
       - 'tools/validate/**'
+      - 'tools/scripts/**'
       - 'specification/**'
       - 'templates/**'
       - 'README.md'
@@ -18,6 +19,7 @@ on:
     paths:
       - '.github/workflows/validate.yml'
       - 'tools/validate/**'
+      - 'tools/scripts/**'
       - 'specification/**'
       - 'templates/**'
       - 'README.md'
@@ -45,14 +47,11 @@ jobs:
 
       - run: go build -o validate .
 
-      - name: Smoke consumer Makefile build
+      - name: Bootstrap smoke (consumer templates)
         working-directory: ${{ github.workspace }}
-        run: |
-          tmp=$(mktemp -d)
-          cp templates/consumer/Makefile "$tmp/"
-          ln -sfn "$GITHUB_WORKSPACE" "$tmp/ai-sdlc"
-          make -C "$tmp" build
-          test -x "$tmp/bin/validate"
+        env:
+          AI_SDLC_ROOT: ${{ github.workspace }}
+        run: ./tools/scripts/bootstrap-smoke.sh
 
       - name: Smoke validate CLI (consumer layout)
         working-directory: ${{ github.workspace }}

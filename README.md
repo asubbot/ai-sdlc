@@ -16,6 +16,7 @@ This repository is the canonical source of truth for the shared **agentic SDLC p
 | **[templates/consumer/](templates/consumer/)** | **Greenfield templates** copied to new product repositories during bootstrap. |
 | **[proposals.md](proposals.md)** | Proposed pipeline improvements and measurement notes; a living document, not the normative process. |
 | **[tools/validate/](tools/validate/)** | AC↔test coverage checker (`./tools/validate/validate` from repo root); see [VALIDATION.md](tools/validate/VALIDATION.md) and [README](tools/validate/README.md). |
+| **[tools/scripts/](tools/scripts/)** | Maintainer scripts (e.g. `bootstrap-smoke.sh` for greenfield template regression); see [tools/scripts/README.md](tools/scripts/README.md). |
 
 ---
 
@@ -43,6 +44,8 @@ Example prompt:
 > New consumer project. Run project bootstrap, then stage 1 scope analysis — ask me what we are building.
 
 The agent runs [00-project-bootstrap.skill.md](specification/skills/00-project-bootstrap.skill.md) and materializes files from [templates/consumer/](templates/consumer/).
+
+Maintainers: after changing consumer templates, run `./tools/scripts/bootstrap-smoke.sh` ([tools/scripts/README.md](tools/scripts/README.md)).
 
 ### 4. Continue the pipeline (normative order)
 

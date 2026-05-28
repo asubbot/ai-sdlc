@@ -102,6 +102,18 @@ Not part of bootstrap **Done when**; run as follow-on work:
 
 ---
 
+## Maintainer verification (canonical repository only)
+
+After changes to [`templates/consumer/`](../../templates/consumer/) or this skill, maintainers in the **canonical ai-sdlc** repository SHOULD run:
+
+```bash
+./tools/scripts/bootstrap-smoke.sh
+```
+
+See [tools/scripts/README.md](../../tools/scripts/README.md). This is **not** part of consumer bootstrap Done when; it regression-tests that templates still materialize and `make build` / `validate pipeline|structure EP-000` succeed.
+
+---
+
 ## First message to agent (operator hint)
 
 > New consumer project. Run project bootstrap, then stage 1 scope analysis — ask me what we are building.

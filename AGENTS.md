@@ -41,6 +41,7 @@ Instructions for AI agents working in the **canonical ai-sdlc** repository (shar
 
 - **Process edits:** Update [specification/pipeline.spec.md](specification/pipeline.spec.md) and related skills together; follow [CONTRIBUTING.md](CONTRIBUTING.md). Keep changes process-focused and repository-agnostic unless the owner approves otherwise.
 - **Validator:** Implementation and docs live under **[tools/validate/](tools/validate/)**. After non-trivial validator changes, run `cd tools/validate && go test ./...` (and `go vet ./...` when appropriate).
+- **Bootstrap templates:** After changes to [templates/consumer/](templates/consumer/) or [00-project-bootstrap.skill.md](specification/skills/00-project-bootstrap.skill.md), run `./tools/scripts/bootstrap-smoke.sh` in addition to validator tests.
 - **Not product source here:** Do not treat `cmd/`, `internal/`, `tests/`, `config.json`, or a product `Makefile` as in-scope product code in this repository — they belong in consumer repos.
 - **SDLC artefacts:** Do not create or update `ai-sdlc-artefacts/` in this repository except under `tools/validate/testdata/` for validator fixtures.
 - **Optional editor tooling:** Sourcerer MCP may be used for semantic navigation, but not instead of required repository docs.

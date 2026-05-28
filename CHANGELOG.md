@@ -12,6 +12,7 @@ All notable changes to this repository are documented in this file.
 - [README.md](README.md) — **Starting a new project** walkthrough and target layout summary.
 - Validator testdata: [tools/validate/testdata/EP-000/](tools/validate/testdata/EP-000/), project-level [scope.md](tools/validate/testdata/scope.md) / [strategy.md](tools/validate/testdata/strategy.md); CI smoke for EP-000 and EP-099.
 - Skills: gate in [01-scope-analysis.skill.md](specification/skills/01-scope-analysis.skill.md); consumer `bin/validate` note in [09-task-execution.skill.md](specification/skills/09-task-execution.skill.md).
+- [tools/scripts/bootstrap-smoke.sh](tools/scripts/bootstrap-smoke.sh) — automated greenfield bootstrap smoke; CI replaces partial Makefile-only consumer smoke.
 
 ### Upgrading to Unreleased (consumer greenfield)
 
