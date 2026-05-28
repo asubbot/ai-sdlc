@@ -55,7 +55,7 @@ var requiredSections = map[string][]string{
 	"ep-acceptance-criteria":  {"Scenarios"},
 	"ep-system-design":        {"Overview", "Components", "Traceability"},
 	"ep-implementation-plan":  {"Tasks"},
-	"ep-context":              {"Purpose", "Current Scope", "Links"},
+	"ep-context":              {"Purpose", "Current Scope", "Open Questions", "Links"},
 	"ep-system-design-review": {"Current Gate Summary", "Review iteration"},
 	"ep-code-review":          {"Current Gate Summary", "Review iteration"},
 	"ep-audit-report":         {"Summary", "Implementation vs plan"},

@@ -16,6 +16,8 @@ Operator choice: <selected option>
 Rationale: <short>
 ```
 
+For gate overrides recorded in review artefacts, `validate pipeline` enforces a **CI-minimal** subset (`Decision needed:` and `Operator choice:` only). Use the full pattern above for process quality; see [VALIDATION.md](../../tools/validate/VALIDATION.md) (Pipeline State Validation).
+
 **Mandatory delegation:** Stages **7** (system design review) and **10** (code review) MUST run via a **subagent** or equivalent fresh session—see [pipeline.spec.md](../pipeline.spec.md) §3. Each **§2.1** or **§2.2** iteration after material edits requires a **new** delegated review run.
 
 **Subagent orchestration:** All stages (3–11) SHOULD run in separate subagent sessions for fresh context—see [pipeline.spec.md](../pipeline.spec.md) §4. Stage 9 supports per-task subagent isolation (§4.4).
@@ -66,7 +68,9 @@ Full source artefacts such as `ep-scope.md`, `ep-requirements.md`, `ep-acceptanc
 
 `ep-context.md` is a compact epic handoff file, not a source of truth. If it conflicts with a source artefact, the source artefact wins. If `ep-context.md` is missing for an epic, agents SHOULD create it on the first epic artefact write/update during stages 3–11.
 
-Recommended sections:
+**Required for `validate structure`:** `Purpose`, `Current Scope`, `Open Questions`, `Links`.
+
+**Recommended for handoff** (not enforced by CI):
 
 ```markdown
 # Epic Context — EP-XXX

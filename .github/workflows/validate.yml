@@ -42,3 +42,11 @@ jobs:
       - run: go test ./... -count=1
 
       - run: go build -o validate .
+
+      - name: Smoke validate CLI (consumer layout)
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p ai-sdlc-artefacts/epics
+          cp -r tools/validate/testdata/* ai-sdlc-artefacts/epics/
+          ./tools/validate/validate pipeline EP-099
+          ./tools/validate/validate structure EP-099

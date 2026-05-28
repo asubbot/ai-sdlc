@@ -48,9 +48,24 @@ Operator choice: <selected option>
 
 This is intentionally minimal: the validator checks that decision evidence exists, while process review checks whether the decision is appropriate.
 
+**Exit codes:** `validate pipeline` sets exit **1** only when `Errors > 0`. **Warnings** (for example unchecked implementation-plan tasks when `ep-code-review.md` exists but `ep-audit-report.md` does not) do not change the exit code. Consumer CI that must fail on warnings needs a separate policy (for example parse JSON output); there is no `--strict` flag in v1.0.1.
+
+## Artefact Structure Validation
+
+The `structure` subcommand validates YAML front matter, required sections, and relative links for epic artefacts under `ai-sdlc-artefacts/epics/<epic-id>/`.
+
+```bash
+./tools/validate/validate structure EP-009
+./tools/validate/validate structure EP-009 --json
+```
+
+For **`ep-context.md`**, required sections (heading text match, case-insensitive): **Purpose**, **Current Scope**, **Open Questions**, **Links**. Additional sections (Key Requirements, Acceptance Signals, Design Decisions, etc.) are recommended in skills but not enforced by CI.
+
+Review artefacts (`ep-system-design-review.md`, `ep-code-review.md`) require **Current Gate Summary** and at least one **Review iteration** section.
+
 ## Enforcement model
 
-Normative requirements live in [specification/pipeline.spec.md](../../specification/pipeline.spec.md) (Enforcement model table). Tooling enforces a subset only.
+Normative **process** rules (HOTL/HITL, stages, delegation) live in [specification/pipeline.spec.md](../../specification/pipeline.spec.md). The table below is the **authoritative CI matrix** for `./tools/validate/validate`; the spec §4.5 table mirrors it for agents.
 
 | Requirement | Enforcement | Tool / evidence |
 |-------------|-------------|-----------------|
@@ -349,19 +364,16 @@ See [Stage 9 (Task Execution)](../../specification/skills/09-task-execution.skil
 
 **Location:** `ai-sdlc/tools/validate/` (multi-purpose validation tool)
 
-**Sources:** `main.go` (CLI, parsing, reports), `ast_skip.go` (`parseTestFuncsWithTSkip`, `t.Skip` detection), `test_ac_trace.go` (`findTestsMissingACTrace`, reverse check), `policy_nolint_gocyclo.go` (`findNolintGocycloViolations`, human output for policy failures), `output.go` (stdout helpers for `fmt.Fprintf` / forbidigo), `main_test.go`, `policy_nolint_gocyclo_test.go`.
+| File | Role |
+|------|------|
+| `main.go` | CLI dispatch, epic scan, subcommand routing |
+| `ac_parse.go`, `ac_coverage.go`, `ac_report.go` | AC parsing, coverage scan, human/JSON reports |
+| `pipeline_state.go` | `validate pipeline` |
+| `artefact_structure.go` | `validate structure` |
+| `req_ac_trace.go`, `ears_lint.go` | `validate req`, `validate ears` |
+| `ast_skip.go`, `test_ac_trace.go`, `policy_nolint_gocyclo.go`, `output.go` | test parsing, reverse AC trace, gocyclo policy, stdout helpers |
 
-**Core functions:**
-- `findNolintGocycloViolations()` — Walk the same `tests/`, `internal/`, `cmd/` trees; flag lines where `nolint:gocyclo` appears outside double-quoted strings (AGENTS.md); merge into `has_gaps` / JSON `nolint_gocyclo_violations`
-- `parseACsFromFile()` — Extract AC-EE.NNN from markdown (multiple heading/link shapes)
-- `findCoverageInCodebase()` — Walk `tests/`, `internal/`, and `cmd/` for `*_test.go`; use `lineDeclaresACCoverage()` + `extractACsFromLine()` + `lineDeclaresManualTrace()` + `testFuncForTraceLine()` + `parseTestFuncsWithTSkip()`
-- `findTestsMissingACTrace()` — Second pass over the same trees: top-level `Test*` without a bound AC trace line (exit 1 + stdout list when non-empty; JSON field `tests_missing_ac_trace`)
-- `filterCoverageForEpicNum()` — Filter global map per epic
-- `generateReport()` — Build coverage report (deferred/obsolete gaps; metrics use `in_scope_acs` without inflating excluded ACs into the traceability numerator)
-- `validateAllEpics()` / `scanEpicsAgainstCoverage()` — one codebase scan for all epics
-- `printTable()` / `printAllEpicsHuman()` — Human-readable output
-
-**Tests:** `main_test.go` — parses AC markdown, coverage detection, report shape, `lineDeclaresACCoverage`, range extraction, etc.
+**Tests:** `*_test.go` across the package; epic fixtures under `testdata/EP-099` (healthy) and `testdata/EP-098` (broken). Run `go test ./...` from `tools/validate/`.
 
 ## Building
 

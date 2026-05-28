@@ -251,6 +251,25 @@ func TestFindRequiredSections(t *testing.T) {
 			t.Errorf("expected no findings, got %d", len(findings))
 		}
 	})
+
+	t.Run("ep-context all required sections present", func(t *testing.T) {
+		content := "## Purpose\n\n## Current Scope\n\n## Open Questions\n\n## Links\n"
+		findings := findRequiredSections(content, "ep-context")
+		if len(findings) != 0 {
+			t.Errorf("expected no findings, got %d: %+v", len(findings), findings)
+		}
+	})
+
+	t.Run("ep-context missing Open Questions", func(t *testing.T) {
+		content := "## Purpose\n\n## Current Scope\n\n## Links\n"
+		findings := findRequiredSections(content, "ep-context")
+		if len(findings) != 1 {
+			t.Fatalf("expected 1 finding, got %d", len(findings))
+		}
+		if !contains(findings[0].Message, "Open Questions") {
+			t.Errorf("expected mention of Open Questions, got %q", findings[0].Message)
+		}
+	})
 }
 
 func TestFindBrokenLinks(t *testing.T) {

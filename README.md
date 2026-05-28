@@ -29,7 +29,7 @@ Projects consume this repository as a separate workspace root. To keep reproduci
 ### Pin file example (`ai-sdlc.version`)
 
 ```text
-v1.0.0
+v1.0.1
 ```
 
 Or pin an exact commit:

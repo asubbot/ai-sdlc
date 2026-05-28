@@ -199,15 +199,22 @@ HOTL is the default pipeline execution model:
 - The orchestrator SHOULD run `./tools/validate/validate structure EP-XXX` after each artefact-producing stage to verify format compliance (when the tool is available).
 - When validation tools are not yet available (bootstrap), the orchestrator falls back to verifying artefact existence and basic YAML front matter presence.
 
-**Enforcement model:**
+**Enforcement model:** Process rules in this specification; the CI-enforceable subset is implemented by `./tools/validate/validate` — command details and exit-code behaviour in [VALIDATION.md](../tools/validate/VALIDATION.md).
 
-| Requirement | Enforcement | Evidence |
-|-------------|-------------|----------|
-| Stage ordering and required artefacts | Hard | `validate pipeline`, file presence, front matter checks |
-| Review gate pass before downstream progression | Hard | Current Gate Summary, open severity counts, validator checks |
-| AC↔test coverage before epic completion | Hard | `./tools/validate/validate EP-XXX` |
-| Mandatory delegation for stages 7 and 10 | Soft | Orchestrator run notes, subagent output signal, operator review |
-| Required HITL decisions | Soft now; validator-assisted where available | Decision record in chat or affected artefact |
+| Requirement | Enforcement | Tool / evidence |
+|-------------|-------------|-----------------|
+| Stage ordering and required artefacts | Hard | `validate pipeline`, file presence, front matter |
+| Review gate pass before downstream progression | Hard | Current Gate Summary, open severity counts, `validate pipeline` |
+| AC↔test coverage before epic completion | Hard | `validate` / `validate ac` |
+| Artefact structure (sections, links, front matter) | Hard | `validate structure` |
+| EARS requirements format | Hard | `validate ears` |
+| REQ↔AC traceability | Hard | `validate req` |
+| Unchecked implementation-plan tasks before audit | Hard | `validate pipeline` (when `ep-audit-report.md` exists) |
+| Unchecked tasks when code review exists | Warning | `validate pipeline` (when `ep-code-review.md` exists) |
+| Mandatory delegation for stages 7 and 10 | Soft | Orchestrator run notes, subagent output signal |
+| Required HITL decision quality | Soft | Decision record in chat or artefact |
+| `ep-context.md` staleness judgment | Soft | Agent reads source artefacts when context is stale |
+| Subagent discipline | Soft | Process compliance; not CI-verifiable |
 
 **Decision record format:**
 
@@ -218,6 +225,8 @@ Options: A | B | C
 Operator choice: <selected option>
 Rationale: <short>
 ```
+
+**CI-minimal subset:** `validate pipeline` requires only `Decision needed:` and `Operator choice:` in the affected review artefact. Fields `Context`, `Options`, and `Rationale` are process quality requirements; see [VALIDATION.md](../tools/validate/VALIDATION.md) (Pipeline State Validation).
 
 ### 4.6 Fallback (subagents unavailable)
 
