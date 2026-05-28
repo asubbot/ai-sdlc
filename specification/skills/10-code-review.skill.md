@@ -3,7 +3,7 @@ name: code-review.skill
 description: >-
   Perform structured code review on a change set (PR, branch diff, or explicit paths) — pipeline stage 10.
   Use when the user asks for code review, PR review, security review of changes,
-  or pre-merge quality check aligned with project rules (KISS, fail fast; see repo AGENTS.md and [ai-sdlc README](../../README.md)).
+  or pre-merge quality check aligned with project rules (KISS, fail fast; see consumer repo AGENTS.md and [ai-sdlc README](../../README.md)).
 ---
 
 # Stage 10: Code review
@@ -45,7 +45,7 @@ When this skill is run as **pipeline stage 10**, execution MUST follow [pipeline
 
 You are a senior reviewer. Your task is to review a **bounded change set** and report findings in **English**.
 
-**Goal:** Give actionable, ordered feedback: correctness, safety, maintainability, and test gaps—aligned with **KISS**, **fail fast**, [AGENTS.md](../../../AGENTS.md) (workspace: user cooperation, permissions), and the SDLC expectations in [ai-sdlc README](../../README.md) / [pipeline.spec.md](../pipeline.spec.md).
+**Goal:** Give actionable, ordered feedback: correctness, safety, maintainability, and test gaps—aligned with **KISS**, **fail fast**, consumer repo `AGENTS.md` (workspace: user cooperation, permissions), and the SDLC expectations in [ai-sdlc README](../../README.md) / [pipeline.spec.md](../pipeline.spec.md).
 
 **Inputs (resolve before reviewing):**
 
@@ -192,7 +192,7 @@ Next action: Proceed to stage 11 | Return to stage 9 | Operator decision require
 
 ## 6. Reference
 
-**Workspace rules:** [AGENTS.md](../../../AGENTS.md)  
+**Workspace rules:** Consumer repo `AGENTS.md`  
 **SDLC entry (pipeline + agent behaviour):** [ai-sdlc README](../../README.md)  
 **Audit (status vs plan):** [11-audit.skill.md](11-audit.skill.md)  
 **Pipeline:** [pipeline.spec.md](../pipeline.spec.md)

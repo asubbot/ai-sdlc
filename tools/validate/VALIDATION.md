@@ -256,7 +256,9 @@ func TestMixed(t *testing.T) { }
 
 Operator scenarios live in `ai-sdlc-artefacts/epics/EP-XXX/ep-manual-tests.md` (or `ep-manual-test-scenarios.md` for EP-001). To anchor those ACs in code **without** mixing with automated tests, use dedicated files under `tests/integration/`:
 
-- [`ep001_manual_test.go`](../../../tests/integration/ep001_manual_test.go), [`ep004_manual_test.go`](../../../tests/integration/ep004_manual_test.go), [`ep009_manual_test.go`](../../../tests/integration/ep009_manual_test.go) (EP-002 and EP-006 use automated-only traces; no dedicated `ep002` / `ep006` manual files)
+- `ep001_manual_test.go`, `ep004_manual_test.go`, `ep009_manual_test.go` (EP-002 and EP-006 use automated-only traces; no dedicated `ep002` / `ep006` manual files)
+
+> **Note:** These test files live in the **consumer product repository** (e.g. `tests/integration/`), not in this canonical `ai-sdlc` repo.
 
 Conventions: `//go:build integration`, `package integration_test`, `// manual Covers AC-…` on the trace line, `t.Skip("manual: …")` with a pointer to the epic manual doc (and optional anchor). `./tools/validate/validate` reads these files like any other `*_test.go` under `tests/`.
 
@@ -318,14 +320,11 @@ See [Stage 9 (Task Execution)](../../specification/skills/09-task-execution.skil
 ## Building
 
 ```bash
-# Build all binaries (pa + validate)
+# Build
 cd tools/validate && go build -o validate . && cd ../..
 
 # Run tests
-go test ./ai-sdlc/tools/validate/...
-
-# Quick rebuild if only validate changed (Make tracks dependencies)
-make validate
+cd tools/validate && go test ./...
 ```
 
 ## Exit Codes

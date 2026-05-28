@@ -1,0 +1,30 @@
+name: Validate tool CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/validate/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/validate/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/validate
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: tools/validate/go.mod
+
+      - run: go vet ./...
+
+      - run: go test ./... -count=1
+
+      - run: go build -o validate .

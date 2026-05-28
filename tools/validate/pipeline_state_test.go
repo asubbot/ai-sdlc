@@ -30,6 +30,28 @@ func TestParseGateSummary(t *testing.T) {
 				"| Count    | 0       | 2     | 1      | 0     | 0   |",
 			false, 0, 2,
 		},
+		{
+			"plain-text pass",
+			"## Current Gate Summary\n\n" +
+				"Gate: Pass\n" +
+				"Latest iteration: 2\n" +
+				"Last updated: 2026-05-28\n" +
+				"Open counts: Blocker 0 | Major 0 | Medium 0 | Minor 0\n" +
+				"Next action: Proceed to stage 8\n",
+			false, 0, 0,
+		},
+		{
+			"plain-text fail",
+			"## Current Gate Summary\n\n" +
+				"Gate: Fail\n" +
+				"Latest iteration: 1\n" +
+				"Last updated: 2026-05-28\n" +
+				"Open counts: Blocker 1 | Major 3 | Medium 2 | Minor 1\n" +
+				"Open findings:\n" +
+				"- F-001 Blocker: Missing requirement coverage.\n" +
+				"Next action: Return to stage 6\n",
+			false, 1, 3,
+		},
 		{"no gate table", "# Just a heading\nSome text", true, 0, 0},
 	}
 	for _, tt := range tests {

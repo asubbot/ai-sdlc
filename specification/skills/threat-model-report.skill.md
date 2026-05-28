@@ -23,7 +23,7 @@ Produce a **single markdown report** that:
 - Lists **gaps and residual risks** explicitly (missing rate limits, DEBUG behaviour, third-party trust, etc.).
 - Stays **factual**: do not claim controls that are not visible in code or documented operator behaviour; label assumptions as assumptions.
 
-**When to use:** User asks for a threat model, STRIDE / attack-surface analysis from code, security baseline document, or equivalent in another language (e.g. Russian request → still write the **skill artefact in English** per project [AGENTS.md](../../../AGENTS.md); the user may ask for a Russian summary in chat only).
+**When to use:** User asks for a threat model, STRIDE / attack-surface analysis from code, security baseline document, or equivalent in another language (e.g. Russian request → still write the **skill artefact in English** per consumer repo `AGENTS.md`; the user may ask for a Russian summary in chat only).
 
 ---
 
@@ -67,7 +67,7 @@ Produce a **single markdown report** that:
 | **5. STRIDE analysis** | Table or subsections per category; each row references **implementation** (`package`, `function`, or `docs/...`) when a control exists. |
 | **6. Security controls (evidence-based)** | Bullet list grouped by theme (authentication, authorization, input validation, exec safety, secrets, logging, availability); each bullet should cite **where** in repo (path). |
 | **7. Gaps and residual risks** | Honest list: e.g. no per-user rate limit, DEBUG logging, tool error strings to LLM, dependency/CVE posture. |
-| **8. Recommendations** | Prioritised for **operator** (config hardening) vs **future development** (features); must not contradict [AGENTS.md](../../../AGENTS.md) (no scope creep without user choice). |
+| **8. Recommendations** | Prioritised for **operator** (config hardening) vs **future development** (features); must not contradict consumer repo `AGENTS.md` (no scope creep without user choice). |
 | **9. References** | Links to `docs/configuration.md`, `docs/operations.md`, relevant epic artefacts (relative paths from the saved file). |
 
 **Diagrams:** Mermaid in fenced blocks; avoid reserved participant names that break `sequenceDiagram` (e.g. use `User` not `Loop`).
@@ -86,5 +86,5 @@ Produce a **single markdown report** that:
 ## 6. Reference
 
 - Operator context: [docs/configuration.md](../../../docs/configuration.md), [docs/docker.md](../../../docs/docker.md).  
-- Project rules: [AGENTS.md](../../../AGENTS.md).  
+- Project rules: Consumer repo `AGENTS.md`.  
 - Similar structured outputs: [10-code-review.skill.md](10-code-review.skill.md), [project-comparison-report.skill.md](project-comparison-report.skill.md).

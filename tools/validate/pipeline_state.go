@@ -55,10 +55,14 @@ var pipelineStages = []struct {
 	{11, "Audit", "ep-audit-report.md", false, false},
 }
 
-var gateSummaryHeaderRe = regexp.MustCompile(`(?i)##\s+Current\s+Gate\s+Summary`)
+var (
+	gateSummaryHeaderRe   = regexp.MustCompile(`(?i)##\s+Current\s+Gate\s+Summary`)
+	openCountsPlainTextRe = regexp.MustCompile(`(?i)Open\s+counts?:\s*Blocker\s+(\d+)\s*\|\s*Major\s+(\d+)\s*\|\s*Medium\s+(\d+)\s*\|\s*Minor\s+(\d+)`)
+)
 
-// parseGateSummary extracts blocker/major/medium/minor/nit counts from a
-// "## Current Gate Summary" markdown table.
+// parseGateSummary extracts blocker/major/medium/minor counts from a
+// "## Current Gate Summary" section. Supports both the plain-text pipe format
+// ("Open counts: Blocker X | Major X | ...") and a markdown table with a "Count" row.
 func parseGateSummary(content string) (*GateSummary, error) {
 	lines := strings.Split(content, "\n")
 	headerIdx := -1
@@ -72,21 +76,29 @@ func parseGateSummary(content string) (*GateSummary, error) {
 		return nil, fmt.Errorf("no Current Gate Summary section found")
 	}
 
-	// Find the "Count" row — it's the data row after the header row and separator.
 	for i := headerIdx + 1; i < len(lines); i++ {
 		trimmed := strings.TrimSpace(lines[i])
-		if !strings.HasPrefix(trimmed, "|") {
-			continue
+
+		if strings.HasPrefix(trimmed, "#") && !gateSummaryHeaderRe.MatchString(trimmed) {
+			break
 		}
-		cells := splitTableRow(trimmed)
-		if len(cells) == 0 {
-			continue
+
+		if m := openCountsPlainTextRe.FindStringSubmatch(trimmed); len(m) == 5 {
+			blocker, _ := strconv.Atoi(m[1])
+			major, _ := strconv.Atoi(m[2])
+			medium, _ := strconv.Atoi(m[3])
+			minor, _ := strconv.Atoi(m[4])
+			return &GateSummary{Blocker: blocker, Major: major, Medium: medium, Minor: minor}, nil
 		}
-		if strings.EqualFold(cells[0], "Count") {
-			return parseCountCells(cells)
+
+		if strings.HasPrefix(trimmed, "|") {
+			cells := splitTableRow(trimmed)
+			if len(cells) > 0 && strings.EqualFold(cells[0], "Count") {
+				return parseCountCells(cells)
+			}
 		}
 	}
-	return nil, fmt.Errorf("no Count row found in gate summary table")
+	return nil, fmt.Errorf("no open counts found in gate summary")
 }
 
 func splitTableRow(row string) []string {
@@ -165,8 +177,14 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 		}
 
 		if ps.hasGate && fmErr == nil {
-			if gs, gsErr := parseGateSummary(content); gsErr == nil {
-				if ss.Gate == "" {
+			if ss.Gate == "" {
+				if fm.OpenCounts != nil {
+					if fm.OpenCounts.Blocker > 0 || fm.OpenCounts.Major > 0 {
+						ss.Gate = "fail"
+					} else {
+						ss.Gate = "pass"
+					}
+				} else if gs, gsErr := parseGateSummary(content); gsErr == nil {
 					if gs.Blocker > 0 || gs.Major > 0 {
 						ss.Gate = "fail"
 					} else {

@@ -137,7 +137,7 @@ Each stage skill below includes an **Orchestrator brief** section that specifies
 | Skill | Use when |
 |-------|----------|
 | [ep-C4-component.skill.md](ep-C4-component.skill.md) | C4 **C3** Go component diagram for `ep-system-design.md` (optional; complements mandatory C2 container) |
-| [project-comparison-report.skill.md](project-comparison-report.skill.md) | Compare an external repo with PersonalAssistant; analytics report under `ai-sdlc-artefacts/analytics/` |
+| [project-comparison-report.skill.md](project-comparison-report.skill.md) | Compare an external repo with the consumer product; analytics report under `ai-sdlc-artefacts/analytics/` |
 | [user-documentation.skill.md](user-documentation.skill.md) | End-user / operator docs under `docs/` and root `README.md` (installation, config, Docker, operations) |
 | [threat-model-report.skill.md](threat-model-report.skill.md) | Code-grounded threat model report (default `docs/threat-model.md` or `ai-sdlc-artefacts/analytics/...`) |
 

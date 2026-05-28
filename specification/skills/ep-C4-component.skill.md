@@ -26,7 +26,7 @@ description: Add or update a C4 Level 3 (components) PlantUML diagram for Go pac
 - Rendered: `ai-sdlc-artefacts/epics/<epic-id>/diagrams/c4-component-go.png`
 - Markdown: new subsection under **Architecture** in `ep-system-design.md`, with **Contents (TOC)** entry and GitHub-compatible anchor.
 
-**Rules:** Use **English** for all skill and diagram text. Links in the epic document only under `ai-sdlc-artefacts/`. Do not write or overwrite files until the user approves, unless they explicitly asked to save (align with [06-system-design.skill.md](06-system-design.skill.md) and project [AGENTS.md](../../../AGENTS.md)).
+**Rules:** Use **English** for all skill and diagram text. Links in the epic document only under `ai-sdlc-artefacts/`. Do not write or overwrite files until the user approves, unless they explicitly asked to save (align with [06-system-design.skill.md](06-system-design.skill.md) and consumer repo `AGENTS.md`).
 
 ---
 

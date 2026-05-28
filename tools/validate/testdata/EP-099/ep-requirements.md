@@ -31,7 +31,7 @@ WHEN the validate tool runs, THE system SHALL load fixture files from the testda
 WHEN the validate tool produces JSON output, THE system SHALL compare it against golden files.
 
 ### REQ-99.003 — EARS compliance check
-THE system SHALL validate that each requirement follows one of the six EARS patterns.
+WHEN linting requirements, THE system SHALL validate that each requirement follows one of the six EARS patterns.
 
 ### REQ-99.004 — Structure validation
 WHEN an artefact is saved, THE system SHALL verify required sections are present.

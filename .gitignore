@@ -1,0 +1,5 @@
+tools/validate/validate
+*.exe
+.DS_Store
+*.swp
+*~

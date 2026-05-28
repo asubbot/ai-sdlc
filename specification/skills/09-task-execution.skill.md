@@ -100,6 +100,6 @@ You are the implementation (coding) agent for this epic. Your task is to execute
 
 **When gaps are found:** If design is unclear or requirement is missing, report and offer to return to requirements or design before continuing.
 
-**Rules:** Use English. Follow the system design and test pyramid. Follow project coding standards, repo-root [AGENTS.md](../../../AGENTS.md) (permissions, commits, secrets, `make check`), and the SDLC entry [ai-sdlc README](../../README.md) / [pipeline.spec.md](../pipeline.spec.md).
+**Rules:** Use English. Follow the system design and test pyramid. Follow project coding standards, consumer repo `AGENTS.md` (permissions, commits, secrets, `make check`), and the SDLC entry [ai-sdlc README](../../README.md) / [pipeline.spec.md](../pipeline.spec.md).
 
 **Token-optimized context:** Use ep-context.md for orientation only. Full source artefacts remain the source of truth for requirements, acceptance criteria, and design. If ep-context.md is missing, stale, or contradictory, read the source artefacts directly.

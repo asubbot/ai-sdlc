@@ -10,6 +10,8 @@ The proposal has three optimization layers:
 
 ## 1. Add an Epic Context Artefact
 
+**Status: Adopted** (implemented in pipeline.spec.md v1.0.0)
+
 Introduce `ep-context.md` as a short epic-level artefact:
 
 ```text
@@ -42,6 +44,8 @@ Staleness safeguard: if `ep-context.md` has YAML `updated_at` older than any sou
 
 ## 2. Read Context Before Full Artefacts
 
+**Status: Adopted** (implemented in pipeline.spec.md v1.0.0)
+
 Update stage skills to read `ep-context.md` first when it exists.
 
 Full upstream artefacts should be opened only when needed for:
@@ -60,6 +64,8 @@ This rule is strongest for authoring and consuming stages, such as stages 6, 8, 
 - Stage 10 code review should remain diff-first. When reviewing against an epic, it should use `ep-context.md` to identify likely relevant REQ/AC, then open the corresponding source sections as needed.
 
 ## 3. Update `ep-context.md` After Key Stages
+
+**Status: Adopted** (implemented in pipeline.spec.md v1.0.0)
 
 `ep-context.md` should be refreshed after stages that materially change epic knowledge:
 
@@ -80,6 +86,8 @@ The update should be concise. Do not copy full sections from upstream artefacts.
 Responsibility: the agent or orchestrator that owns the stage updates `ep-context.md`. Delegated readonly reviewers for stages 7 and 10 should not edit it directly; the orchestrator applies the resulting gate summary after the review is accepted or saved.
 
 ## 4. Add Current Gate Summaries to Review Files
+
+**Status: Adopted** (implemented in pipeline.spec.md v1.0.0)
 
 Review files currently retain all iterations, which is useful for history but expensive for downstream stages.
 
@@ -117,6 +125,8 @@ Apply this to:
 - `ep-code-review.md` when saved.
 
 ## 5. Add YAML Front Matter to Pipeline Artefacts
+
+**Status: Adopted** (implemented in pipeline.spec.md v1.0.0)
 
 Add a small YAML front matter block to pipeline artefacts that need fast status checks. This gives agents and future validation tools a cheap machine-readable entry point before reading the Markdown body.
 
@@ -164,6 +174,8 @@ YAML front matter does not replace `ep-context.md` or `Current Gate Summary`. It
 Agents should read YAML front matter first for routing decisions, then `Current Gate Summary` or `ep-context.md` only when they need semantic context.
 
 ## 6. Strengthen Diff-First Code Review
+
+**Status: Adopted** (implemented in pipeline.spec.md v1.0.0)
 
 Stage 10 already prefers minimal context. Make this rule stricter:
 

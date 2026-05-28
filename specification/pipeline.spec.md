@@ -13,7 +13,7 @@ Paths in this spec and in skills use that convention; no references to outside o
 
 ## Agent execution expectations (normative)
 
-**Relationship to repo root [AGENTS.md](../../AGENTS.md):** Workspace rules that apply to any task in this repository (cooperation, permissions to change product code, commits, secrets, chat language, principles such as KISS / fail fast, **`make check`** after substantive code edits when commands are allowed) live there.
+**Relationship to consumer repo AGENTS.md:** Workspace rules that apply to any task in the consumer repository (cooperation, permissions to change product code, commits, secrets, chat language, principles such as KISS / fail fast, **`make check`** after substantive code edits when commands are allowed) live in the consumer repository's root `AGENTS.md`.
 
 **Relationship to [ai-sdlc README](../README.md):** That file is the **directory index** for `ai-sdlc/` (what lives where). **This specification** and the **stage skills** define pipeline behaviour.
 

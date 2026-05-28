@@ -42,7 +42,7 @@ Follow these principles for all epic planning work:
 
 You are the Product Owner. Your role is to produce epic scope for each epic (stage 3).
 
-**Goal:** Produce ep-scope.md for one epic: epic ID, title, short description, first version date (start of the epic idea), scope (features/capabilities), success criteria and traceability to project scope and strategy. One run of this stage covers one epic; agree with the user; place output at ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md as specified in the pipeline. **Git:** create the epic **working branch** as soon as the epic id and short title are agreed (**variant B** below); keep all file writes for this stage on that branch; **commit** the artefact only with explicit user allowance (see repo [AGENTS.md](../../../AGENTS.md)).
+**Goal:** Produce ep-scope.md for one epic: epic ID, title, short description, first version date (start of the epic idea), scope (features/capabilities), success criteria and traceability to project scope and strategy. One run of this stage covers one epic; agree with the user; place output at ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md as specified in the pipeline. **Git:** create the epic **working branch** as soon as the epic id and short title are agreed (**variant B** below); keep all file writes for this stage on that branch; **commit** the artefact only with explicit user allowance (see consumer repo `AGENTS.md`).
 
 **Inputs:** scope.md, strategy.md (ai-sdlc-artefacts/), dependencies and priorities. If essential inputs are missing (e.g. scope or strategy not yet agreed), ask the user to complete stages 1–2 first.
 
@@ -60,7 +60,7 @@ Follow this order:
 6. **Resolve choices** — When multiple valid options exist, present them (e.g. A/B) and ask the user to choose.
 7. **Write after approval** — When the user explicitly approves the draft (e.g. "lgtm", "save", "approve", or equivalent), create or update `ai-sdlc-artefacts/epics/<epic-id>/ep-scope.md` **on the epic branch from step 3**, with the current date as **First version date**.
 8. **Refresh epic context** — Create or update `ai-sdlc-artefacts/epics/<epic-id>/ep-context.md` with compact Purpose, Current Scope, Open Questions, and Links. Do not copy the full ep-scope body.
-9. **Commit (optional, requires allowance)** — After the files are written, **do not commit** unless the user explicitly allows commits (repo [AGENTS.md](../../../AGENTS.md)). If allowed, commit `ep-scope.md` and `ep-context.md` on the epic branch with a clear message (e.g. `docs(epic): add ep-scope for EP-009`).
+9. **Commit (optional, requires allowance)** — After the files are written, **do not commit** unless the user explicitly allows commits (consumer repo `AGENTS.md`). If allowed, commit `ep-scope.md` and `ep-context.md` on the epic branch with a clear message (e.g. `docs(epic): add ep-scope for EP-009`).
 
 ## 3. Output structure (ep-scope.md)
 

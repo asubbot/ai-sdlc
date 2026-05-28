@@ -134,7 +134,13 @@ func checkEARSPattern(block reqBlock) []EARSFinding {
 	case hasWhere && hasThe:
 		return nil
 	case hasThe:
-		return nil
+		return []EARSFinding{{
+			REQ:      block.Code,
+			Line:     block.Line,
+			Severity: "warning",
+			Rule:     "ears-weak-pattern",
+			Message:  "matches only ubiquitous EARS base (THE...SHALL) without event/state/unwanted trigger",
+		}}
 	}
 
 	return []EARSFinding{{

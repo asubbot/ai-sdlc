@@ -6,17 +6,30 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
+// SeverityCounts holds counts for review severity levels parsed from YAML front matter.
+type SeverityCounts struct {
+	Blocker int `json:"blocker"`
+	Major   int `json:"major"`
+	Medium  int `json:"medium"`
+	Minor   int `json:"minor"`
+}
+
 // FrontMatter represents YAML front matter parsed from artefact markdown files.
 type FrontMatter struct {
-	Artefact      string `yaml:"artefact"`
-	EpicID        string `yaml:"epic_id"`
-	Status        string `yaml:"status"`
-	SourceOfTruth bool   `yaml:"source_of_truth"`
-	UpdatedAt     string `yaml:"updated_at"`
-	Gate          string `yaml:"gate,omitempty"`
+	Artefact          string          `yaml:"artefact"`
+	EpicID            string          `yaml:"epic_id"`
+	Status            string          `yaml:"status"`
+	SourceOfTruth     bool            `yaml:"source_of_truth"`
+	UpdatedAt         string          `yaml:"updated_at"`
+	Gate              string          `yaml:"gate,omitempty"`
+	LatestIteration   int             `yaml:"latest_iteration,omitempty"`
+	NextAction        string          `yaml:"next_action,omitempty"`
+	OpenCounts        *SeverityCounts `yaml:"open_counts,omitempty"`
+	NonBlockingCounts *SeverityCounts `yaml:"non_blocking_counts,omitempty"`
 }
 
 // StructureFinding is a single validation finding for an artefact file.
@@ -64,13 +77,26 @@ func parseFrontMatter(content string) (*FrontMatter, error) {
 		return nil, fmt.Errorf("unclosed YAML front matter")
 	}
 	fm := &FrontMatter{}
+	var parentKey string
 	for _, line := range lines[1:endIdx] {
-		parts := strings.SplitN(line, ":", 2)
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		isIndented := len(line) > 0 && (line[0] == ' ' || line[0] == '\t')
+		parts := strings.SplitN(trimmed, ":", 2)
 		if len(parts) != 2 {
 			continue
 		}
 		key := strings.TrimSpace(parts[0])
 		val := strings.TrimSpace(parts[1])
+
+		if isIndented && parentKey != "" {
+			parseFrontMatterSubKey(fm, parentKey, key, val)
+			continue
+		}
+
+		parentKey = ""
 		switch key {
 		case "artefact":
 			fm.Artefact = val
@@ -84,9 +110,52 @@ func parseFrontMatter(content string) (*FrontMatter, error) {
 			fm.UpdatedAt = val
 		case "gate":
 			fm.Gate = val
+		case "latest_iteration":
+			if n, err := strconv.Atoi(val); err == nil {
+				fm.LatestIteration = n
+			}
+		case "next_action":
+			fm.NextAction = val
+		case "open_counts":
+			if val == "" {
+				fm.OpenCounts = &SeverityCounts{}
+				parentKey = "open_counts"
+			}
+		case "non_blocking_counts":
+			if val == "" {
+				fm.NonBlockingCounts = &SeverityCounts{}
+				parentKey = "non_blocking_counts"
+			}
 		}
 	}
 	return fm, nil
+}
+
+func parseFrontMatterSubKey(fm *FrontMatter, parent, key, val string) {
+	n, err := strconv.Atoi(val)
+	if err != nil {
+		return
+	}
+	var target *SeverityCounts
+	switch parent {
+	case "open_counts":
+		target = fm.OpenCounts
+	case "non_blocking_counts":
+		target = fm.NonBlockingCounts
+	}
+	if target == nil {
+		return
+	}
+	switch key {
+	case "blocker":
+		target.Blocker = n
+	case "major":
+		target.Major = n
+	case "medium":
+		target.Medium = n
+	case "minor":
+		target.Minor = n
+	}
 }
 
 func isValidDateFormat(d string) bool {

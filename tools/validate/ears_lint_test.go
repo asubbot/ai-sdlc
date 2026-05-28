@@ -7,26 +7,29 @@ import (
 
 func TestCheckEARSPattern(t *testing.T) {
 	tests := []struct {
-		name      string
-		body      string
-		wantValid bool
+		name         string
+		body         string
+		wantFindings int
+		wantSeverity string
 	}{
-		{"ubiquitous", "THE system SHALL log all requests.", true},
-		{"event-driven", "WHEN a request arrives, THE system SHALL respond.", true},
-		{"state-driven", "WHILE idle, THE system SHALL release connections.", true},
-		{"unwanted", "IF connection fails, THEN THE system SHALL retry.", true},
-		{"optional", "WHERE CSV is enabled, THE system SHALL add headers.", true},
-		{"complex", "WHILE in maintenance, WHEN alert occurs, THE system SHALL notify.", true},
-		{"no shall", "The system needs to be fast.", false},
-		{"no ears pattern", "The system efficiently handles data as needed.", false},
+		{"ubiquitous-weak", "THE system SHALL log all requests.", 1, "warning"},
+		{"event-driven", "WHEN a request arrives, THE system SHALL respond.", 0, ""},
+		{"state-driven", "WHILE idle, THE system SHALL release connections.", 0, ""},
+		{"unwanted", "IF connection fails, THEN THE system SHALL retry.", 0, ""},
+		{"optional", "WHERE CSV is enabled, THE system SHALL add headers.", 0, ""},
+		{"complex", "WHILE in maintenance, WHEN alert occurs, THE system SHALL notify.", 0, ""},
+		{"no shall", "The system needs to be fast.", 1, "error"},
+		{"no ears pattern", "The system efficiently handles data as needed.", 1, "error"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			block := reqBlock{Code: "REQ-00.001", Body: tt.body, Line: 1}
 			findings := checkEARSPattern(block)
-			isValid := len(findings) == 0
-			if isValid != tt.wantValid {
-				t.Errorf("checkEARSPattern(%q) valid=%v, want %v; findings=%v", tt.body, isValid, tt.wantValid, findings)
+			if len(findings) != tt.wantFindings {
+				t.Errorf("checkEARSPattern(%q) findings=%d, want %d; findings=%v", tt.body, len(findings), tt.wantFindings, findings)
+			}
+			if tt.wantSeverity != "" && len(findings) > 0 && findings[0].Severity != tt.wantSeverity {
+				t.Errorf("checkEARSPattern(%q) severity=%q, want %q", tt.body, findings[0].Severity, tt.wantSeverity)
 			}
 		})
 	}
