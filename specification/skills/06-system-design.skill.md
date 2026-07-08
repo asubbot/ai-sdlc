@@ -61,8 +61,9 @@ Follow this order:
 3. **Draft** — Draft the design (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
 4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
 5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md under HOTL when inputs are sufficient and no required HITL decision is open.
-6. **Refresh epic context** — **Orchestrated subagent mode:** report Design Decisions, Interfaces / Contracts, Open Questions, and Links deltas in the output signal (`context_delta`); do not edit ep-context.md. **Solo/HOTL without orchestrator:** update ep-context.md concisely; do not copy full design sections.
-7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
+6. **Render C4 C2 PNG** — After saving `diagrams/c4-container.puml`, follow [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md): run `plantuml -tpng diagrams/c4-container.puml` from the epic directory, verify `diagrams/c4-container.png` exists, and embed the centered `<img>` in ep-system-design.md before the Source line. If C3 was added, render `c4-component-go.puml` the same way.
+7. **Refresh epic context** — **Orchestrated subagent mode:** report Design Decisions, Interfaces / Contracts, Open Questions, and Links deltas in the output signal (`context_delta`); do not edit ep-context.md. **Solo/HOTL without orchestrator:** update ep-context.md concisely; do not copy full design sections.
+8. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
 ---
 
@@ -90,7 +91,7 @@ updated_at: YYYY-MM-DD
 - **Testing strategy** (optional) — Short note on unit, integration, e2e, and deploy verification; can reference strategy.md under ai-sdlc-artefacts.
 - **Optional:** Technical discovery, options comparison, recommendation, risks; references to research (e.g. legacy/technical-discovery) only for reading; no edits to legacy.
 
-**Diagrams:** Use the epic's `diagrams/` folder (same as in ep-requirements); store `c4-container.puml` there and export PNG to `diagrams/c4-container.png` so the relative path in the document works.
+**Diagrams:** Use the epic's `diagrams/` folder (same as in ep-requirements); store `c4-container.puml` there. **Automatically render** PNG via [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md) (`diagrams/c4-container.png`); do not finish stage 6 with `.puml` only.
 
 **TOC:** Include a first-level table of contents (links to section anchors).
 
@@ -108,6 +109,7 @@ Verify all before considering the stage complete:
 - [ ] YAML front matter is present and consistent with the saved system design content
 - [ ] ep-context.md was refreshed with compact Design Decisions, Interfaces / Contracts, Open Questions, and Links, **or** (orchestrated subagent mode) `context_delta` was reported for the orchestrator to apply
 - [ ] Document contains **Overview** (system summary and traceability to REQ), **Architecture** including **C4 C2** (source in `diagrams/c4-container.puml`, PNG in `diagrams/c4-container.png` embedded centered; Source line with regeneration command), **Components and interfaces**, and **Data models** (if applicable); **Error handling** and **Testing strategy** recommended where relevant
+- [ ] `diagrams/c4-container.png` exists and was rendered per [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md) (not `.puml`-only)
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
 - [ ] Traceability to ep-requirements is maintained: **every REQ from ep-requirements.md is referenced at least once** in the document
 - [ ] Content was written under HOTL, or any required HITL decision was recorded before writing

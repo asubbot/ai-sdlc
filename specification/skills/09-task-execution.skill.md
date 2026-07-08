@@ -64,7 +64,7 @@ You are the implementation (coding) agent for this epic. Your task is to execute
 1. Open ep-implementation-plan.md, find the first unchecked task or sub-task; ensure all previous ones are done.
 2. Obtain epic ID if needed.
 3. Make only the code changes that belong to the current task. Do not jump ahead.
-4. Update or create tests as required (**see § AC coverage below**).
+4. Add or update tests for the task's ACs. Prefer writing the test **before** the implementation, and confirm each new or changed test is **meaningful** (SHOULD) — ideally it fails without the implementation (or otherwise demonstrably exercises the code under test) and turns green only after it, rather than passing trivially (**see § AC coverage below**).
 5. Run relevant checks (lint/test/build) before considering the task done.
 6. If implementation causes material design or contract changes, treat it as a required HITL decision point before changing source-of-truth design/requirements. After the decision, **orchestrated subagent mode:** report a compact summary in `context_delta` for the orchestrator to apply to ep-context.md; **solo/HOTL without orchestrator:** update ep-context.md only as a compact summary. Do not use ep-context.md to silently change source-of-truth design or requirements.
 7. Prepare a short report: what was done, files changed, tests run or skipped.
@@ -81,9 +81,17 @@ You are the implementation (coding) agent for this epic. Your task is to execute
    - **Automated:** at least one of Unit / Integration / E2E (per [strategy.md](../../../ai-sdlc-artefacts/strategy.md) and the epic plan)—prove coverage by the `Covers AC-EE.NNN` / `Supporting AC-EE.NNN` comment in a test file.
    - **Manual only:** if an AC cannot reasonably be automated, document it in the epic’s manual test doc (e.g. ep-manual-tests.md or ep-manual-test-scenarios.md) with a **stable reference** (scenario id or section) and use comment text such as `// Manual AC-EE.NNN — see ep-manual-tests.md § …` in a trivial test or in a single registry test file **only if** the project already uses that pattern; otherwise ensure the manual doc explicitly lists the AC id next to the scenario. **Do not** leave an AC with neither an automated reference nor a manual scenario without a recorded HITL decision to defer that AC.
 
+**Test meaningfulness (SHOULD):**
+
+Before relying on a test as AC coverage, confirm it actually constrains the implementation:
+- The test would **fail** if the implementation were absent or incorrect (verify by writing it first, or by a quick red check), and passes only once the behaviour is correct.
+- The test asserts observable behaviour tied to the AC, not a trivially-true condition.
+
+The validator (`make validate` in consumer repos / `./tools/validate/validate` in the canonical repo) checks that a `Covers AC-EE.NNN` reference **exists**, not that the test is meaningful; this step is process discipline (Soft, not CI-verifiable) and complements — does not replace — the coverage check.
+
 **Before treating a task group or the plan as complete:**
 
-3. **AC Coverage Validation (REQUIRED):** Run the validation tool to verify all AC coverage automatically:
+1. **AC Coverage Validation (REQUIRED):** Run the validation tool to verify all AC coverage automatically:
    ```bash
    make build && make validate EP-XXX
    ```
@@ -93,7 +101,7 @@ You are the implementation (coding) agent for this epic. Your task is to execute
 
    This tool performs an automated cross-check (enumerates AC-EE.NNN ids, searches codebase for `Covers AC-` comments) and saves significant token usage vs. manual inspection. See [VALIDATION.md](../../tools/validate/VALIDATION.md).
 
-4. **Deferred AC:** If an AC is explicitly deferred in ep-acceptance-criteria.md, document that in the task report; do not silently skip.
+2. **Deferred AC:** If an AC is explicitly deferred in ep-acceptance-criteria.md, document that in the task report; do not silently skip.
 
 **Constraints:** Get right to the point. Be practical above all. Be short and specific. Do not commit without explicit user instruction. Do not change task order without explicit instruction.
 

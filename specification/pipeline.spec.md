@@ -241,6 +241,7 @@ HOTL is the default pipeline execution model:
 | Required HITL decision quality | Soft | Decision record in chat or artefact |
 | `ep-context.md` staleness judgment | Soft | Agent reads source artefacts when context is stale |
 | Subagent discipline | Soft | Process compliance; not CI-verifiable |
+| Test meaningfulness (test fails without the implementation) | Soft | Stage 9 process discipline; not CI-verifiable (see [09-task-execution.skill.md](skills/09-task-execution.skill.md)) |
 
 **Decision record format:**
 

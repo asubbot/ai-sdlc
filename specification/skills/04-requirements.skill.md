@@ -59,8 +59,9 @@ Follow this order:
 3. **Draft** — Draft requirements (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
 4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
 5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-requirements.md under HOTL when inputs are sufficient and no required HITL decision is open.
-6. **Refresh epic context** — **Orchestrated subagent mode:** report Key Requirements and Links deltas in the output signal (`context_delta`); do not edit ep-context.md. **Solo/HOTL without orchestrator:** update ep-context.md Key Requirements and Links concisely; do not copy the full requirements list.
-7. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
+6. **Render C4 C1 PNG** — After saving `diagrams/c4-context.puml`, follow [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md): run `plantuml -tpng diagrams/c4-context.puml` from the epic directory, verify `diagrams/c4-context.png` exists, and embed the centered `<img>` in ep-requirements.md before the Source line.
+7. **Refresh epic context** — **Orchestrated subagent mode:** report Key Requirements and Links deltas in the output signal (`context_delta`); do not edit ep-context.md. **Solo/HOTL without orchestrator:** update ep-context.md Key Requirements and Links concisely; do not copy the full requirements list.
+8. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
 ---
 
@@ -75,7 +76,7 @@ Use these section headings (or user-agreed equivalents).
 - **Requirements (REQ-EE.NNN)** — List in EARS form with tags (e.g. FR, NFR).
 - **NFR section** — Security, performance, deploy, observability.
 
-**Diagrams:** Create a `diagrams/` folder next to ep-requirements.md for the epic; store `c4-context.puml` there and export PNG to `diagrams/c4-context.png` so the relative path in the document works.
+**Diagrams:** Create a `diagrams/` folder next to ep-requirements.md for the epic; store `c4-context.puml` there. **Automatically render** PNG via [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md) (`diagrams/c4-context.png`); do not finish stage 4 with `.puml` only.
 
 **Glossary rule:** Every system name and technical term used in the requirements MUST appear in the Glossary. When introducing a new term in a requirement, add its definition to the Glossary.
 
@@ -223,6 +224,7 @@ Verify all before considering the stage complete:
 - [ ] YAML front matter is present and consistent with the saved requirements content
 - [ ] ep-context.md was refreshed with compact Key Requirements and Links, **or** (orchestrated subagent mode) `context_delta` was reported for the orchestrator to apply
 - [ ] Document contains **Introduction** (epic summary; optional "scope in brief" or similar), **Glossary** (table: Term | Definition), **C4 C1** (source in `diagrams/c4-context.puml`, PNG in `diagrams/c4-context.png` embedded centered; Source line with regeneration command)
+- [ ] `diagrams/c4-context.png` exists and was rendered per [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md) (not `.puml`-only)
 - [ ] Document contains "EARS patterns used" reference, Requirement index (Id | Type | Summary), NFR subsection or grouping
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
 - [ ] Every term used in requirements appears in the Glossary
