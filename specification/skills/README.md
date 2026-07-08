@@ -153,6 +153,7 @@ Each stage skill below includes an **Orchestrator brief** section that specifies
 | Skill | Use when |
 |-------|----------|
 | [00-project-bootstrap.skill.md](00-project-bootstrap.skill.md) | **New consumer project** / greenfield / bootstrap ai-sdlc layout before stage 1 |
+| [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md) | **Render** epic `diagrams/*.puml` to PNG and verify markdown embeds (stages 4, 6, C3) |
 | [ep-C4-component.skill.md](ep-C4-component.skill.md) | C4 **C3** Go component diagram for `ep-system-design.md` (optional; complements mandatory C2 container) |
 | [project-comparison-report.skill.md](project-comparison-report.skill.md) | Compare an external repo with the consumer product; analytics report under `ai-sdlc-artefacts/analytics/` |
 | [user-documentation.skill.md](user-documentation.skill.md) | End-user / operator docs under `docs/` and root `README.md` (installation, config, Docker, operations) |
@@ -173,6 +174,7 @@ When a user request matches an intent below, use the corresponding skill.
 | Write or update **requirements** (EARS, `ep-requirements.md`) | [04-requirements.skill.md](04-requirements.skill.md) |
 | Write or update **acceptance criteria** | [05-acceptance-criteria.skill.md](05-acceptance-criteria.skill.md) |
 | **System design** / architecture / C2 container (`ep-system-design.md`) | [06-system-design.skill.md](06-system-design.skill.md) |
+| **Regenerate C4 PNG** / PlantUML export for epic `diagrams/` | [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md) |
 | **C4 C3** component diagram (Go packages) for epic system design | [ep-C4-component.skill.md](ep-C4-component.skill.md) |
 | **System design review** / architecture review / requirement traceability | [07-system-design-review.skill.md](07-system-design-review.skill.md) |
 | **Implementation plan** (tasks, ordering, verification) | [08-implementation-planning.skill.md](08-implementation-planning.skill.md) |
@@ -187,6 +189,6 @@ When a user request matches an intent below, use the corresponding skill.
 
 ## All skill files in this folder
 
-Numbered pipeline stages: `01-scope-analysis` through `06-system-design`, then `07-system-design-review`, `08-implementation-planning`, `09-task-execution`, `10-code-review`, `11-audit`. Cross-cutting: `00-project-bootstrap.skill.md`, `ep-C4-component.skill.md`, `project-comparison-report.skill.md`, `user-documentation.skill.md`, `threat-model-report.skill.md`.
+Numbered pipeline stages: `01-scope-analysis` through `06-system-design`, then `07-system-design-review`, `08-implementation-planning`, `09-task-execution`, `10-code-review`, `11-audit`. Cross-cutting: `00-project-bootstrap.skill.md`, `ep-plantuml-export.skill.md`, `ep-C4-component.skill.md`, `project-comparison-report.skill.md`, `user-documentation.skill.md`, `threat-model-report.skill.md`.
 
 **Single source of stage I/O:** [pipeline.spec.md](../pipeline.spec.md) §2 (table of stages, inputs, outputs).

@@ -83,7 +83,7 @@ Lay_D(go_app, llm_api)
 
 1. **Scope** — List packages and edges from code (`import` graph, handler → router → llm, policy packages, etc.). Confirm with the user if the epic touches only a subset.
 2. **Draft .puml** — Add or edit `diagrams/c4-component-go.puml` following §3 and project boundaries (no false dependencies).
-3. **Render** — From the epic `diagrams/` directory: `plantuml -tpng c4-component-go.puml` (or the chosen stem). Ensure the PNG filename matches the markdown `src`.
+3. **Render** — Follow [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md): `plantuml -tpng diagrams/c4-component-go.puml` from the epic directory; verify `diagrams/c4-component-go.png` exists.
 4. **Markdown** — In `ep-system-design.md`: add/update **Contents**, `###` heading, short intro paragraph, centered image, **Source:** link to `.puml` and regeneration command (same pattern as C2).
 5. **Verify** — `plantuml` exits 0; relative image path loads from the epic folder; TOC anchor matches the heading slug.
 
