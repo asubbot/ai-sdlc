@@ -198,10 +198,12 @@ In the following, *System* = <main system name> (or the relevant component as st
 
 *REQ-EE.001, REQ-EE.002*
 
-**REQ-EE.001** (Ubiquitous)  
+### REQ-EE.001 — Short summary
+
 THE \<system\> SHALL \<response\>.
 
-**REQ-EE.002** (Event-driven)  
+### REQ-EE.002 — Short summary
+
 WHEN \<trigger\>, THE \<system\> SHALL \<response\>.
 
 ---
@@ -210,9 +212,12 @@ WHEN \<trigger\>, THE \<system\> SHALL \<response\>.
 
 *REQ-EE.003, …*
 
-**REQ-EE.003** (…)  
+### REQ-EE.003 — Short summary
+
 …
 ```
+
+Each requirement block MUST use a level-3 heading: `### REQ-EE.NNN — <summary>` (em dash). This form is required for `./bin/validate ears EP-XXX` and `./bin/validate req EP-XXX`.
 
 ---
 
@@ -228,6 +233,7 @@ Verify all before considering the stage complete:
 - [ ] Document contains "EARS patterns used" reference, Requirement index (Id | Type | Summary), NFR subsection or grouping
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
 - [ ] Every term used in requirements appears in the Glossary
-- [ ] Requirements follow EARS and the quality rules above
+- [ ] Requirements follow EARS and the quality rules above; each REQ uses `### REQ-EE.NNN — <summary>` heading
+- [ ] `./bin/validate ears EP-XXX` (or `./tools/validate/validate ears EP-XXX` in canonical repo) exits 0
 - [ ] Traceability to ep-scope is maintained
 - [ ] Content was written under HOTL, or any required HITL decision was recorded before writing

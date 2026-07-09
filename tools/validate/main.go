@@ -334,9 +334,9 @@ func runPipelineValidation(epic string, jsonOut bool) {
 }
 
 func runEARSValidation(epic string, jsonOut bool) {
-	if epic == "all" {
-		fmt.Fprintf(os.Stderr, "ears subcommand requires an epic ID\n")
-		os.Exit(1)
+	if epic == "all" || epic == "" {
+		validateAllEARS(jsonOut)
+		return
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -372,7 +372,9 @@ Examples:
   validate EP-009             # AC coverage for single epic
   validate ac EP-009          # Same as above (explicit)
   validate req EP-009         # REQ-AC traceability
+  validate req all            # REQ-AC for in-scope epics
   validate ears EP-009        # EARS linter
+  validate ears all           # EARS for in-scope epics
   validate --json             # JSON output
   validate req EP-009 --json  # JSON for specific subcommand
 `)

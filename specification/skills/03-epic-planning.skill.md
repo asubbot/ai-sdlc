@@ -36,6 +36,8 @@ Follow these principles for all epic planning work:
 7. **Practical and short** — Default language for the document is English. Get to the point; for simple products, keep the epic scope lightweight.
 8. **Token-optimized context** — On save, add YAML front matter to ep-scope.md and create/update ep-context.md with Purpose, Current Scope, Open Questions, and Links. ep-context.md is not a source of truth.
 
+**Status and CI:** Set `| **Status** | … |` in the opening table (e.g. `NEW`, `DONE`, `CANCEL`). Epics with **NEW** or **CANCEL**/**CANCELED** are excluded from `./bin/validate ears all` and `./bin/validate req all`.
+
 ---
 
 ## 1. Context and goal

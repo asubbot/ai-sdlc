@@ -27,7 +27,9 @@ If no subcommand is given, or the first argument is not a known subcommand (e.g.
 ./tools/validate/validate EP-009             # AC coverage for single epic
 ./tools/validate/validate ac EP-009          # Same as above (explicit)
 ./tools/validate/validate req EP-009         # REQ-AC traceability
+./tools/validate/validate req all            # REQ-AC for in-scope epics (skips NEW/CANCEL)
 ./tools/validate/validate ears EP-009        # EARS linter
+./tools/validate/validate ears all           # EARS for in-scope epics (skips NEW/CANCEL)
 ./tools/validate/validate --json             # JSON output (any subcommand)
 ./tools/validate/validate req EP-009 --json  # JSON for specific subcommand
 ```
