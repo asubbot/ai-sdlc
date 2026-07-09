@@ -17,13 +17,13 @@ type AllEARSEpicSummary struct {
 }
 
 type AllEARSReport struct {
-	InScopeEpics []string             `json:"in_scope_epics"`
-	SkippedEpics []string             `json:"skipped_epics"`
-	Epics        []AllEARSEpicSummary `json:"epics"`
-	TotalREQs    int                  `json:"total_reqs"`
-	TotalErrors  int                  `json:"total_errors"`
-	TotalWarnings int                 `json:"total_warnings"`
-	HasGaps      bool                 `json:"has_gaps"`
+	InScopeEpics  []string             `json:"in_scope_epics"`
+	SkippedEpics  []string             `json:"skipped_epics"`
+	Epics         []AllEARSEpicSummary `json:"epics"`
+	TotalREQs     int                  `json:"total_reqs"`
+	TotalErrors   int                  `json:"total_errors"`
+	TotalWarnings int                  `json:"total_warnings"`
+	HasGaps       bool                 `json:"has_gaps"`
 }
 
 type AllREQEpicSummary struct {
@@ -68,7 +68,7 @@ func loadInScopeEpics() (epicsPath string, inScope, skipped []string, err error)
 	return epicsPath, inScope, skipped, nil
 }
 
-func validateAllEARS(jsonOut bool) {
+func validateAllEARS(jsonOut bool) bool {
 	epicsPath, inScope, skipped, err := loadInScopeEpics()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -123,12 +123,10 @@ func validateAllEARS(jsonOut bool) {
 	} else {
 		printAllEARSHuman(report)
 	}
-	if report.HasGaps {
-		os.Exit(1)
-	}
+	return !report.HasGaps
 }
 
-func validateAllREQ(jsonOut bool) {
+func validateAllREQ(jsonOut bool) bool {
 	epicsPath, inScope, skipped, err := loadInScopeEpics()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -172,9 +170,7 @@ func validateAllREQ(jsonOut bool) {
 	} else {
 		printAllREQHuman(report)
 	}
-	if report.HasGaps {
-		os.Exit(1)
-	}
+	return !report.HasGaps
 }
 
 func validateREQForEpic(epicsPath, epic string) (*REQACTraceResult, error) {

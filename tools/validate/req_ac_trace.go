@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
@@ -268,32 +267,7 @@ func printREQACTraceHuman(result *REQACTraceResult) {
 }
 
 func runREQValidation(epic string, jsonOut bool) {
-	if epic == "all" || epic == "" {
-		validateAllREQ(jsonOut)
-		return
-	}
-	epicsPath, err := epicArtefactsRoot()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting current directory: %v\n", err)
-		os.Exit(1)
-	}
-	result, err := validateREQForEpic(epicsPath, epic)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error validating %s: %v\n", epic, err)
-		os.Exit(1)
-	}
-
-	if jsonOut {
-		data, err := json.MarshalIndent(result, "", "  ")
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error marshaling JSON: %v\n", err)
-			os.Exit(1)
-		}
-		writelnStdout(string(data))
-	} else {
-		printREQACTraceHuman(result)
-	}
-	if result.HasGaps {
+	if !reqValidationPasses(epic, jsonOut) {
 		os.Exit(1)
 	}
 }

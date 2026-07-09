@@ -602,30 +602,34 @@ func TestReal(t *testing.T) {}
 
 func TestResolveSubcommand(t *testing.T) {
 	tests := []struct {
-		name     string
-		args     []string
-		wantCmd  string
-		wantEpic string
+		name         string
+		args         []string
+		wantCmd      string
+		wantEpic     string
+		wantExplicit bool
 	}{
-		{"no args", []string{}, "ac", "all"},
-		{"epic only", []string{"EP-009"}, "ac", "EP-009"},
-		{"explicit ac", []string{"ac"}, "ac", "all"},
-		{"explicit ac with epic", []string{"ac", "EP-009"}, "ac", "EP-009"},
-		{"req subcommand", []string{"req", "EP-009"}, "req", "EP-009"},
-		{"pipeline subcommand", []string{"pipeline", "EP-009"}, "pipeline", "EP-009"},
-		{"structure subcommand", []string{"structure", "EP-009"}, "structure", "EP-009"},
-		{"ears subcommand", []string{"ears", "EP-009"}, "ears", "EP-009"},
-		{"req no epic", []string{"req"}, "req", "all"},
-		{"all keyword", []string{"all"}, "ac", "all"},
+		{"no args", []string{}, "ac", "all", false},
+		{"epic only", []string{"EP-009"}, "ac", "EP-009", false},
+		{"explicit ac", []string{"ac"}, "ac", "all", true},
+		{"explicit ac with epic", []string{"ac", "EP-009"}, "ac", "EP-009", true},
+		{"req subcommand", []string{"req", "EP-009"}, "req", "EP-009", true},
+		{"pipeline subcommand", []string{"pipeline", "EP-009"}, "pipeline", "EP-009", true},
+		{"structure subcommand", []string{"structure", "EP-009"}, "structure", "EP-009", true},
+		{"ears subcommand", []string{"ears", "EP-009"}, "ears", "EP-009", true},
+		{"req no epic", []string{"req"}, "req", "all", true},
+		{"all keyword", []string{"all"}, "ac", "all", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cmd, epic := resolveSubcommand(tt.args)
+			cmd, epic, explicit := resolveSubcommand(tt.args)
 			if cmd != tt.wantCmd {
 				t.Errorf("resolveSubcommand(%v) cmd = %q, want %q", tt.args, cmd, tt.wantCmd)
 			}
 			if epic != tt.wantEpic {
 				t.Errorf("resolveSubcommand(%v) epic = %q, want %q", tt.args, epic, tt.wantEpic)
+			}
+			if explicit != tt.wantExplicit {
+				t.Errorf("resolveSubcommand(%v) explicit = %v, want %v", tt.args, explicit, tt.wantExplicit)
 			}
 		})
 	}

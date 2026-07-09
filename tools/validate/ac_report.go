@@ -153,7 +153,7 @@ func printAllEpicsHuman(
 	hasGaps bool,
 	testsMissingACTrace []string,
 	nolintGocycloViolations []string,
-) {
+) bool {
 	writelnStdout("📋 Epic Validation Summary")
 	writelnStdout("")
 	writeStdout("%-10s %-8s %-6s %-6s %-8s\n", "Epic", "Trace", "REQ", "AC", "Tests")
@@ -187,7 +187,7 @@ func printAllEpicsHuman(
 	writeStdout("   Project-wide: Test functions with t.Skip: %d\n", testFuncsWithSkip)
 
 	if !overallFail {
-		return
+		return true
 	}
 
 	if hasGaps {
@@ -201,17 +201,15 @@ func printAllEpicsHuman(
 	}
 
 	writelnStdout("Tip: run `./tools/validate/validate EP-XXX` for per-AC detail and test refs.")
-	os.Exit(1)
+	return false
 }
 
-func writeAllEpicsJSON(allReport AllEpicsReport, hasGaps bool) {
+func writeAllEpicsJSON(allReport AllEpicsReport, hasGaps bool) bool {
 	data, err := json.MarshalIndent(allReport, "", "  ")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error marshaling JSON: %v\n", err)
 		os.Exit(1)
 	}
 	writelnStdout(string(data))
-	if hasGaps {
-		os.Exit(1)
-	}
+	return !allReport.HasGaps
 }

@@ -93,7 +93,7 @@ type AllEpicsReport struct {
 }
 
 // validateAllEpics finds and validates all epics in ai-sdlc-artefacts/epics/
-func validateAllEpics(jsonOutput bool) {
+func validateAllEpics(jsonOutput bool) bool {
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error getting current directory: %v\n", err)
@@ -158,11 +158,10 @@ func validateAllEpics(jsonOutput bool) {
 	}
 
 	if jsonOutput {
-		writeAllEpicsJSON(allReport, hasGaps)
-		return
+		return writeAllEpicsJSON(allReport, hasGaps)
 	}
 
-	printAllEpicsHuman(results, projectNotCovered, totalACs, totalDeferred, totalObsolete, totalInScope, totalAuto, totalManual, traceRatio, autoRatio, testFuncsWithSkip, hasGaps, testsMissingACTrace, nolintViolations)
+	return printAllEpicsHuman(results, projectNotCovered, totalACs, totalDeferred, totalObsolete, totalInScope, totalAuto, totalManual, traceRatio, autoRatio, testFuncsWithSkip, hasGaps, testsMissingACTrace, nolintViolations)
 }
 
 // getEpicNumber extracts the numeric part from "EP-009" → "09".
@@ -187,7 +186,7 @@ func jsonOutputRequested(flagVal bool, argvTail []string) bool {
 	return false
 }
 
-func runSingleEpicValidation(epic, epicNum, cwd string, acs map[ACCode]string, excluded map[ACCode]acExclusionKind, nolintViolations []string, jsonOut bool) {
+func runSingleEpicValidation(epic, epicNum, cwd string, acs map[ACCode]string, excluded map[ACCode]acExclusionKind, nolintViolations []string, jsonOut bool) bool {
 	coverage, testFuncsWithSkip, testsMissingACTrace, err := findCoverageAndTestTrace(cwd)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error scanning codebase: %v\n", err)
@@ -208,12 +207,10 @@ func runSingleEpicValidation(epic, epicNum, cwd string, acs map[ACCode]string, e
 	} else {
 		printTable(r, acs, excluded, testFuncsWithSkip, testsMissingACTrace, r.NolintGocycloViolations)
 	}
-	if hasBlockingGaps(r) || len(testsMissingACTrace) > 0 || len(nolintViolations) > 0 {
-		os.Exit(1)
-	}
+	return !(hasBlockingGaps(r) || len(testsMissingACTrace) > 0 || len(nolintViolations) > 0)
 }
 
-func validateSingleEpic(epic string, jsonOut bool) {
+func validateSingleEpic(epic string, jsonOut bool) bool {
 	epicNum, err := normalizeEpicNumber(epic)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -252,7 +249,7 @@ func validateSingleEpic(epic string, jsonOut bool) {
 		os.Exit(1)
 	}
 
-	runSingleEpicValidation(epic, epicNum, cwd, acs, excluded, nolintViolations, jsonOut)
+	return runSingleEpicValidation(epic, epicNum, cwd, acs, excluded, nolintViolations, jsonOut)
 }
 
 var subcommands = map[string]bool{
@@ -263,18 +260,20 @@ var subcommands = map[string]bool{
 	"ears":      true,
 }
 
-func resolveSubcommand(args []string) (subcmd, epic string) {
+func resolveSubcommand(args []string) (subcmd, epic string, explicit bool) {
 	subcmd = "ac"
 	epic = "all"
+	explicit = false
 	cmdArgs := args
 	if len(args) > 0 && subcommands[args[0]] {
 		subcmd = args[0]
+		explicit = true
 		cmdArgs = args[1:]
 	}
 	if len(cmdArgs) > 0 {
 		epic = cmdArgs[0]
 	}
-	return subcmd, epic
+	return subcmd, epic, explicit
 }
 
 func main() {
@@ -282,7 +281,12 @@ func main() {
 	flag.Parse()
 	jsonOut := jsonOutputRequested(*jsonFlag, os.Args[1:])
 
-	subcmd, epic := resolveSubcommand(flag.Args())
+	subcmd, epic, explicit := resolveSubcommand(flag.Args())
+
+	if !explicit {
+		runFullValidation(epic, jsonOut)
+		return
+	}
 
 	switch subcmd {
 	case "ac":
@@ -303,11 +307,9 @@ func main() {
 }
 
 func runACValidation(epic string, jsonOut bool) {
-	if epic == "all" || epic == "" {
-		validateAllEpics(jsonOut)
-		return
+	if !acValidationPasses(epic, jsonOut) {
+		os.Exit(1)
 	}
-	validateSingleEpic(epic, jsonOut)
 }
 
 func runPipelineValidation(epic string, jsonOut bool) {
@@ -334,25 +336,7 @@ func runPipelineValidation(epic string, jsonOut bool) {
 }
 
 func runEARSValidation(epic string, jsonOut bool) {
-	if epic == "all" || epic == "" {
-		validateAllEARS(jsonOut)
-		return
-	}
-	cwd, err := os.Getwd()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
-	reqPath := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic, "ep-requirements.md")
-	result := lintEARSFile(reqPath)
-	result.Epic = epic
-	if jsonOut {
-		data, _ := json.MarshalIndent(result, "", "  ")
-		writelnStdout(string(data))
-	} else {
-		printEARSHuman(result)
-	}
-	if result.HasGaps {
+	if !earsValidationPasses(epic, jsonOut) {
 		os.Exit(1)
 	}
 }
@@ -360,23 +344,27 @@ func runEARSValidation(epic string, jsonOut bool) {
 func printUsage() {
 	fmt.Fprintf(os.Stderr, `Usage: validate [subcommand] [EP-XXX] [--json]
 
-Subcommands:
-  ac          AC coverage validation (default)
+Default (no subcommand):
+  validate              AC + ears + req for all epics (ears/req skip NEW/CANCEL)
+  validate EP-009       AC + ears + req for one epic (ears/req skipped when NEW/CANCEL)
+
+Subcommands (single check):
+  ac          AC coverage validation
   req         REQ <-> AC traceability check
   pipeline    Pipeline state and gate validation
-  structure   Artefact structure validation
   ears        EARS requirements linting
+  structure   Artefact structure validation
 
 Examples:
-  validate                    # AC coverage for all epics
-  validate EP-009             # AC coverage for single epic
-  validate ac EP-009          # Same as above (explicit)
-  validate req EP-009         # REQ-AC traceability
+  validate                    # Full gate (all epics)
+  validate EP-009             # Full gate (one epic)
+  validate ac EP-009          # AC coverage only
+  validate req EP-009         # REQ-AC traceability only
   validate req all            # REQ-AC for in-scope epics
-  validate ears EP-009        # EARS linter
+  validate ears EP-009        # EARS linter only
   validate ears all           # EARS for in-scope epics
-  validate --json             # JSON output
-  validate req EP-009 --json  # JSON for specific subcommand
+  validate --json             # Not supported for default gate
+  validate req EP-009 --json  # JSON for explicit subcommand
 `)
 }
 

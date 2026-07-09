@@ -18,20 +18,20 @@ validate [subcommand] [EP-XXX] [--json]
 | `structure` | Artefact structure validation | ✅ Implemented |
 | `ears`      | EARS requirements linting | ✅ Implemented |
 
-If no subcommand is given, or the first argument is not a known subcommand (e.g. `EP-XXX`), the tool defaults to `ac` (backwards compatible).
+If no subcommand is given, or the first argument is an epic id (e.g. `EP-XXX`), the tool runs the **full gate**: AC + ears + req. Use an explicit subcommand (`ac`, `ears`, `req`, …) to run a single check.
 
 ### Examples
 
 ```bash
-./tools/validate/validate                    # AC coverage for all epics (from repo root)
-./tools/validate/validate EP-009             # AC coverage for single epic
-./tools/validate/validate ac EP-009          # Same as above (explicit)
-./tools/validate/validate req EP-009         # REQ-AC traceability
+./tools/validate/validate                    # Full gate: AC (all epics) + ears/req (in-scope)
+./tools/validate/validate EP-009             # Full gate for one epic
+./tools/validate/validate ac EP-009          # AC coverage only
+./tools/validate/validate ac                 # AC coverage for all epics
+./tools/validate/validate req EP-009         # REQ-AC traceability only
 ./tools/validate/validate req all            # REQ-AC for in-scope epics (skips NEW/CANCEL)
-./tools/validate/validate ears EP-009        # EARS linter
+./tools/validate/validate ears EP-009        # EARS linter only
 ./tools/validate/validate ears all           # EARS for in-scope epics (skips NEW/CANCEL)
-./tools/validate/validate --json             # JSON output (any subcommand)
-./tools/validate/validate req EP-009 --json  # JSON for specific subcommand
+./tools/validate/validate req EP-009 --json  # JSON for explicit subcommand
 ```
 
 ## Current Validators

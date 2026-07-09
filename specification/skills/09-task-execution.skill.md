@@ -22,7 +22,7 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Context:** `ep-context.md` (read first for orientation); `ep-system-design.md` for interfaces/contracts
 - **Gate check before launch:** `ep-implementation-plan.md` must exist; §2.1 exit criteria met
 - **Output signal:** `TASK_COMPLETE: <task_id> [<files changed>]` (per-task mode) or `STAGE_9_COMPLETE: <N tasks done> [context_delta: <summary, if material design/contract changes>]` (full-stage mode)
-- **Validation after:** from **product root** (consumer): `make build`, then `make validate EP-XXX` or `./bin/validate EP-XXX` (AC coverage only); full project gate before merge/CI: `make validate` with no arguments (AC + `ears all` + `req all`). Canonical ai-sdlc repo: `go build` in `tools/validate/` and `./tools/validate/validate EP-XXX`; then `make check`
+- **Validation after:** from **product root** (consumer): `make build`, then `make validate EP-XXX` or `./bin/validate EP-XXX` (AC + ears + req for that epic); full project gate before merge/CI: `make validate` with no arguments (AC for all epics + ears/req for in-scope). Canonical ai-sdlc repo: `go build` in `tools/validate/` and `./tools/validate/validate EP-XXX`; then `make check`
 - **ep-context.md:** Subagent does **not** write `ep-context.md`; report material design/contract changes in `context_delta` for the orchestrator to apply after any required HITL decision
 
 ---
@@ -41,7 +41,7 @@ Stage 9 supports **per-task** subagent isolation for fresh context on each task 
    - If retrying: previous error output appended to the brief
 3. **Task subagent** implements **only** that task following the "Workflow per task" rules below. Does not read or modify other tasks. Runs relevant checks (lint/test/build).
 4. **Task subagent** outputs: `TASK_COMPLETE: <task_id> [<files changed>]`
-5. **Orchestrator** runs `make validate EP-XXX` or `./bin/validate EP-XXX` (AC coverage) and `make check` after each task. Project-wide `ears`/`req` gates run via `make validate` (no epic argument) on merge/CI.
+5. **Orchestrator** runs `make validate EP-XXX` or `./bin/validate EP-XXX` (AC + ears + req for that epic) and `make check` after each task. Project-wide gate: `make validate` with no epic argument on merge/CI.
 6. On **pass**: orchestrator marks the task checkbox `[x]` in `ep-implementation-plan.md` and launches a new subagent for the next task.
 7. On **failure**: orchestrator launches a **new** subagent for the same task with the error output appended. Maximum **3** retries per task before requiring operator decision.
 8. After all tasks complete: orchestrator proceeds to stage 10 (code review, mandatory delegation per §3).

@@ -6,7 +6,7 @@ GOLANGCI_LINT_VERSION ?= v2.5.0
 
 help:
 	@echo "  make build     - Build bin/validate from ai-sdlc/tools/validate"
-	@echo "  make validate  - Product gate: AC (all epics) + ears all + req all + pipeline/structure per epic"
+	@echo "  make validate  - Product gate: AC + ears + req (all epics; ears/req skip NEW/CANCEL) + pipeline/structure per epic"
 	@echo "  make check     - Product gate: fmt, vet, vuln, lint, race tests + coverage on tests/"
 	@echo ""
 	@echo "  Uncomment Makefile targets marked for EP-001+ when cmd/, integration, or e2e tests exist."
@@ -75,18 +75,14 @@ bin/validate:
 	go build -C ai-sdlc/tools/validate -o $(CURDIR)/bin/validate .
 
 validate: bin/validate
+	@./bin/validate $(filter-out validate,$(MAKECMDGOALS))
 	@if [ -z "$(filter-out validate,$(MAKECMDGOALS))" ]; then \
-		./bin/validate; \
-		./bin/validate ears all; \
-		./bin/validate req all; \
 		set -e; for epic in ai-sdlc-artefacts/epics/EP-*; do \
 			[ -d "$$epic" ] || continue; \
 			id=$$(basename "$$epic"); \
 			./bin/validate pipeline $$id; \
 			./bin/validate structure $$id; \
 		done; \
-	else \
-		./bin/validate $(filter-out validate,$(MAKECMDGOALS)); \
 	fi
 
 %:
