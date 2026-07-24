@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -269,49 +267,7 @@ func printREQACTraceHuman(result *REQACTraceResult) {
 }
 
 func runREQValidation(epic string, jsonOut bool) {
-	if epic == "all" {
-		fmt.Fprintf(os.Stderr, "req subcommand requires an epic ID (e.g., validate req EP-009)\n")
-		os.Exit(1)
-	}
-	cwd, err := os.Getwd()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting current directory: %v\n", err)
-		os.Exit(1)
-	}
-	epicDir := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic)
-	reqPath := filepath.Join(epicDir, "ep-requirements.md")
-	acPath := filepath.Join(epicDir, "ep-acceptance-criteria.md")
-
-	reqs, err := parseREQsFromFile(reqPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing requirements: %v\n", err)
-		os.Exit(1)
-	}
-	acs, _, err := parseACsFromFile(acPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing acceptance criteria: %v\n", err)
-		os.Exit(1)
-	}
-	acReqRefs, err := parseREQRefsFromACFile(acPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing REQ refs from AC file: %v\n", err)
-		os.Exit(1)
-	}
-
-	result := checkREQACTraceability(reqs, acReqRefs, acs)
-	result.Epic = epic
-
-	if jsonOut {
-		data, err := json.MarshalIndent(result, "", "  ")
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error marshaling JSON: %v\n", err)
-			os.Exit(1)
-		}
-		writelnStdout(string(data))
-	} else {
-		printREQACTraceHuman(result)
-	}
-	if result.HasGaps {
+	if !reqValidationPasses(epic, jsonOut) {
 		os.Exit(1)
 	}
 }

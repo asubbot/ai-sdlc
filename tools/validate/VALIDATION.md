@@ -16,12 +16,18 @@ Examples below use the canonical repository-root path `./tools/validate/validate
 | Subcommand  | Description | Status |
 |-------------|-------------|--------|
 | `ac`        | AC coverage validation (default) | Implemented |
-| `req`       | REQ ↔ AC traceability check | Implemented |
+| `req`       | REQ ↔ AC traceability check (`req all` skips NEW/CANCEL epics) | Implemented |
 | `pipeline`  | Pipeline state and gate validation | Implemented |
 | `structure` | Artefact structure validation | Implemented |
-| `ears`      | EARS requirements linting | Implemented |
+| `ears`      | EARS requirements linting (`ears all` skips NEW/CANCEL epics) | Implemented |
 
 The `--json` flag works in any position (before or after subcommand/epic).
+
+### In-scope epics (`ears all` / `req all`)
+
+Project-wide `ears all` and `req all` validate only epics whose `ep-scope.md` **Status** is not **NEW** or **CANCEL**/**CANCELED** (parsed from `| **Status** | … |` table row). Skipped epics are listed in the report but do not affect the exit code.
+
+In-scope epics must have `ep-requirements.md` (ears) and both `ep-requirements.md` and `ep-acceptance-criteria.md` (req). REQ headings must use the canonical form `### REQ-EE.NNN — Summary` (see stage 4 skill).
 
 ## Pipeline State Validation
 
@@ -73,8 +79,8 @@ Normative **process** rules (HOTL/HITL, stages, delegation) live in [specificati
 | Review gate pass before downstream progression | Hard | Current Gate Summary, open severity counts, `validate pipeline` |
 | AC↔test coverage before epic completion | Hard | `validate` / `validate ac` |
 | Artefact structure (sections, links, front matter) | Hard | `validate structure` |
-| EARS requirements format | Hard | `validate ears` |
-| REQ↔AC traceability | Hard | `validate req` |
+| EARS requirements format | Hard | `validate ears` / `validate ears all` |
+| REQ↔AC traceability | Hard | `validate req` / `validate req all` |
 | Unchecked implementation-plan tasks before audit | Hard | `validate pipeline` (when `ep-audit-report.md` exists) |
 | Unchecked tasks when code review exists | Warning | `validate pipeline` (when `ep-code-review.md` exists) |
 | Mandatory delegation for stages 7 and 10 | Soft | Orchestrator run notes, subagent output signal |

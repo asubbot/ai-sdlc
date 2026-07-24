@@ -37,7 +37,7 @@ For non-listed ambiguities, the orchestrator SHOULD choose the simplest default 
 - **Single process:** Execute stages using the table in §2, the **HOTL/HITL execution model** above, **§3** for delegated stages **7** and **10**, and **§4** for subagent orchestration. Do **not** invent a parallel SDLC.
 - **Repository truth:** Prefer approved content under **`ai-sdlc-artefacts/`** and the product codebase over unofficial external write-ups when deciding how *this* project should behave.
 - **Implementation plan (stages 8 → 9):** The epic **`ep-implementation-plan.md`** is produced by pipeline **stage 8** ([08-implementation-planning.skill.md](skills/08-implementation-planning.skill.md)). **Executing** that plan is **stage 9** only — follow [09-task-execution.skill.md](skills/09-task-execution.skill.md) (one task at a time from the plan, verification and checkpoints per skill; do not treat the plan as an informal checklist outside stage 9).
-- **Acceptance criteria coverage:** Before treating an epic as complete from an AC↔test perspective, run `./tools/validate/validate EP-XXX` from the repository root. For project-wide AC coverage, run `./tools/validate/validate` with no arguments. If the binary is missing, build it from `tools/validate/` with `go build -o validate .`. See [VALIDATION.md](../tools/validate/VALIDATION.md) and the [validate tool README](../tools/validate/README.md) under `ai-sdlc/tools/validate/`.
+- **Acceptance criteria coverage:** Before treating an epic as complete from an AC↔test perspective, run `./tools/validate/validate EP-XXX` from the repository root. For project-wide gates, run `./tools/validate/validate` (AC), `./tools/validate/validate ears all` (EARS, in-scope epics), and `./tools/validate/validate req all` (REQ↔AC, in-scope epics); consumer repos may wrap these in `make validate`. If the binary is missing, build it from `tools/validate/` with `go build -o validate .`. See [VALIDATION.md](../tools/validate/VALIDATION.md) and the [validate tool README](../tools/validate/README.md) under `ai-sdlc/tools/validate/`.
 
 ### Token-optimized context loading
 
@@ -73,7 +73,7 @@ Full artefacts remain the source of truth. If a compact layer conflicts with a f
 
 **Process consumption:** Clone `ai-sdlc/` locally and in CI at the revision in `ai-sdlc.version` (tag or commit SHA). Do not commit the process tree to the product repository.
 
-**Validator in consumer repos:** Build with `make build`; run `make validate` or `./bin/validate` from the product root (sources under `ai-sdlc/tools/validate/`). See [VALIDATION.md](../tools/validate/VALIDATION.md).
+**Validator in consumer repos:** Build with `make build`; run `make validate` (AC + `ears all` + `req all` when configured) or `./bin/validate` subcommands from the product root (sources under `ai-sdlc/tools/validate/`). See [VALIDATION.md](../tools/validate/VALIDATION.md).
 
 ---
 
@@ -233,8 +233,8 @@ HOTL is the default pipeline execution model:
 | Review gate pass before downstream progression | Hard | Current Gate Summary, open severity counts, `validate pipeline` |
 | AC↔test coverage before epic completion | Hard | `validate` / `validate ac` |
 | Artefact structure (sections, links, front matter) | Hard | `validate structure` |
-| EARS requirements format | Hard | `validate ears` |
-| REQ↔AC traceability | Hard | `validate req` |
+| EARS requirements format | Hard | `validate ears` / `validate ears all` |
+| REQ↔AC traceability | Hard | `validate req` / `validate req all` |
 | Unchecked implementation-plan tasks before audit | Hard | `validate pipeline` (when `ep-audit-report.md` exists) |
 | Unchecked tasks when code review exists | Warning | `validate pipeline` (when `ep-code-review.md` exists) |
 | Mandatory delegation for stages 7 and 10 | Soft | Orchestrator run notes, subagent output signal |

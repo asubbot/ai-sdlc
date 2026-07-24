@@ -110,5 +110,6 @@ Verify all before considering the stage complete:
 - [ ] ep-context.md was refreshed with compact Acceptance Signals and Links, **or** (orchestrated subagent mode) `context_delta` was reported for the orchestrator to apply
 - [ ] Document contains **Introduction** (epic summary and document purpose), **Acceptance criteria index** (AC ID | REQ with links | Summary), and **Acceptance criteria** (AC-EE.NNN with Gherkin or equivalent and traceability to REQ)
 - [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
-- [ ] Every AC traces to at least one REQ from ep-requirements.md
+- [ ] Every AC traces to at least one REQ from ep-requirements.md (REQ blocks use `### REQ-EE.NNN —` in ep-requirements.md)
+- [ ] `./bin/validate req EP-XXX` exits 0
 - [ ] Content was written under HOTL, or any required HITL decision was recorded before writing

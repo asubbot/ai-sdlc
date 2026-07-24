@@ -18,7 +18,7 @@ When launched as a subagent by the pipeline orchestrator ([pipeline.spec.md](../
 - **Context:** `ep-context.md` (read first); `ep-code-review.md` Current Gate Summary
 - **Gate check before launch:** §2.2 exit criteria must be met (stage 10 gate = pass or operator decision)
 - **Output signal:** `STAGE_11_COMPLETE: ai-sdlc-artefacts/epics/<epic-id>/ep-audit-report.md [gate=<pass|fail>, coverage=<N%>, gaps=<n>]`
-- **Runs internally:** `make check`, `./tools/validate/validate EP-XXX`, `./tools/validate/validate EP-XXX --json`
+- **Runs internally:** `make check`, `make validate` (full project gate when available), `./tools/validate/validate EP-XXX`, `./tools/validate/validate ears EP-XXX`, `./tools/validate/validate req EP-XXX`, `./tools/validate/validate EP-XXX --json`
 
 ---
 
