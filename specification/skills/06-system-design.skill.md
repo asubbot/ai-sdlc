@@ -30,7 +30,7 @@ Follow these principles for all system design work:
 1. **HOTL artefact writes** — In pipeline execution, create or overwrite ep-system-design.md when requirements and acceptance criteria exist, traceability is maintained, and no required HITL decision point from [pipeline.spec.md](../pipeline.spec.md) is triggered.
 2. **Existing file is baseline** — If ep-system-design.md already exists for the epic, treat it as the current baseline; preserve durable architecture/contract decisions unless a required HITL decision records a change.
 3. **Decision points** — Ask the operator only for required HITL decisions (e.g. material architecture/security/reliability trade-off, missing prerequisite, source-of-truth conflict). For routine structure depth, module grouping, or wording choices, choose the simplest consistent default and record rationale when useful.
-4. **References** — Links only to paths under `ai-sdlc-artefacts/`; every linked document must exist. Keep traceability to ep-requirements. Write in English.
+4. **References** — Relative links only to paths under `ai-sdlc-artefacts/`; every linked document must exist. External **`https://`** links to upstream pattern/vendor documentation are allowed. Keep traceability to ep-requirements. Write in English.
 5. **Full REQ traceability** — Every requirement (REQ-EE.NNN format) from ep-requirements.md must be mentioned at least once in ep-system-design.md; the document must not omit any REQ.
 6. **Practical and short** — Get to the point. Be practical above all. Be short and specific.
 7. **Legacy** — Do not modify content under `legacy` folders; use as reference only (e.g. technical discovery or research).
@@ -58,12 +58,13 @@ Follow this order:
 
 1. **Check inputs** — Ensure ep-requirements.md and ep-acceptance-criteria.md exist for the epic. If not, treat continuing as a required HITL missing-prerequisite decision or run the missing stage when the operator has authorized HOTL execution. If ep-context.md exists and is current, read it first for orientation; if stale or missing, fall back to source artefacts.
 2. **Check existing ep-system-design** — If ep-system-design.md exists for the epic, treat it as the baseline; propose changes as edits.
-3. **Draft** — Draft the design (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
-4. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
-5. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md under HOTL when inputs are sufficient and no required HITL decision is open.
-6. **Render C4 C2 PNG** — After saving `diagrams/c4-container.puml`, follow [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md): run `plantuml -tpng diagrams/c4-container.puml` from the epic directory, verify `diagrams/c4-container.png` exists, and embed the centered `<img>` in ep-system-design.md before the Source line. If C3 was added, render `c4-component-go.puml` the same way.
-7. **Refresh epic context** — **Orchestrated subagent mode:** report Design Decisions, Interfaces / Contracts, Open Questions, and Links deltas in the output signal (`context_delta`); do not edit ep-context.md. **Solo/HOTL without orchestrator:** update ep-context.md concisely; do not copy full design sections.
-8. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
+3. **Consult architecture patterns catalog** — Identify architecturally significant decisions (module boundaries, sync vs async, resilience, consistency, auth boundaries). For each, open `reference/architecture-patterns/index.md` (at the ai-sdlc checkout root), pick 1–3 relevant cards, and fetch their `sources` for trade-offs. Record in Design Decisions (or Technical discovery): **chosen / rejected / why**, the marker `architecture-pattern: <pattern-id>` (pattern id as plain text, no links into `ai-sdlc/`), and upstream https links; respect each card's `kiss_default` and `when_not`. When no card applies to a decision, record `architecture-pattern: n/a — <one-line reason>`. Skip this step entirely for trivial wording/layout edits with no architecturally significant decisions. If the catalog directory is absent from the checkout, record `architecture-pattern: n/a — catalog unavailable in checkout` and continue.
+4. **Draft** — Draft the design (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
+5. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
+6. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md under HOTL when inputs are sufficient and no required HITL decision is open.
+7. **Render C4 C2 PNG** — After saving `diagrams/c4-container.puml`, follow [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md): run `plantuml -tpng diagrams/c4-container.puml` from the epic directory, verify `diagrams/c4-container.png` exists, and embed the centered `<img>` in ep-system-design.md before the Source line. If C3 was added, render `c4-component-go.puml` the same way.
+8. **Refresh epic context** — **Orchestrated subagent mode:** report Design Decisions, Interfaces / Contracts, Open Questions, and Links deltas in the output signal (`context_delta`); do not edit ep-context.md. **Solo/HOTL without orchestrator:** update ep-context.md concisely; do not copy full design sections.
+9. **Legacy** — Do not modify content under `legacy` folders; use as reference only.
 
 ---
 
@@ -110,6 +111,7 @@ Verify all before considering the stage complete:
 - [ ] ep-context.md was refreshed with compact Design Decisions, Interfaces / Contracts, Open Questions, and Links, **or** (orchestrated subagent mode) `context_delta` was reported for the orchestrator to apply
 - [ ] Document contains **Overview** (system summary and traceability to REQ), **Architecture** including **C4 C2** (source in `diagrams/c4-container.puml`, PNG in `diagrams/c4-container.png` embedded centered; Source line with regeneration command), **Components and interfaces**, and **Data models** (if applicable); **Error handling** and **Testing strategy** recommended where relevant
 - [ ] `diagrams/c4-container.png` exists and was rendered per [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md) (not `.puml`-only)
-- [ ] Every link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links)
+- [ ] Every relative link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links); external links, where present, use `https://` and point to upstream documentation
+- [ ] Every architecturally significant decision has an **`architecture-pattern:`** field with either `<pattern-id>` (plus chosen / rejected / why and upstream https link) or `n/a — <one-line reason>` (catalog: `reference/architecture-patterns/` at the ai-sdlc checkout root)
 - [ ] Traceability to ep-requirements is maintained: **every REQ from ep-requirements.md is referenced at least once** in the document
 - [ ] Content was written under HOTL, or any required HITL decision was recorded before writing

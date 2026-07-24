@@ -4,6 +4,15 @@ All notable changes to this repository are documented in this file.
 
 ## Unreleased
 
+### Architecture patterns reference (advisory)
+
+- [reference/architecture-patterns/](reference/architecture-patterns/) — advisory catalog of 8 thin pattern cards (OKF v0.1-aligned front matter; upstream URLs are the source of truth for pattern bodies); `README`, `SCHEMA`, `index` MOC.
+- [06-system-design.skill.md](specification/skills/06-system-design.skill.md) — workflow step 3 «Consult architecture patterns catalog»; Done-when requires an `architecture-pattern: <pattern-id>` or `architecture-pattern: n/a — <reason>` record per architecturally significant decision; Core Principle 4 and Done-when now explicitly allow external `https://` links to upstream documentation.
+- [07-system-design-review.skill.md](specification/skills/07-system-design-review.skill.md) — Step 4 checks the `architecture-pattern` record per architecturally significant decision; violations are **Medium** findings (no new severity tier).
+- [pipeline.spec.md](specification/pipeline.spec.md) — non-normative pointer to the advisory catalog; artefact paths and gates unchanged.
+- CI: `reference/**` added to `validate.yml` path filters.
+- **Consumer upgrade note:** optional; the catalog and stage 6/7 hooks become active after bumping the `ai-sdlc.version` pin and refreshing the nested clone. With an older checkout (no `reference/`), agents record `architecture-pattern: n/a — catalog unavailable in checkout` and continue.
+
 ### Greenfield consumer bootstrap
 
 - [00-project-bootstrap.skill.md](specification/skills/00-project-bootstrap.skill.md) — pre-pipeline skeleton for new product repositories.
