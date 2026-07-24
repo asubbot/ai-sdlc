@@ -293,7 +293,7 @@ When the environment does not support subagents: execute stages sequentially in 
 - **scope.md** → strategy.md → ep-scope.md → ep-requirements.md → ep-acceptance-criteria.md → **(ep-system-design.md ↔ ep-system-design-review.md)** — iterate per **§2.1** until exit criteria or operator decision → ep-implementation-plan.md → **(task execution / repo ↔ code review stage 10)** — iterate per **§2.2** until exit criteria or operator decision → chat and/or **ep-code-review.md** (per-iteration sections when saved) → **stage 11** → ep-audit-report.md.
 - **ep-context.md** is a compact sidecar maintained from approved epic artefacts and gate summaries. It supports token-optimized handoff but does not replace traceability through source artefacts.
 
-**References:** Links in artefacts may point only to paths under `ai-sdlc-artefacts/`. Every linked document must exist (no broken links). Skills must enforce this rule.
+**References:** Relative links in artefacts may point only to paths under `ai-sdlc-artefacts/`. Every relatively linked document must exist (no broken links). External **`https://`** links to upstream pattern/vendor documentation are allowed; markdown links into `ai-sdlc/` paths are not. Skills must enforce this rule.
 
 If an upstream artefact changes, downstream stages and artefacts must be reviewed and updated so traceability is preserved (no dedicated pipeline stage). The orchestrator may apply routine alignment updates under HOTL; if the update changes durable scope, requirements, design, security, reliability, or delivery commitments, treat it as a required HITL decision point.
 

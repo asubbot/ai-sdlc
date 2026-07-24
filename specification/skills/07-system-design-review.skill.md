@@ -85,7 +85,7 @@ Assess:
 - **Security**: Are security controls adequate?
 - **Testability**: Can components be tested in isolation?
 - **Modularity**: Are boundaries clear and dependencies minimal?
-- **Architecture patterns**: Does every architecturally significant decision carry an `architecture-pattern:` field with `<pattern-id>` or `n/a — <one-line reason>`? For `<pattern-id>`: chosen / rejected / why is recorded and the decision does not contradict the card's `when_not` / `kiss_default` (catalog: `reference/architecture-patterns/` at the ai-sdlc checkout root). For `n/a`: the reason must hold — not a brush-off where a card's `when` clearly applies. A violation of any of these conditions is a **Medium** finding (see Step 5).
+- **Architecture patterns**: Does every architecturally significant decision carry an `architecture-pattern:` field with `<pattern-id>` or `n/a — <one-line reason>` in the **Design decisions** section of `ep-system-design.md`? (A record present only in `ep-context.md` does not count; that file is not a source of truth for this review.) For `<pattern-id>`: chosen / rejected / why is recorded and the decision does not contradict the card's `when_not` / `kiss_default` (catalog: `reference/architecture-patterns/` at the ai-sdlc checkout root). For `n/a`: the reason must hold — not a brush-off where a card's `when` clearly applies. A violation of any of these conditions is a **Medium** finding (see Step 5).
 
 ### Step 5: Identify Issues
 
