@@ -14,6 +14,7 @@ This repository is the canonical source of truth for the shared **agentic SDLC p
 | **[specification/skills/](specification/skills/)** | **Per-stage agent instructions** (`00-` bootstrap, `01-` … `11-` plus optional cross-cutting skills). Each skill defines workflow and artefact structure for its stage. |
 | **[specification/skills/README.md](specification/skills/README.md)** | Index and **common behaviour** across skills. |
 | **[templates/consumer/](templates/consumer/)** | **Greenfield templates** copied to new product repositories during bootstrap. |
+| **[reference/architecture-patterns/](reference/architecture-patterns/)** | **Advisory** architecture-pattern index for stage 6 (thin cards; upstream URLs are the source of truth). Versioned with the process via `ai-sdlc.version`; not part of the normative pipeline. |
 | **[proposals.md](proposals.md)** | Proposed pipeline improvements and measurement notes; a living document, not the normative process. |
 | **[tools/validate/](tools/validate/)** | AC↔test coverage checker (`./tools/validate/validate` from repo root); see [VALIDATION.md](tools/validate/VALIDATION.md) and [README](tools/validate/README.md). |
 | **[tools/scripts/](tools/scripts/)** | Maintainer scripts (e.g. `bootstrap-smoke.sh` for greenfield template regression); see [tools/scripts/README.md](tools/scripts/README.md). |
