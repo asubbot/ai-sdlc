@@ -141,6 +141,7 @@ Last updated: YYYY-MM-DD
 Open counts: Blocker X | Major X | Medium X | Minor X
 Open findings:
 - F-001 Major: One-line finding title.
+- M1 Medium: DD-3 uses architecture-pattern: rate-limiting but omits upstream https link and kiss_default rationale.
 Next action: Proceed to stage 8 | Return to stage 6 | Operator decision required
 
 ---
