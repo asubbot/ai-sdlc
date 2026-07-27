@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## Unreleased
 
+### Architecture patterns decision recipes
+
+- [reference/architecture-patterns/README.md](reference/architecture-patterns/README.md) — **Decision recipes** table (situation → ≤3 pattern ids).
+- **Consumer upgrade note:** bump pin after tag; no skill changes required.
+
 ### Architecture patterns usage (process)
 
 - Stage 6: ASD pre-pass, 1–3 card cap, optional consumer playbook hook (`ai-sdlc-artefacts/architecture-patterns-playbook.md`), richer Design Decision template (`Forces`, `KISS default considered`).

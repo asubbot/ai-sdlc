@@ -31,6 +31,20 @@ rules do not depend on this directory.
 5. If this directory is absent from the checkout (older pin), record
    `architecture-pattern: n/a — catalog unavailable in checkout` and continue.
 
+## Decision recipes
+
+Short routes from a recurring decision to ≤3 cards. Still read `when_not` /
+`kiss_default` on each card; recipes do not replace the index.
+
+| If you are deciding… | Start with cards (≤3) |
+|----------------------|------------------------|
+| Package / import boundaries | `module-boundaries` |
+| Sync request vs background work | `sync-vs-async`, `retry-and-timeouts` |
+| Dependency already failing / overload | `circuit-breaker`, `bulkhead`, `retry-and-timeouts` |
+| Untrusted inbound + expensive outbound | `authn-boundary`, `rate-limiting` |
+| Alive vs ready for orchestrators | `health-liveness-readiness` |
+| Dual-write to DB + message broker | `transactional-outbox`, `idempotency`, `dead-letter-queue` |
+
 ## Citation rules (in SDLC artefacts)
 
 - Reference cards by **pattern id as plain text** (the filename stem, e.g.
