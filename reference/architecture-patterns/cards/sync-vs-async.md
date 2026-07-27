@@ -21,7 +21,7 @@ when_not: the caller needs the result to proceed and the callee is fast and
 kiss_default: synchronous call with timeout and retry first; go async only when
   latency budget, burst absorption, or failure isolation demands it
 quality: [responsiveness, resilience]
-related: [retry-and-timeouts, idempotency, transactional-outbox]
+related: [retry-and-timeouts, idempotency, transactional-outbox, publisher-subscriber]
 ---
 
 # Sync vs Async Communication

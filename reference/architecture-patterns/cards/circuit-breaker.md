@@ -21,7 +21,7 @@ when_not: faults are short transients already handled by retry with backoff, or
 kiss_default: timeout + bounded retry first; add a breaker only when a dependency
   outage measurably degrades the caller (thread/connection exhaustion, latency)
 quality: [availability, resilience]
-related: [retry-and-timeouts]
+related: [retry-and-timeouts, bulkhead]
 ---
 
 # Circuit Breaker

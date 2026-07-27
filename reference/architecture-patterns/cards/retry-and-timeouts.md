@@ -20,7 +20,7 @@ when_not: failures are deterministic (bad input, auth) — retrying repeats the 
 kiss_default: single timeout + small fixed retry count with backoff and jitter;
   add budgets/policies per dependency only when call volume makes storms plausible
 quality: [reliability, availability]
-related: [circuit-breaker, idempotency]
+related: [circuit-breaker, idempotency, dead-letter-queue]
 ---
 
 # Retry and Timeouts

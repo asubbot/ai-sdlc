@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## Unreleased
 
+### Architecture patterns seed 2
+
+- Added 7 cross-project cards: `bulkhead`, `rate-limiting`, `dead-letter-queue`, `saga-or-compensating`, `publisher-subscriber`, `strangler-fig`, `health-liveness-readiness`; catalog now has 15 patterns.
+- Updated [index.md](reference/architecture-patterns/index.md) MOC and light `related` links on existing resilience/messaging cards.
+- **Consumer upgrade note:** available after the next tag + bump of `ai-sdlc.version`.
+
 ### Architecture patterns reference (advisory)
 
 - [reference/architecture-patterns/](reference/architecture-patterns/) — advisory catalog of 8 thin pattern cards (OKF v0.1-aligned front matter; upstream URLs are the source of truth for pattern bodies); `README`, `SCHEMA`, `index` MOC.
