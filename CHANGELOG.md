@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## Unreleased
 
+### Architecture patterns usage (process)
+
+- Stage 6: ASD pre-pass, 1–3 card cap, optional consumer playbook hook (`ai-sdlc-artefacts/architecture-patterns-playbook.md`), richer Design Decision template (`Forces`, `KISS default considered`).
+- Stage 7: checks for template fields and playbook contradictions (Medium).
+- **Consumer upgrade note:** optional playbook file `ai-sdlc-artefacts/architecture-patterns-playbook.md`; bump pin after tag.
+
 ### Architecture patterns seed 2
 
 - Added 7 cross-project cards: `bulkhead`, `rate-limiting`, `dead-letter-queue`, `saga-or-compensating`, `publisher-subscriber`, `strangler-fig`, `health-liveness-readiness`; catalog now has 15 patterns.

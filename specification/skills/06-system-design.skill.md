@@ -58,7 +58,11 @@ Follow this order:
 
 1. **Check inputs** — Ensure ep-requirements.md and ep-acceptance-criteria.md exist for the epic. If not, treat continuing as a required HITL missing-prerequisite decision or run the missing stage when the operator has authorized HOTL execution. If ep-context.md exists and is current, read it first for orientation; if stale or missing, fall back to source artefacts.
 2. **Check existing ep-system-design** — If ep-system-design.md exists for the epic, treat it as the baseline; propose changes as edits.
-3. **Consult architecture patterns catalog** — Identify architecturally significant decisions (module boundaries, sync vs async, resilience, consistency, auth boundaries). For each, open `reference/architecture-patterns/index.md` (at the ai-sdlc checkout root), pick 1–3 relevant cards, and fetch their `sources` for trade-offs. Record in the **Design decisions** section of ep-system-design.md (see § Output structure; not only in ep-context.md): **chosen / rejected / why**, the marker `architecture-pattern: <pattern-id>` (pattern id as plain text, no links into `ai-sdlc/`), and upstream https links; respect each card's `kiss_default` and `when_not`. When no card applies to a decision, record `architecture-pattern: n/a — <one-line reason>`. Skip this step entirely for trivial wording/layout edits with no architecturally significant decisions. If the catalog directory is absent from the checkout, record `architecture-pattern: n/a — catalog unavailable in checkout` and continue.
+3. **Consult architecture patterns catalog** — Do this only when the design contains architecturally significant decisions (ASD): module boundaries, sync vs async, resilience, consistency, auth boundaries, health/ops contracts, messaging/consistency across commit boundaries. Skip entirely for trivial wording/layout edits with no ASD.
+   1. **ASD pre-pass** — Write a short bullet list of ASD candidates (one line each) before opening cards. If the consumer repo has `ai-sdlc-artefacts/architecture-patterns-playbook.md`, read it and apply its default stances as **hints only**; never override a card's `when_not` / `kiss_default`.
+   2. **Pick cards** — Open `reference/architecture-patterns/index.md` (ai-sdlc checkout root). For each ASD, pick **1–3** cards max. Read each card's `when_not` and `kiss_default` **before** `when` / body / upstream.
+   3. **Upstream** — Fetch primary `sources` URL when the trade-off is non-obvious.
+   4. **Record** — In **Design decisions** of `ep-system-design.md` (not only ep-context.md): use the template in § Output structure. Marker `architecture-pattern: <pattern-id>` as plain text (no links into `ai-sdlc/`), or `architecture-pattern: n/a — <one-line reason>`. If the catalog directory is absent, use `architecture-pattern: n/a — catalog unavailable in checkout` and continue.
 4. **Draft** — Draft the design (section by section or by block). In HOTL mode, proceed to write when the draft is internally consistent and no required HITL decision is open.
 5. **Resolve decision points** — Use HOTL defaults for routine choices; stop for operator choice only when a required HITL decision point applies.
 6. **Write artefact** — Create or update ai-sdlc-artefacts/epics/<epic-id>/ep-system-design.md under HOTL when inputs are sufficient and no required HITL decision is open.
@@ -88,16 +92,25 @@ updated_at: YYYY-MM-DD
 - **Architecture** — High-level structure and boundaries. **Must include C4 Level 2 (Containers):** C4-PlantUML diagram: source in `diagrams/c4-container.puml`, PNG in `diagrams/c4-container.png`. In ep-system-design: centered image, then "Source:" with link to .puml and regeneration command (`plantuml -tpng diagrams/c4-container.puml` from epic directory). System context (C1) is in ep-requirements; C2 is drawn here. Optional subsection **Module boundaries**: layers/modules, dependency rules, and wiring responsibilities; optional diagram and verification step (script or checklist).
 - **Components and interfaces** — Table or list: Component | Responsibility | Key interface/contract. Each component should trace to requirements where applicable.
 - **Data models** — Main entities, schemas, and state transitions relevant to the design. Reference upstream artefacts under ai-sdlc-artefacts only.
-- **Design decisions** — Required when the design contains architecturally significant decisions (workflow step 3); omit only when there are none. One entry per decision: **chosen / rejected / why**, the marker `architecture-pattern: <pattern-id>` or `architecture-pattern: n/a — <one-line reason>`, and upstream https links. These records live **in this section of ep-system-design.md** (stage 7 reviews this document, not ep-context.md); ep-context.md carries only a compact summary. Example entry:
+- **Design decisions** — Required when the design contains architecturally significant decisions (workflow step 3); omit only when there are none. One entry per decision: **Forces** (optional but recommended), **KISS default considered**, **chosen / rejected / why**, the marker `architecture-pattern: <pattern-id>` or `architecture-pattern: n/a — <one-line reason>`, and upstream https links. These records live **in this section of ep-system-design.md** (stage 7 reviews this document, not ep-context.md); ep-context.md carries only a compact summary. Example entry:
 
 ```markdown
 - DD-1: Deliver scheduler notifications via an outbox table.
   architecture-pattern: transactional-outbox
-  Chosen: atomic write of task + event in one transaction.
-  Rejected: direct send inside the transaction (dual-write, loss on crash).
+  Forces: atomic task+event vs dual-write loss on crash.
+  KISS default considered: direct send in the same request — rejected (loss on crash).
+  Chosen: outbox row in the same DB transaction; async publisher.
+  Rejected: direct send inside the transaction; separate best-effort log.
   Upstream: https://microservices.io/patterns/data/transactional-outbox.html
 - DD-2: Package layout for the notify module.
   architecture-pattern: n/a — local code grouping without cross-component trade-offs
+- DD-3: Inbound rate limit for Telegram users.
+  architecture-pattern: rate-limiting
+  Forces: protect LLM/tool cost vs false 429s for the sole allowed user.
+  KISS default considered: rely on Telegram + allowlist only — chosen.
+  Chosen: no in-app limiter (aligns with product playbook / EP-028 when present).
+  Rejected: token bucket per user (extra complexity for single-user deploy).
+  Upstream: https://learn.microsoft.com/en-us/azure/architecture/patterns/rate-limiting-pattern
 ```
 
 - **Error handling** — How validation and runtime failure modes are handled; trace to requirements where applicable.
@@ -125,5 +138,7 @@ Verify all before considering the stage complete:
 - [ ] `diagrams/c4-container.png` exists and was rendered per [ep-plantuml-export.skill.md](ep-plantuml-export.skill.md) (not `.puml`-only)
 - [ ] Every relative link in the document points to an existing path under `ai-sdlc-artefacts/` (no broken links); external links, where present, use `https://` and point to upstream documentation
 - [ ] Every architecturally significant decision has an entry in the **Design decisions** section of ep-system-design.md with an **`architecture-pattern:`** field: either `<pattern-id>` (plus chosen / rejected / why and upstream https link) or `n/a — <one-line reason>` (catalog: `reference/architecture-patterns/` at the ai-sdlc checkout root)
+- [ ] Each `architecture-pattern: <id>` entry includes chosen / rejected / why and an upstream https link; entries that reject the card should briefly note the `kiss_default` or `when_not` rationale when non-obvious
+- [ ] If `ai-sdlc-artefacts/architecture-patterns-playbook.md` exists, Design decisions that contradict its default stance either update the playbook delta list or explain the epic-local exception in **why**
 - [ ] Traceability to ep-requirements is maintained: **every REQ from ep-requirements.md is referenced at least once** in the document
 - [ ] Content was written under HOTL, or any required HITL decision was recorded before writing

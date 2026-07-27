@@ -18,7 +18,7 @@ Rationale: <short>
 
 For gate overrides recorded in review artefacts, `validate pipeline` enforces a **CI-minimal** subset (`Decision needed:` and `Operator choice:` only). Use the full pattern above for process quality; see [VALIDATION.md](../../tools/validate/VALIDATION.md) (Pipeline State Validation).
 
-**Architecture patterns (stage 6/7):** Stage 6 consults the advisory catalog [reference/architecture-patterns/](../../reference/architecture-patterns/) for architecturally significant decisions and records `architecture-pattern: <pattern-id>` or `n/a — <reason>` per decision; stage 7 verifies these records (violations are Medium findings). See [06-system-design.skill.md](06-system-design.skill.md) and [07-system-design-review.skill.md](07-system-design-review.skill.md).
+**Architecture patterns (stage 6/7):** Stage 6 runs an ASD pre-pass, consults the advisory catalog [reference/architecture-patterns/](../../reference/architecture-patterns/) (1–3 cards per ASD; read `when_not` / `kiss_default` first), optionally applies consumer hints from `ai-sdlc-artefacts/architecture-patterns-playbook.md`, and records `architecture-pattern: <pattern-id>` or `n/a — <reason>` per decision with chosen / rejected / why and upstream https links; stage 7 verifies these records and playbook consistency (violations are Medium findings). See [06-system-design.skill.md](06-system-design.skill.md) and [07-system-design-review.skill.md](07-system-design-review.skill.md).
 
 **Mandatory delegation:** Stages **7** (system design review) and **10** (code review) MUST run via a **subagent** or equivalent fresh session—see [pipeline.spec.md](../pipeline.spec.md) §3. Each **§2.1** or **§2.2** iteration after material edits requires a **new** delegated review run.
 
