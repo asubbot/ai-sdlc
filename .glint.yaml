@@ -21,3 +21,20 @@ categories:
           - file: "tools/validate/VALIDATION.md"
             pattern: '"..."'
             reason: "Documents the [AC-09.001](...) line shape; the target is an ellipsis, not a path"
+  architecture:
+    rules:
+      cyclomatic-complexity:
+        exceptions:
+          - function: parseFrontMatter
+            reason: "YAML front-matter switch; split deferred"
+          - function: checkPipelineState
+            reason: "Pipeline gate orchestration; split deferred"
+      long-function:
+        exceptions:
+          - function: checkPipelineState
+            reason: "Split deferred; tracked as debt"
+      deep-nesting:
+        exceptions:
+          - file: "tools/validate/req_ac_trace.go"
+            pattern: "parseREQRefsFromACFile"
+            reason: "Nested AC/REQ match loops; extract deferred (rule has no function context)"

@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -96,7 +98,9 @@ func parseFrontMatter(content string) (*FrontMatter, error) {
 		val := strings.TrimSpace(parts[1])
 
 		if isIndented && parentKey != "" {
-			parseFrontMatterSubKey(fm, parentKey, key, val)
+			if err := parseFrontMatterSubKey(fm, parentKey, key, val); err != nil {
+				return nil, err
+			}
 			continue
 		}
 
@@ -135,10 +139,10 @@ func parseFrontMatter(content string) (*FrontMatter, error) {
 	return fm, nil
 }
 
-func parseFrontMatterSubKey(fm *FrontMatter, parent, key, val string) {
+func parseFrontMatterSubKey(fm *FrontMatter, parent, key, val string) error {
 	n, err := strconv.Atoi(val)
 	if err != nil {
-		return
+		return fmt.Errorf("%s.%s: not an integer %q: %w", parent, key, val, err)
 	}
 	var target *SeverityCounts
 	switch parent {
@@ -148,7 +152,7 @@ func parseFrontMatterSubKey(fm *FrontMatter, parent, key, val string) {
 		target = fm.NonBlockingCounts
 	}
 	if target == nil {
-		return
+		return fmt.Errorf("%s.%s: no severity counts object for parent", parent, key)
 	}
 	switch key {
 	case "blocker":
@@ -159,7 +163,10 @@ func parseFrontMatterSubKey(fm *FrontMatter, parent, key, val string) {
 		target.Medium = n
 	case "minor":
 		target.Minor = n
+	default:
+		return fmt.Errorf("%s.%s: unknown severity count key", parent, key)
 	}
+	return nil
 }
 
 func isValidDateFormat(d string) bool {
@@ -294,7 +301,15 @@ func validateArtefactStructure(epicDir, epicID string) *StructureResult {
 		filePath := filepath.Join(epicDir, filename)
 		data, err := os.ReadFile(filePath)
 		if err != nil {
-			if os.IsNotExist(err) {
+			if !errors.Is(err, fs.ErrNotExist) {
+				msg := fmt.Sprintf("cannot read artefact: %v", err)
+				errLog.Printf("%s: %s\n", filename, msg)
+				result.Findings = append(result.Findings, StructureFinding{
+					File: filename, Check: "file_readable", Severity: "error",
+					Message: msg,
+				})
+				result.Errors++
+			} else {
 				result.Findings = append(result.Findings, StructureFinding{
 					File: filename, Check: "file_exists", Severity: "warning",
 					Message: fmt.Sprintf("artefact file not found: %s", filename),

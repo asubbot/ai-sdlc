@@ -418,6 +418,53 @@ func TestValidateArtefactStructure_WithSetupHelper(t *testing.T) {
 	}
 }
 
+func TestValidateArtefactStructure_FailsOnUnreadableArtefact(t *testing.T) {
+	dir := t.TempDir()
+	epicDir := filepath.Join(dir, "EP-101")
+	if err := os.MkdirAll(epicDir, 0o755); err != nil {
+		t.Fatalf("mkdir epic: %v", err)
+	}
+	// Directory at an artefact path: Stat succeeds for some checks; ReadFile fails (EISDIR).
+	if err := os.Mkdir(filepath.Join(epicDir, "ep-scope.md"), 0o755); err != nil {
+		t.Fatalf("mkdir ep-scope.md path: %v", err)
+	}
+
+	stderr := captureErrLog(t)
+	result := validateArtefactStructure(epicDir, "EP-101")
+	if result.Errors == 0 {
+		t.Fatal("expected error for unreadable ep-scope.md")
+	}
+	if !result.HasGaps {
+		t.Fatal("expected HasGaps=true for unreadable artefact")
+	}
+	found := false
+	for _, f := range result.Findings {
+		if f.File == "ep-scope.md" && f.Check == "file_readable" && f.Severity == "error" {
+			found = true
+			if !contains(f.Message, "cannot read") {
+				t.Errorf("message = %q, want to contain %q", f.Message, "cannot read")
+			}
+		}
+	}
+	if !found {
+		t.Fatalf("expected file_readable error for ep-scope.md, got %#v", result.Findings)
+	}
+	if !contains(stderr.String(), "ep-scope.md") || !contains(stderr.String(), "cannot read") {
+		t.Fatalf("expected stderr log for unreadable artefact, got %q", stderr.String())
+	}
+}
+
+func TestParseFrontMatter_RejectsNonIntegerSeverityCounts(t *testing.T) {
+	content := "---\nartefact: ep-scope\nepic_id: EP-099\nstatus: draft\nsource_of_truth: true\nupdated_at: 2026-01-01\nopen_counts:\n  blocker: not-a-number\n  major: 1\n---\n# Body"
+	_, err := parseFrontMatter(content)
+	if err == nil {
+		t.Fatal("expected error for non-integer open_counts.blocker")
+	}
+	if !contains(err.Error(), "open_counts.blocker") {
+		t.Errorf("error = %q, want open_counts.blocker context", err)
+	}
+}
+
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && findSubstr(s, substr)
 }

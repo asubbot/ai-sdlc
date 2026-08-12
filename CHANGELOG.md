@@ -4,6 +4,16 @@ All notable changes to this repository are documented in this file.
 
 ## Unreleased
 
+### Stricter validate error surfaces (structure, front matter, epic ids)
+
+- `validate structure`: an artefact path that exists but cannot be read (not `ENOENT`) is now an error finding (`file_readable`) and is logged on stderr. Missing files remain warnings.
+- YAML front matter: non-integer `open_counts` / `non_blocking_counts` values (and unknown severity keys under those parents) fail parse instead of being silently ignored.
+- Project-wide AC scan: non-numeric epic ids fail closed via `getEpicNumber` (no `TrimPrefix` fallback).
+- `validate pipeline`: unreadable artefacts already failed via Findings; they are also logged on stderr (`errLog`).
+- `.glint.yaml`: architecture exceptions for deferred complexity / long-function / deep-nesting in validate helpers.
+- [tools/validate/VALIDATION.md](tools/validate/VALIDATION.md): structure read contract, AC epic-id rule, and enforcement table updated.
+- **Consumer upgrade note:** repositories with unreadable-but-present structure artefacts, non-integer severity counts in front matter, or non-numeric epic directory names will see validate turn red where it previously passed or soft-skipped. Available after the next tag and `ai-sdlc.version` bump.
+
 ### Fail-closed project-wide AC scan
 
 - `validate` and `validate ac` without an epic id: an epic whose `ep-acceptance-criteria.md` or `ep-requirements.md` exists but cannot be stat'ed or read is now a hard error naming the file. Previously an unreadable acceptance-criteria file removed the epic from the report, and any failure to stat or read the requirements file was reported as 0 requirements, so both malformed input and broken permissions read as healthy output. The single-epic path (`validate ac EP-009`) already failed on the same input; the two now agree.

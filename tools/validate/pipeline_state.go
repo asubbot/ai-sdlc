@@ -89,10 +89,13 @@ func parseGateSummary(content string) (*GateSummary, error) {
 		}
 
 		if m := openCountsPlainTextRe.FindStringSubmatch(trimmed); len(m) == 5 {
-			blocker, _ := strconv.Atoi(m[1])
-			major, _ := strconv.Atoi(m[2])
-			medium, _ := strconv.Atoi(m[3])
-			minor, _ := strconv.Atoi(m[4])
+			blocker, err1 := strconv.Atoi(m[1])
+			major, err2 := strconv.Atoi(m[2])
+			medium, err3 := strconv.Atoi(m[3])
+			minor, err4 := strconv.Atoi(m[4])
+			if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+				return nil, fmt.Errorf("parse open counts: %w", errors.Join(err1, err2, err3, err4))
+			}
 			return &GateSummary{Blocker: blocker, Major: major, Medium: medium, Minor: minor}, nil
 		}
 
@@ -225,24 +228,26 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 		filePath := epicDir + "/" + ps.file
 		data, err := os.ReadFile(filePath)
 		if err != nil {
-			if errors.Is(err, fs.ErrNotExist) {
-				ss.Status = "missing"
-			} else {
+			if !errors.Is(err, fs.ErrNotExist) {
 				stageReadFailed[idx] = true
 				ss.Exists = true
 				ss.Status = "error"
 				ss.HasGaps = true
 				result.Errors++
-				result.Findings = append(result.Findings, fmt.Sprintf(
+				msg := fmt.Sprintf(
 					"stage %d (%s): cannot read artefact: %v",
 					ps.stage, ps.file, err,
-				))
+				)
+				errLog.Printf("%s\n", msg)
+				result.Findings = append(result.Findings, msg)
 				if ps.stage == 8 {
 					implPlanHardFailureRecorded = true
 				}
 				if idx > highestExistingIdx {
 					highestExistingIdx = idx
 				}
+			} else {
+				ss.Status = "missing"
 			}
 			result.Stages = append(result.Stages, ss)
 			continue

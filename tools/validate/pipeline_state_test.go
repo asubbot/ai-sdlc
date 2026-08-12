@@ -434,6 +434,7 @@ func TestCheckPipelineState_ReadFileErrorMarksStageErrorAndGap(t *testing.T) {
 		t.Fatalf("mkdir plan path: %v", err)
 	}
 
+	stderr := captureErrLog(t)
 	result := checkPipelineState(epicDir, "EP-READFILE-ERROR")
 	if !result.HasGaps {
 		t.Fatal("expected gaps for unreadable implementation plan")
@@ -455,6 +456,10 @@ func TestCheckPipelineState_ReadFileErrorMarksStageErrorAndGap(t *testing.T) {
 	}
 	if !found {
 		t.Fatalf("expected contextual read error finding, got %v", result.Findings)
+	}
+	logged := stderr.String()
+	if !contains(logged, "stage 8 (ep-implementation-plan.md)") || !contains(logged, "cannot read artefact") {
+		t.Fatalf("expected stderr log for unreadable artefact, got %q", logged)
 	}
 }
 
