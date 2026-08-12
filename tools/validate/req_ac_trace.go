@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -101,7 +102,7 @@ func parseREQRefsFromACFile(path string) (map[ACCode][]REQCode, error) {
 				ac := ACCode(fmt.Sprintf("AC-%s.%s", acMatch[1], acMatch[2]))
 				for _, reqMatch := range reqMatches {
 					req := REQCode(fmt.Sprintf("REQ-%s.%s", reqMatch[1], reqMatch[2]))
-					if !containsREQ(result[ac], req) {
+					if !slices.Contains(result[ac], req) {
 						result[ac] = append(result[ac], req)
 					}
 				}
@@ -110,7 +111,7 @@ func parseREQRefsFromACFile(path string) (map[ACCode][]REQCode, error) {
 			// REQ on a line within the current AC block (e.g. Trace line)
 			for _, reqMatch := range reqMatches {
 				req := REQCode(fmt.Sprintf("REQ-%s.%s", reqMatch[1], reqMatch[2]))
-				if !containsREQ(result[currentAC], req) {
+				if !slices.Contains(result[currentAC], req) {
 					result[currentAC] = append(result[currentAC], req)
 				}
 			}
@@ -118,15 +119,6 @@ func parseREQRefsFromACFile(path string) (map[ACCode][]REQCode, error) {
 	}
 
 	return result, nil
-}
-
-func containsREQ(slice []REQCode, code REQCode) bool {
-	for _, c := range slice {
-		if c == code {
-			return true
-		}
-	}
-	return false
 }
 
 // checkREQACTraceability performs three checks:

@@ -418,6 +418,8 @@ cd tools/validate && go test ./...
 - **0** — `validate -h`, `validate --help`, or `validate help`: the usage text is written to stdout and nothing is validated ℹ️
 - **1** — Failure: missing AC traceability, a `Test*` without a bound AC trace comment, an orphan AC trace comment, malformed or unreadable scanned Go input, a gocyclo policy violation, an artefact structure issue, a pipeline ordering/gate violation, an artefact read failure beyond ENOENT, or missing operator decision evidence ❌
 
+In the project-wide AC scan (`validate` and `validate ac` without an epic id), an epic whose `ep-acceptance-criteria.md` or `ep-requirements.md` exists but cannot be stat'ed or read is a hard error, not a silently skipped epic or a zero requirement count. A **missing** `ep-requirements.md` stays a valid state and reports 0 requirements.
+
 ## Common Workflows
 
 ### 1. Project Health Check

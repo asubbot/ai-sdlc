@@ -399,7 +399,11 @@ func runStructureValidation(epic string, jsonOut bool) {
 	epicDir := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic)
 	result := validateArtefactStructure(epicDir, epic)
 	if jsonOut {
-		data, _ := json.MarshalIndent(result, "", "  ")
+		data, marshalErr := json.MarshalIndent(result, "", "  ")
+		if marshalErr != nil {
+			errLog.Printf("Error marshaling JSON: %v\n", marshalErr)
+			os.Exit(1)
+		}
 		writelnStdout(string(data))
 	} else {
 		printStructureHuman(result)

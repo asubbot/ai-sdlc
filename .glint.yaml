@@ -1,0 +1,23 @@
+# Glint configuration for the canonical ai-sdlc repository.
+#
+# No `settings` block on purpose: glint merges a project config over its
+# built-in defaults and only replaces `settings.exclude` when the config
+# declares a non-empty one. Copying the `glint init` template here would
+# replace the defaults and drop test files from analysis.
+
+version: 1
+
+categories:
+  documentation:
+    rules:
+      md-broken-link:
+        exceptions:
+          - files: "templates/consumer/**"
+            reason: "Template links resolve from the product repository root the file is copied into"
+          - files: "tools/validate/testdata/**"
+            reason: "Epic fixtures link from ai-sdlc-artefacts/epics/<id>/, where tests and CI copy them"
+          - files: "specification/skills/**"
+            reason: "Skills quote example markdown for the artefact the agent writes, not their own navigation"
+          - file: "tools/validate/VALIDATION.md"
+            pattern: '"..."'
+            reason: "Documents the [AC-09.001](...) line shape; the target is an ellipsis, not a path"

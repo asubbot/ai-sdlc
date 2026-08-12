@@ -128,7 +128,11 @@ func validateAllEpics(jsonOutput bool) bool {
 		os.Exit(1)
 	}
 
-	results, projectNotCovered, hasGaps := scanEpicsAgainstCoverage(cwd, epics, globalCoverage)
+	results, projectNotCovered, hasGaps, err := scanEpicsAgainstCoverage(cwd, epics, globalCoverage)
+	if err != nil {
+		errLog.Printf("Error scanning epic artefacts: %v\n", err)
+		os.Exit(1)
+	}
 	hasGaps = allEpicsProjectWideHasGaps(hasGaps, testsMissingACTrace, nolintViolations)
 
 	sort.Slice(projectNotCovered, func(i, j int) bool {
@@ -331,7 +335,11 @@ func runPipelineValidation(epic string, jsonOut bool) {
 	epicDir := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic)
 	result := checkPipelineState(epicDir, epic)
 	if jsonOut {
-		data, _ := json.MarshalIndent(result, "", "  ")
+		data, marshalErr := json.MarshalIndent(result, "", "  ")
+		if marshalErr != nil {
+			errLog.Printf("Error marshaling JSON: %v\n", marshalErr)
+			os.Exit(1)
+		}
 		writelnStdout(string(data))
 	} else {
 		printPipelineHuman(result)
