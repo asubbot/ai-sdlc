@@ -50,17 +50,29 @@ func TestGetEpicNumber(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
+		wantErr  bool
 	}{
-		{"EP-009", "09"},  // 3-digit → 2-digit
-		{"EP-001", "01"},  // 3-digit → 2-digit
-		{"EP-99", "99"},   // 2-digit stays 2-digit
-		{"EP-100", "100"}, // 3-digit but not leading zero
-		{"009", "09"},     // Just number, convert
+		{"EP-009", "09", false},  // 3-digit → 2-digit
+		{"EP-001", "01", false},  // 3-digit → 2-digit
+		{"EP-99", "99", false},   // 2-digit stays 2-digit
+		{"EP-100", "100", false}, // 3-digit but not leading zero
+		{"009", "09", false},     // Just number, convert
+		{"EP-foo", "", true},     // non-numeric — no TrimPrefix fallback
+		{"EP-", "", true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result := getEpicNumber(tt.input)
+			result, err := getEpicNumber(tt.input)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("getEpicNumber(%s) expected error, got %q", tt.input, result)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("getEpicNumber(%s) unexpected error: %v", tt.input, err)
+			}
 			if result != tt.expected {
 				t.Errorf("getEpicNumber(%s) = %s, want %s", tt.input, result, tt.expected)
 			}

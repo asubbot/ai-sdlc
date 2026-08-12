@@ -83,3 +83,14 @@ func TestScanEpicsAgainstCoverageAllowsMissingREQFile(t *testing.T) {
 		t.Fatalf("REQCount = %d, want 0 for a missing requirements file", results[0].REQCount)
 	}
 }
+
+func TestScanEpicsAgainstCoverageFailsOnNonNumericEpicID(t *testing.T) {
+	dir := t.TempDir()
+	_, _, _, err := scanEpicsAgainstCoverage(dir, []string{"EP-foo"}, nil)
+	if err == nil {
+		t.Fatal("scanEpicsAgainstCoverage returned no error for non-numeric epic id")
+	}
+	if !strings.Contains(err.Error(), "EP-foo") {
+		t.Fatalf("error does not name the epic id: %v", err)
+	}
+}

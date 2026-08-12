@@ -69,6 +69,8 @@ The `structure` subcommand validates YAML front matter, required sections, and r
 ./tools/validate/validate structure EP-009 --json
 ```
 
+Only **`ENOENT`** is a **missing-file warning**. Any other read failure (directory at an artefact path, permissions, I/O) is a **hard error** (`file_readable`), logged on stderr, and sets exit **1**. Non-integer values under `open_counts` / `non_blocking_counts` in YAML front matter are parse errors (not silently zeroed).
+
 For **`ep-context.md`**, required sections (heading text match, case-insensitive): **Purpose**, **Current Scope**, **Open Questions**, **Links**. Additional sections (Key Requirements, Acceptance Signals, Design Decisions, etc.) are recommended in skills but not enforced by CI.
 
 Review artefacts (`ep-system-design-review.md`, `ep-code-review.md`) require **Current Gate Summary** and at least one **Review iteration** section.
@@ -87,7 +89,7 @@ Normative **process** rules (HOTL/HITL, stages, delegation) live in [specificati
 | Artefact structure (sections, links, front matter) | Hard | `validate structure` |
 | EARS requirements format | Hard | `validate ears` / `validate ears all` |
 | REQ↔AC traceability | Hard | `validate req` / `validate req all` |
-| Artefact read failures other than ENOENT | Hard | `validate pipeline`, contextual stage read error |
+| Artefact read failures other than ENOENT | Hard | `validate pipeline` / `validate structure`, contextual read error + stderr |
 | Unchecked implementation-plan tasks before audit | Hard | `validate pipeline` (when `ep-audit-report.md` exists; raw plan body still checked when readable) |
 | Unreadable implementation plan for downstream checkbox evaluation | Hard | `validate pipeline` (when stage 10 or 11 exists) |
 | Unchecked tasks when code review exists | Warning | `validate pipeline` (when `ep-code-review.md` exists and the plan is readable) |
@@ -418,7 +420,7 @@ cd tools/validate && go test ./...
 - **0** — `validate -h`, `validate --help`, or `validate help`: the usage text is written to stdout and nothing is validated ℹ️
 - **1** — Failure: missing AC traceability, a `Test*` without a bound AC trace comment, an orphan AC trace comment, malformed or unreadable scanned Go input, a gocyclo policy violation, an artefact structure issue, a pipeline ordering/gate violation, an artefact read failure beyond ENOENT, or missing operator decision evidence ❌
 
-In the project-wide AC scan (`validate` and `validate ac` without an epic id), an epic whose `ep-acceptance-criteria.md` or `ep-requirements.md` exists but cannot be stat'ed or read is a hard error, not a silently skipped epic or a zero requirement count. A **missing** `ep-requirements.md` stays a valid state and reports 0 requirements.
+In the project-wide AC scan (`validate` and `validate ac` without an epic id), an epic whose `ep-acceptance-criteria.md` or `ep-requirements.md` exists but cannot be stat'ed or read is a hard error, not a silently skipped epic or a zero requirement count. A **missing** `ep-requirements.md` stays a valid state and reports 0 requirements. Non-numeric epic directory ids (for example `EP-foo`) are a hard error; there is no TrimPrefix fallback.
 
 ## Common Workflows
 

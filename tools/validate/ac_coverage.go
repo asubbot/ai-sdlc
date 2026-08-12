@@ -221,7 +221,10 @@ func scanEpicsAgainstCoverage(cwd string, epics []string, globalCoverage map[ACC
 	hasGaps := false
 
 	for _, epic := range epics {
-		epicNum := getEpicNumber(epic)
+		epicNum, err := getEpicNumber(epic)
+		if err != nil {
+			return nil, nil, false, fmt.Errorf("epic %q: %w", epic, err)
+		}
 		acPath := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic, "ep-acceptance-criteria.md")
 		if _, err := os.Stat(acPath); os.IsNotExist(err) {
 			continue

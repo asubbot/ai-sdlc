@@ -170,12 +170,9 @@ func validateAllEpics(jsonOutput bool) bool {
 }
 
 // getEpicNumber extracts the numeric part from "EP-009" → "09".
-func getEpicNumber(epic string) string {
-	num, err := normalizeEpicNumber(epic)
-	if err != nil {
-		return strings.TrimPrefix(epic, "EP-")
-	}
-	return num
+// Invalid epic ids return an error (no TrimPrefix fallback).
+func getEpicNumber(epic string) (string, error) {
+	return normalizeEpicNumber(epic)
 }
 
 // jsonOutputRequested returns true if JSON output is requested.
