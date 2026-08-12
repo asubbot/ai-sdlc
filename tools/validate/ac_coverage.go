@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -197,7 +198,24 @@ func hasBlockingGaps(r *Report) bool {
 	return false
 }
 
-func scanEpicsAgainstCoverage(cwd string, epics []string, globalCoverage map[ACCode][]CoverageRef) ([]EpicSummary, []ProjectNotCoveredAC, bool) {
+// epicREQCount counts REQ ids in an epic's requirements file. A missing file is a
+// valid state — not every epic has requirements yet — but any other failure to
+// stat or read it must surface instead of being reported as zero requirements.
+func epicREQCount(reqPath string) (int, error) {
+	if _, err := os.Stat(reqPath); err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("stat %s: %w", reqPath, err)
+	}
+	n, err := parseREQCountFromFile(reqPath)
+	if err != nil {
+		return 0, fmt.Errorf("parse %s: %w", reqPath, err)
+	}
+	return n, nil
+}
+
+func scanEpicsAgainstCoverage(cwd string, epics []string, globalCoverage map[ACCode][]CoverageRef) ([]EpicSummary, []ProjectNotCoveredAC, bool, error) {
 	var results []EpicSummary
 	var projectNotCovered []ProjectNotCoveredAC
 	hasGaps := false
@@ -211,13 +229,11 @@ func scanEpicsAgainstCoverage(cwd string, epics []string, globalCoverage map[ACC
 		reqPath := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic, "ep-requirements.md")
 		acs, excluded, err := parseACsFromFile(acPath)
 		if err != nil {
-			continue
+			return nil, nil, false, fmt.Errorf("parse %s: %w", acPath, err)
 		}
-		reqCount := 0
-		if _, err := os.Stat(reqPath); err == nil {
-			if n, reqErr := parseREQCountFromFile(reqPath); reqErr == nil {
-				reqCount = n
-			}
+		reqCount, err := epicREQCount(reqPath)
+		if err != nil {
+			return nil, nil, false, err
 		}
 		epicCoverage := filterCoverageForEpicNum(globalCoverage, epicNum)
 		testsCount := uniqueTestRefsCount(epicCoverage)
@@ -254,7 +270,7 @@ func scanEpicsAgainstCoverage(cwd string, epics []string, globalCoverage map[ACC
 			})
 		}
 	}
-	return results, projectNotCovered, hasGaps
+	return results, projectNotCovered, hasGaps, nil
 }
 
 // findCoverageAndTestTrace runs both codebase scans used for validation.
