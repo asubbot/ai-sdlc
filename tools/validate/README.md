@@ -51,6 +51,10 @@ Validates stage ordering and HOTL gate evidence for one epic:
 
 Operator decision evidence is the minimal decision record from the pipeline spec, including both `Decision needed:` and `Operator choice:` lines in the affected review artefact.
 
+Only **`ENOENT`** (`fs.ErrNotExist`) counts as **missing** for pipeline artefacts. Any other read failure is a **hard error** on that stage.
+
+For **`ep-implementation-plan.md`**, unchecked tasks are counted from the **raw readable file content** even if YAML front matter is malformed. If stage 10 or stage 11 exists and the plan cannot be read, downstream checkbox evaluation does **not** silently bypass: `validate pipeline` fails hard instead.
+
 ### AC (Acceptance Criteria) Validation — `ac` subcommand
 
 Validates that all Acceptance Criteria from an epic's `ep-acceptance-criteria.md` are covered by tests (with separate metrics for **automated** vs **manual-only** traceability; deferred ACs do not inflate the traceability percentage). It also checks the **reverse**: every top-level `Test*` under `tests/`, `internal/`, and `cmd/` must have at least one trace line that both matches the coverage declaration rules **and** contains a real `AC-EE.NNN` code bound to that test (see [VALIDATION.md](./VALIDATION.md#test-functions-must-declare-ac-trace-reverse-check)).
@@ -89,7 +93,9 @@ Epic       Trace%       Status
 
 The scanner looks for AC codes on lines that match project conventions — not only `// Covers AC-…` (see [VALIDATION.md](./VALIDATION.md#test-coverage-declaration)): case-insensitive `covers` / `supporting`, `// EP-NNN AC-EE.NNN`, `// AC-EE.NNN:`, lines with `REQ-` and AC codes, etc.
 
-Use the whole word **`manual`** on the line to mark **manual-only** traceability, or put **`t.Skip`** in the `Test*` function body (then all AC refs from that function are treated as manual). Epic operator scenarios may be grouped in **`tests/integration/epXXX_manual_test.go`** (see [VALIDATION.md](./VALIDATION.md#epic-prefixed-manual-test-files)).
+Binding is AST-based: a qualifying trace line counts only when it is the **doc comment of a top-level `func Test*`** or appears **inside that test body**. Inline traces bind to their **enclosing** test. Only actual parsed `//` comments count; raw-string or `/* ... */` block-comment lookalikes do not. Method `Test*` declarations (`func (suite) TestX(...)`) are excluded from valid binding, and a qualifying trace attached to one is an orphan trace that hard-fails validation; it is not silently ignored. Comments left merely between functions, after a test body, or on other declarations are likewise orphan traces and fail validation instead of producing `::unknown`.
+
+Use the whole word **`manual`** on the line to mark **manual-only** traceability, or put a **direct `t.Skip`** in the top-level `Test*` function body (then all AC refs from that function are treated as manual). `t.Skip` inside nested func literals or subtests does **not** mark the enclosing top-level test as skipped/manual, so `test_funcs_with_skip` and manual/automated traceability metrics may change in affected repositories. Epic operator scenarios may be grouped in **`tests/integration/epXXX_manual_test.go`** (see [VALIDATION.md](./VALIDATION.md#epic-prefixed-manual-test-files)).
 
 Example:
 
@@ -102,12 +108,14 @@ func TestCreateToolTool_Run(t *testing.T) {
 
 Also supported: ranges (`// Covers AC-09.008–013`), comma-separated ACs, and `Supporting AC-…`.
 
+Compatibility impact: existing valid doc-comment and inline traces continue to work, but comments that only sat **between** functions no longer count, and removing pseudo-traces from raw strings or block-comment lookalikes can expose an AC that now needs a real trace comment. The scan fails fast on the first structural/orphan error; fix that first reported issue and re-run. Malformed Go input, unreadable test files, orphan traces, and walk failures are hard `ac` / full-gate errors and return exit **1**.
+
 See [VALIDATION.md](./VALIDATION.md) for full documentation (metrics JSON schema, `t.Skip` behavior, comment-to-function resolution).
 
 ## Exit Codes
 
 - **0** — Requested validation passed (for `ac`: AC coverage, per-`Test*` AC trace, and policy scan; for `pipeline`: stage ordering and gate evidence) ✅
-- **1** — Requested validation failed (missing coverage, policy violation, artefact structure issue, pipeline ordering/gate violation, or missing operator decision evidence) ❌
+- **1** — Requested validation failed (missing coverage, orphan trace, malformed or unreadable scanned Go input, policy violation, artefact structure issue, pipeline ordering/gate violation, artefact read failure beyond ENOENT, or missing operator decision evidence) ❌
 
 JSON (`--json`): failures set `"has_gaps": true` when any in-scope AC is untraced, when `tests_missing_ac_trace` is non-empty, or when `nolint_gocyclo_violations` is non-empty. The `tests_missing_ac_trace` and `nolint_gocyclo_violations` arrays are always **project-wide**, including when you run `./tools/validate/validate EP-009 --json`.
 

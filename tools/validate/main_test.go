@@ -543,6 +543,28 @@ func TestHasSkip(t *testing.T) {
 	}
 }
 
+func TestParseTestFuncsWithTSkip_IgnoresNestedFuncLiteral(t *testing.T) {
+	src := []byte(`package p
+
+import "testing"
+
+func TestNestedFuncLiteralSkip(t *testing.T) {
+	run := func() {
+		t.Skip("nested")
+	}
+	run()
+}
+`)
+
+	m, err := parseTestFuncsWithTSkip(src, "x_test.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m["TestNestedFuncLiteralSkip"] {
+		t.Error("nested function literal t.Skip should not mark enclosing test as skipped")
+	}
+}
+
 func TestTestFuncsMissingACTraceInFile_tracedAndMissing(t *testing.T) {
 	okFile := `package p
 
@@ -551,7 +573,11 @@ import "testing"
 // Covers AC-09.001
 func TestOK(t *testing.T) {}
 `
-	if got := testFuncsMissingACTraceInFile("internal/foo/ok_test.go", okFile); len(got) != 0 {
+	got, err := testFuncsMissingACTraceInFile("internal/foo/ok_test.go", okFile)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(got) != 0 {
 		t.Fatalf("want no missing, got %v", got)
 	}
 
@@ -564,7 +590,10 @@ func TestOK(t *testing.T) {}
 
 func TestBad(t *testing.T) {}
 `
-	got := testFuncsMissingACTraceInFile("internal/foo/b_test.go", two)
+	got, err = testFuncsMissingACTraceInFile("internal/foo/b_test.go", two)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	want := []string{"internal/foo/b_test.go::TestBad"}
 	if len(got) != 1 || got[0] != want[0] {
 		t.Fatalf("got %v want %v", got, want)
@@ -579,7 +608,10 @@ import "testing"
 // Covers integration behaviour only (no AC-EE.NNN on this line)
 func TestNoAC(t *testing.T) {}
 `
-	got := testFuncsMissingACTraceInFile("c_test.go", src)
+	got, err := testFuncsMissingACTraceInFile("c_test.go", src)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if len(got) != 1 || got[0] != "c_test.go::TestNoAC" {
 		t.Fatalf("got %v", got)
 	}
@@ -594,7 +626,10 @@ func TestMain(m *testing.M) {}
 
 func TestReal(t *testing.T) {}
 `
-	got := testFuncsMissingACTraceInFile("m_test.go", src)
+	got, err := testFuncsMissingACTraceInFile("m_test.go", src)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if len(got) != 1 || got[0] != "m_test.go::TestReal" {
 		t.Fatalf("got %v", got)
 	}

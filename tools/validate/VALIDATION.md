@@ -54,6 +54,10 @@ Operator choice: <selected option>
 
 This is intentionally minimal: the validator checks that decision evidence exists, while process review checks whether the decision is appropriate.
 
+Only **`ENOENT`** (`fs.ErrNotExist`) is treated as **missing** for pipeline artefacts. Any other read failure (for example a directory at an artefact path, permissions, or I/O failure) is a **hard error** on that stage and reports the stage file plus the underlying error text.
+
+For **`ep-implementation-plan.md`**, unchecked `- [ ]` tasks are counted from the **raw readable file content** even if YAML front matter is malformed. If stage 10 or stage 11 exists and the implementation plan cannot be read, checkbox evaluation does **not** silently skip: the pipeline validator raises a hard error instead.
+
 **Exit codes:** `validate pipeline` sets exit **1** only when `Errors > 0`. **Warnings** (for example unchecked implementation-plan tasks when `ep-code-review.md` exists but `ep-audit-report.md` does not) do not change the exit code. Consumer CI that must fail on warnings needs a separate policy (for example parse JSON output); there is no `--strict` flag in v1.0.1.
 
 ## Artefact Structure Validation
@@ -78,11 +82,15 @@ Normative **process** rules (HOTL/HITL, stages, delegation) live in [specificati
 | Stage ordering and required artefacts | Hard | `validate pipeline`, file presence, front matter |
 | Review gate pass before downstream progression | Hard | Current Gate Summary, open severity counts, `validate pipeline` |
 | AC↔test coverage before epic completion | Hard | `validate` / `validate ac` |
+| Qualifying orphan AC trace comments | Hard | `validate` / `validate ac`, contextual `path:line` error (including traces attached to receiver-method `Test*` declarations) |
+| Test-source parse/read/walk failures during AC scan | Hard | `validate` / `validate ac`, parse/read/walk error from scanned `*_test.go` inputs |
 | Artefact structure (sections, links, front matter) | Hard | `validate structure` |
 | EARS requirements format | Hard | `validate ears` / `validate ears all` |
 | REQ↔AC traceability | Hard | `validate req` / `validate req all` |
-| Unchecked implementation-plan tasks before audit | Hard | `validate pipeline` (when `ep-audit-report.md` exists) |
-| Unchecked tasks when code review exists | Warning | `validate pipeline` (when `ep-code-review.md` exists) |
+| Artefact read failures other than ENOENT | Hard | `validate pipeline`, contextual stage read error |
+| Unchecked implementation-plan tasks before audit | Hard | `validate pipeline` (when `ep-audit-report.md` exists; raw plan body still checked when readable) |
+| Unreadable implementation plan for downstream checkbox evaluation | Hard | `validate pipeline` (when stage 10 or 11 exists) |
+| Unchecked tasks when code review exists | Warning | `validate pipeline` (when `ep-code-review.md` exists and the plan is readable) |
 | Mandatory delegation for stages 7 and 10 | Soft | Orchestrator run notes, subagent output signal |
 | Required HITL decision quality | Soft | Decision record in chat or artefact |
 | `ep-context.md` staleness judgment | Soft | Agent reads source artefacts when context is stale |
@@ -254,7 +262,14 @@ For each epic (and for the all-epics JSON aggregate):
 
 ## Test functions must declare AC trace (reverse check)
 
-In addition to **AC → tests**, the tool enforces **test → AC**: every top-level `func Test\w+` in scanned `*_test.go` files must have at least one qualifying trace line **bound** to that function (same attribution as coverage: `testFuncForTraceLine`). **`TestMain` is excluded.** `Benchmark*`, `Example*`, and `Fuzz*` are not checked.
+In addition to **AC → tests**, the tool enforces **test → AC**: every top-level `func Test\w+` in scanned `*_test.go` files must have at least one qualifying trace line **bound** to that function by the shared Go AST index. A qualifying trace binds only when it is either:
+
+1. part of the **doc comment** for a top-level `func Test…`; or
+2. located **inside that same top-level `Test*` body**.
+
+Only **actual parsed `//` comment lines** participate in binding. Text inside raw string literals that merely starts with `//`, or `/* ... */` block-comment lookalikes, is ignored.
+
+**`TestMain` is excluded.** Method `Test*` declarations (`func (suite) TestX(...)`) are excluded from both valid binding and reverse-check enforcement. A qualifying trace attached to such a receiver method is treated as an **orphan trace** and hard-fails validation; it is **not** silently ignored. `Benchmark*`, `Example*`, and `Fuzz*` are not checked.
 
 A line counts as an **AC trace** only if **both** hold:
 
@@ -263,6 +278,8 @@ A line counts as an **AC trace** only if **both** hold:
 
 So a comment like `// Covers integration` **without** an `AC-EE.NNN` code does **not** satisfy the reverse check, even though it contains the word “covers”.
 
+Compatibility impact: comments merely **between functions**, after a test body, or attached to a non-top-level-test declaration no longer count. These orphan traces now fail validation instead of degrading into `::unknown`. Existing valid **doc-comment** traces remain valid, and valid **inline** traces remain valid and bind to their **enclosing** top-level test. Removing pseudo-traces from raw strings or block-comment lookalikes can also expose an AC that now needs a real trace comment.
+
 ## Test Coverage Declaration
 
 ### Automatic vs manual traceability
@@ -270,11 +287,15 @@ So a comment like `// Covers integration` **without** an `AC-EE.NNN` code does *
 A test reference is **manual** if either:
 
 - The traceability line contains the whole word `manual` (case-insensitive), e.g. `// manual Covers AC-01.004`, or
-- The `Test*` function that owns the trace line contains a direct **`t.Skip(...)`** call (parsed via Go AST). If both apply, manual wins for that reference.
+- The `Test*` function that owns the trace line contains a direct **`t.Skip(...)`** call in that top-level test body (parsed via Go AST). If both apply, manual wins for that reference.
 
 If an AC has **only** manual references, it counts toward `manual_only_traced_acs` and `traceability_ratio`, but **not** toward `automated_ratio`. If an AC has **any** non-manual reference, it counts as **automated** for `automated_ratio`.
 
-Trace lines are attributed to a `Test*` function by resolving the **next** `func Test…` after the line (comment-above style), or else the **most recent** `func Test…` at or before the line (comment inside the function body).
+`t.Skip(...)` inside nested func literals or subtests does **not** mark the enclosing top-level `Test*` as skipped/manual. Repositories that previously relied on nested `t.Skip` may therefore see `test_funcs_with_skip` and manual/automated traceability metrics change.
+
+Trace lines are bound through the shared Go AST index. A qualifying line counts only when it falls within the doc-comment range of a top-level `func Test…` or within that function body. Inline traces bind to the enclosing test body. Comments stranded between functions, attached to other declarations, or attached to method `Test*` declarations are orphan traces and fail validation.
+
+Malformed Go test files, orphan traces, unreadable test files, and walk failures are hard validation errors. The scan fails fast on the first structural/orphan error, so consumers should fix that reported issue and re-run. Where the parser can identify a source location, the error includes contextual `path:line`; validation exits with status **1**.
 
 ### Format: Comment before test function
 
@@ -394,7 +415,7 @@ cd tools/validate && go test ./...
 ## Exit Codes
 
 - **0** — Requested validation passed: for `ac`, every in-scope AC is traced, every scanned `Test*` has an AC trace line, and the AGENTS.md gocyclo-suppression policy scan is clean; for `pipeline`, stage ordering and gate evidence are valid ✅
-- **1** — Failure: missing AC traceability, a `Test*` without a bound AC trace comment, a gocyclo policy violation, an artefact structure issue, a pipeline ordering/gate violation, or missing operator decision evidence ❌
+- **1** — Failure: missing AC traceability, a `Test*` without a bound AC trace comment, an orphan AC trace comment, malformed or unreadable scanned Go input, a gocyclo policy violation, an artefact structure issue, a pipeline ordering/gate violation, an artefact read failure beyond ENOENT, or missing operator decision evidence ❌
 
 ## Common Workflows
 

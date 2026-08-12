@@ -190,23 +190,6 @@ func lineDeclaresACCoverage(line string) bool {
 	return false
 }
 
-var funcTestPattern = regexp.MustCompile(`func (Test\w+)`)
-
-// testFuncForTraceLine resolves which Test* function a traceability line belongs to.
-func testFuncForTraceLine(lines []string, lineIdx int) string {
-	for j := lineIdx + 1; j < len(lines); j++ {
-		if m := funcTestPattern.FindStringSubmatch(lines[j]); len(m) > 1 {
-			return m[1]
-		}
-	}
-	for j := lineIdx; j >= 0; j-- {
-		if m := funcTestPattern.FindStringSubmatch(lines[j]); len(m) > 1 {
-			return m[1]
-		}
-	}
-	return "unknown"
-}
-
 // extractACsFromLine extracts all AC codes from a traceability line.
 func extractACsFromLine(line string) []ACCode {
 	var result []ACCode

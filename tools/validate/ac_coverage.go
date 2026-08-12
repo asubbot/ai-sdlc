@@ -45,7 +45,7 @@ func appendCoverageFromTestDir(root *os.Root, fsys fs.FS, dir string, coverage m
 	var testFuncsWithSkip int
 	err := fs.WalkDir(fsys, dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return nil //nolint:nilerr // skip path-level walk errors; continue scanning other files
+			return fmt.Errorf("walk %s: %w", path, err)
 		}
 		if d.IsDir() {
 			return nil
@@ -56,15 +56,14 @@ func appendCoverageFromTestDir(root *os.Root, fsys fs.FS, dir string, coverage m
 
 		content, err := root.ReadFile(path)
 		if err != nil {
-			return nil //nolint:nilerr // skip unreadable test file and continue walk
+			return fmt.Errorf("read test file %s: %w", path, err)
 		}
 
-		skipMap, errParse := parseTestFuncsWithTSkip(content, path)
-		if errParse != nil {
-			skipMap = map[string]bool{}
-		} else {
-			testFuncsWithSkip += countTestFuncsWithSkip(skipMap)
+		index, err := parseTestASTIndex(content, path)
+		if err != nil {
+			return fmt.Errorf("parse test file %s: %w", path, err)
 		}
+		testFuncsWithSkip += index.countTestsWithSkip()
 
 		fileContent := string(content)
 		relPath := path
@@ -72,17 +71,26 @@ func appendCoverageFromTestDir(root *os.Root, fsys fs.FS, dir string, coverage m
 		lines := strings.Split(fileContent, "\n")
 
 		for i, line := range lines {
+			if !index.isActualCommentLine(i + 1) {
+				continue
+			}
 			if !lineDeclaresACCoverage(line) {
 				continue
 			}
-			testName := testFuncForTraceLine(lines, i)
-			manual := lineDeclaresManualTrace(line) || skipMap[testName]
+			acs := extractACsFromLine(line)
+			if len(acs) == 0 {
+				continue
+			}
+			testName, err := index.bindTraceLine(i + 1)
+			if err != nil {
+				return err
+			}
+			manual := lineDeclaresManualTrace(line) || index.hasDirectTSkip(testName)
 			ref := CoverageRef{
 				Ref:    fmt.Sprintf("%s::%s", relPath, testName),
 				Manual: manual,
 			}
 
-			acs := extractACsFromLine(line)
 			for _, ac := range acs {
 				coverage[ac] = append(coverage[ac], ref)
 			}
