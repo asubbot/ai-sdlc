@@ -388,12 +388,12 @@ func printStructureHuman(result *StructureResult) {
 
 func runStructureValidation(epic string, jsonOut bool) {
 	if epic == "all" {
-		fmt.Fprintf(os.Stderr, "structure subcommand requires an epic ID\n")
+		errLog.Printf("structure subcommand requires an epic ID\n")
 		os.Exit(1)
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting current directory: %v\n", err)
+		errLog.Printf("Error getting current directory: %v\n", err)
 		os.Exit(1)
 	}
 	epicDir := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic)

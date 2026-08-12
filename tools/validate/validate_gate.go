@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -18,7 +17,7 @@ func epicSkippedForArtefactGate(epicsPath, epic string) (skipped bool, status st
 
 func runFullValidation(epic string, jsonOut bool) {
 	if jsonOut {
-		fmt.Fprintf(os.Stderr, "Error: --json with default validate gate is not supported; use validate ac|ears|req [EP-XXX] --json\n")
+		errLog.Printf("Error: --json with default validate gate is not supported; use validate ac|ears|req [EP-XXX] --json\n")
 		os.Exit(1)
 	}
 
@@ -58,12 +57,12 @@ func reqValidationPasses(epic string, jsonOut bool) bool {
 func validateSingleEpicEARS(epic string, jsonOut bool) bool {
 	epicsPath, err := epicArtefactsRoot()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		errLog.Printf("Error: %v\n", err)
 		return false
 	}
 	skipped, status, err := epicSkippedForArtefactGate(epicsPath, epic)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error validating %s: %v\n", epic, err)
+		errLog.Printf("Error validating %s: %v\n", epic, err)
 		return false
 	}
 	if skipped {
@@ -79,7 +78,7 @@ func validateSingleEpicEARS(epic string, jsonOut bool) bool {
 	if jsonOut {
 		data, marshalErr := json.MarshalIndent(result, "", "  ")
 		if marshalErr != nil {
-			fmt.Fprintf(os.Stderr, "Error marshaling JSON: %v\n", marshalErr)
+			errLog.Printf("Error marshaling JSON: %v\n", marshalErr)
 			return false
 		}
 		writelnStdout(string(data))
@@ -92,12 +91,12 @@ func validateSingleEpicEARS(epic string, jsonOut bool) bool {
 func validateSingleEpicREQ(epic string, jsonOut bool) bool {
 	epicsPath, err := epicArtefactsRoot()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		errLog.Printf("Error: %v\n", err)
 		return false
 	}
 	skipped, status, err := epicSkippedForArtefactGate(epicsPath, epic)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error validating %s: %v\n", epic, err)
+		errLog.Printf("Error validating %s: %v\n", epic, err)
 		return false
 	}
 	if skipped {
@@ -109,13 +108,13 @@ func validateSingleEpicREQ(epic string, jsonOut bool) bool {
 
 	result, err := validateREQForEpic(epicsPath, epic)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error validating %s: %v\n", epic, err)
+		errLog.Printf("Error validating %s: %v\n", epic, err)
 		return false
 	}
 	if jsonOut {
 		data, marshalErr := json.MarshalIndent(result, "", "  ")
 		if marshalErr != nil {
-			fmt.Fprintf(os.Stderr, "Error marshaling JSON: %v\n", marshalErr)
+			errLog.Printf("Error marshaling JSON: %v\n", marshalErr)
 			return false
 		}
 		writelnStdout(string(data))

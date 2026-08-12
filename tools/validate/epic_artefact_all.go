@@ -71,7 +71,7 @@ func loadInScopeEpics() (epicsPath string, inScope, skipped []string, err error)
 func validateAllEARS(jsonOut bool) bool {
 	epicsPath, inScope, skipped, err := loadInScopeEpics()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		errLog.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -116,7 +116,7 @@ func validateAllEARS(jsonOut bool) bool {
 	if jsonOut {
 		data, marshalErr := json.MarshalIndent(report, "", "  ")
 		if marshalErr != nil {
-			fmt.Fprintf(os.Stderr, "Error marshaling JSON: %v\n", marshalErr)
+			errLog.Printf("Error marshaling JSON: %v\n", marshalErr)
 			os.Exit(1)
 		}
 		writelnStdout(string(data))
@@ -129,7 +129,7 @@ func validateAllEARS(jsonOut bool) bool {
 func validateAllREQ(jsonOut bool) bool {
 	epicsPath, inScope, skipped, err := loadInScopeEpics()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		errLog.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -141,7 +141,7 @@ func validateAllREQ(jsonOut bool) bool {
 	for _, epic := range inScope {
 		result, validateErr := validateREQForEpic(epicsPath, epic)
 		if validateErr != nil {
-			fmt.Fprintf(os.Stderr, "Error validating %s: %v\n", epic, validateErr)
+			errLog.Printf("Error validating %s: %v\n", epic, validateErr)
 			os.Exit(1)
 		}
 		report.Epics = append(report.Epics, AllREQEpicSummary{
@@ -163,7 +163,7 @@ func validateAllREQ(jsonOut bool) bool {
 	if jsonOut {
 		data, marshalErr := json.MarshalIndent(report, "", "  ")
 		if marshalErr != nil {
-			fmt.Fprintf(os.Stderr, "Error marshaling JSON: %v\n", marshalErr)
+			errLog.Printf("Error marshaling JSON: %v\n", marshalErr)
 			os.Exit(1)
 		}
 		writelnStdout(string(data))
