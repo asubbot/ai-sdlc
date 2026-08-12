@@ -4,6 +4,15 @@ All notable changes to this repository are documented in this file.
 
 ## Unreleased
 
+### Validator trace binding and fail-closed reads
+
+- [tools/validate/VALIDATION.md](tools/validate/VALIDATION.md) and [tools/validate/README.md](tools/validate/README.md): document the shared-AST AC trace binding contract. A qualifying `// ... AC-EE.NNN` trace binds only as an actual parsed `//` comment line on the doc comment of a top-level `Test*` or from inside that test body; raw-string and `/* ... */` block-comment lookalikes do not count. A qualifying trace attached to a receiver method named `Test*` is an orphan and hard-fails; it is not silently ignored.
+- `validate ac` / full gate: orphan traces, malformed Go input, unreadable test files, and walk failures are hard errors; contextual `path:line` is reported where available.
+- `validate ac` / full gate fails fast on the first structural/orphan scan error; consumers fix that reported issue and re-run. Removing pseudo-traces can also expose an AC that now needs a real trace comment.
+- `validate pipeline`: only `ENOENT` counts as a missing artefact. Other artefact read failures are hard errors. `ep-implementation-plan.md` unchecked tasks are still evaluated from raw readable content even if front matter is malformed, and stage 10/11 can no longer silently bypass checkbox evaluation when the plan is unavailable.
+- `validate ac` metrics: only direct top-level-body `t.Skip(...)` marks a test/manual trace as skipped. Nested func-literal or subtest `t.Skip(...)` no longer upgrades the enclosing top-level test, so `test_funcs_with_skip` and manual/automated traceability metrics may change.
+- **Consumer upgrade note:** comments placed only between test functions, or any consumer workflow that relied on prior `::unknown` attribution, must move those traces into a top-level test doc comment or that test body. Existing valid doc-comment and inline traces remain valid; inline traces bind to the enclosing test.
+
 ### Architecture patterns decision recipes
 
 - [reference/architecture-patterns/README.md](reference/architecture-patterns/README.md) — **Decision recipes** table (situation → ≤3 pattern ids).

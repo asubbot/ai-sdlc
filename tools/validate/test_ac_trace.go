@@ -12,8 +12,9 @@ const testMainName = "TestMain"
 
 // findTestsMissingACTrace walks tests/, internal/, and cmd/ like findCoverageInCodebase and
 // returns sorted "rel/path/to/file_test.go::TestName" entries for top-level Test functions that
-// have no AC trace comment bound to them (same rules as coverage: lineDeclaresACCoverage,
-// extractACsFromLine non-empty, testFuncForTraceLine). TestMain is excluded.
+// have no AC trace comment bound to them, using the same shared AST index/binding rules as
+// coverage (lineDeclaresACCoverage, extractACsFromLine non-empty, parseTestASTIndex/bindTraceLine).
+// TestMain is excluded.
 func findTestsMissingACTrace(codebasePath string) ([]string, error) {
 	root, err := os.OpenRoot(codebasePath)
 	if err != nil {
@@ -31,8 +32,7 @@ func findTestsMissingACTrace(codebasePath string) ([]string, error) {
 		}
 		err = fs.WalkDir(fsys, dir, func(path string, d fs.DirEntry, errWalk error) error {
 			if errWalk != nil {
-				// Skip entries we cannot stat; continue the walk.
-				return nil //nolint:nilerr // skip path-level walk errors; continue scanning other files
+				return fmt.Errorf("walk %s: %w", path, errWalk)
 			}
 			if d.IsDir() {
 				return nil
@@ -42,9 +42,13 @@ func findTestsMissingACTrace(codebasePath string) ([]string, error) {
 			}
 			content, errRead := root.ReadFile(path)
 			if errRead != nil {
-				return nil //nolint:nilerr // skip unreadable test file and continue walk
+				return fmt.Errorf("read test file %s: %w", path, errRead)
 			}
-			out = append(out, testFuncsMissingACTraceInFile(path, string(content))...)
+			missing, err := testFuncsMissingACTraceInFile(path, string(content))
+			if err != nil {
+				return err
+			}
+			out = append(out, missing...)
 			return nil
 		})
 		if err != nil {
@@ -56,21 +60,30 @@ func findTestsMissingACTrace(codebasePath string) ([]string, error) {
 }
 
 // testFuncsMissingACTraceInFile returns refs relPath::TestName for Test* functions without an AC trace.
-func testFuncsMissingACTraceInFile(relPath, fileContent string) []string {
+func testFuncsMissingACTraceInFile(relPath, fileContent string) ([]string, error) {
+	index, err := parseTestASTIndex([]byte(fileContent), relPath)
+	if err != nil {
+		return nil, fmt.Errorf("parse test file %s: %w", relPath, err)
+	}
+
 	lines := strings.Split(fileContent, "\n")
-	testNames := topLevelTestFuncNames(lines)
+	testNames := index.topLevelTestNames()
 	if len(testNames) == 0 {
-		return nil
+		return nil, nil
 	}
 	traced := make(map[string]struct{})
 	for i, line := range lines {
+		if !index.isActualCommentLine(i + 1) {
+			continue
+		}
 		if !lineDeclaresACCoverage(line) || len(extractACsFromLine(line)) == 0 {
 			continue
 		}
-		name := testFuncForTraceLine(lines, i)
-		if name != "" && name != "unknown" {
-			traced[name] = struct{}{}
+		name, err := index.bindTraceLine(i + 1)
+		if err != nil {
+			return nil, err
 		}
+		traced[name] = struct{}{}
 	}
 	var out []string
 	for _, name := range testNames {
@@ -82,16 +95,5 @@ func testFuncsMissingACTraceInFile(relPath, fileContent string) []string {
 		}
 		out = append(out, fmt.Sprintf("%s::%s", relPath, name))
 	}
-	return out
-}
-
-func topLevelTestFuncNames(lines []string) []string {
-	var names []string
-	for _, line := range lines {
-		s := strings.TrimSpace(line)
-		if m := funcTestPattern.FindStringSubmatch(s); len(m) > 1 {
-			names = append(names, m[1])
-		}
-	}
-	return names
+	return out, nil
 }

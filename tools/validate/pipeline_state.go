@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"regexp"
 	"strconv"
@@ -208,6 +210,10 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 	}
 
 	highestExistingIdx := -1
+	stageReadFailed := make([]bool, len(pipelineStages))
+	var implPlanRaw []byte
+	implPlanReadOK := false
+	implPlanHardFailureRecorded := false
 
 	for idx, ps := range pipelineStages {
 		ss := StageStatus{
@@ -219,7 +225,25 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 		filePath := epicDir + "/" + ps.file
 		data, err := os.ReadFile(filePath)
 		if err != nil {
-			ss.Status = "missing"
+			if errors.Is(err, fs.ErrNotExist) {
+				ss.Status = "missing"
+			} else {
+				stageReadFailed[idx] = true
+				ss.Exists = true
+				ss.Status = "error"
+				ss.HasGaps = true
+				result.Errors++
+				result.Findings = append(result.Findings, fmt.Sprintf(
+					"stage %d (%s): cannot read artefact: %v",
+					ps.stage, ps.file, err,
+				))
+				if ps.stage == 8 {
+					implPlanHardFailureRecorded = true
+				}
+				if idx > highestExistingIdx {
+					highestExistingIdx = idx
+				}
+			}
 			result.Stages = append(result.Stages, ss)
 			continue
 		}
@@ -227,6 +251,10 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 		ss.Exists = true
 		if idx > highestExistingIdx {
 			highestExistingIdx = idx
+		}
+		if ps.stage == 8 {
+			implPlanReadOK = true
+			implPlanRaw = append([]byte(nil), data...)
 		}
 
 		content := string(data)
@@ -263,6 +291,9 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 					ps.stage, ps.file,
 					pipelineStages[highestExistingIdx].stage, pipelineStages[highestExistingIdx].file,
 				))
+				if ps.stage == 8 {
+					implPlanHardFailureRecorded = true
+				}
 			}
 		}
 	}
@@ -281,6 +312,7 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 	}
 	if reviewIdx >= 0 && implIdx >= 0 &&
 		result.Stages[implIdx].Exists && result.Stages[reviewIdx].Exists &&
+		!stageReadFailed[reviewIdx] &&
 		result.Stages[reviewIdx].Gate != "pass" && !result.Stages[reviewIdx].DecisionEvidence {
 		result.Stages[reviewIdx].HasGaps = true
 		result.Errors++
@@ -310,7 +342,8 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 				"stage 11 (%s) exists but stage 10 (%s) gate evidence is missing",
 				pipelineStages[auditIdx].file, pipelineStages[codeReviewIdx].file,
 			))
-		} else if result.Stages[codeReviewIdx].Gate != "pass" && !result.Stages[codeReviewIdx].DecisionEvidence {
+		} else if !stageReadFailed[codeReviewIdx] &&
+			result.Stages[codeReviewIdx].Gate != "pass" && !result.Stages[codeReviewIdx].DecisionEvidence {
 			result.Stages[codeReviewIdx].HasGaps = true
 			result.Errors++
 			result.Findings = append(result.Findings, fmt.Sprintf(
@@ -321,12 +354,11 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 	}
 
 	// Stage 9 is the codebase (no artefact). When a later stage exists, flag unchecked plan tasks.
-	implPlanPath := epicDir + "/ep-implementation-plan.md"
-	if implPlanData, err := os.ReadFile(implPlanPath); err == nil {
-		unchecked := countUncheckedPlanTasks(string(implPlanData))
+	auditExists := auditIdx >= 0 && result.Stages[auditIdx].Exists
+	codeReviewExists := codeReviewIdx >= 0 && result.Stages[codeReviewIdx].Exists
+	if implPlanReadOK {
+		unchecked := countUncheckedPlanTasks(string(implPlanRaw))
 		if unchecked > 0 {
-			auditExists := auditIdx >= 0 && result.Stages[auditIdx].Exists
-			codeReviewExists := codeReviewIdx >= 0 && result.Stages[codeReviewIdx].Exists
 			if auditExists {
 				result.Errors++
 				result.HasGaps = true
@@ -342,6 +374,15 @@ func checkPipelineState(epicDir, epicID string) *PipelineResult {
 				))
 			}
 		}
+	} else if (auditExists || codeReviewExists) && !implPlanHardFailureRecorded && implIdx >= 0 {
+		// Belt-and-braces: ordering and direct read-error paths should already have
+		// recorded the actionable failure before we reach checkbox evaluation.
+		result.Stages[implIdx].HasGaps = true
+		result.Errors++
+		result.Findings = append(result.Findings, fmt.Sprintf(
+			"stage 8 (%s) must be readable before checkbox evaluation for later stages",
+			pipelineStages[implIdx].file,
+		))
 	}
 
 	result.HasGaps = result.Errors > 0
