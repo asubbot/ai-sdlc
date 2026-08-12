@@ -43,7 +43,7 @@ func readFixture(t *testing.T, path string) string {
 func assertJSONEqual(t *testing.T, got, goldenPath string) {
 	t.Helper()
 
-	var gotObj interface{}
+	var gotObj any
 	if err := json.Unmarshal([]byte(got), &gotObj); err != nil {
 		t.Fatalf("assertJSONEqual: unmarshal got: %v", err)
 	}
@@ -67,7 +67,7 @@ func assertJSONEqual(t *testing.T, got, goldenPath string) {
 	if err != nil {
 		t.Fatalf("assertJSONEqual: read golden %s: %v (run with UPDATE_GOLDEN=1 to create)", goldenPath, err)
 	}
-	var wantObj interface{}
+	var wantObj any
 	if err := json.Unmarshal(wantData, &wantObj); err != nil {
 		t.Fatalf("assertJSONEqual: unmarshal golden: %v", err)
 	}
