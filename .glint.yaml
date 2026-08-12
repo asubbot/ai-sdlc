@@ -21,6 +21,11 @@ categories:
           - file: "tools/validate/VALIDATION.md"
             pattern: '"..."'
             reason: "Documents the [AC-09.001](...) line shape; the target is an ellipsis, not a path"
+      doc-links:
+        exceptions:
+          - files: "tools/validate/**"
+            pattern: "ep-"
+            reason: "Comments name consumer artefact basenames (ep-*.md), not paths that exist in this repository"
   architecture:
     rules:
       cyclomatic-complexity:

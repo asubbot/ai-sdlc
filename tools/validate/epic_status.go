@@ -37,7 +37,7 @@ func readEpicScopeStatus(epicDir string) (string, error) {
 	}
 	status, ok := parseEpicStatusFromScope(string(content))
 	if !ok {
-		// Fixtures and legacy scopes without a Status row are treated as in-scope.
+		// Scopes without a Status row are treated as in-scope (fixtures and older drafts).
 		return "DONE", nil
 	}
 	return status, nil

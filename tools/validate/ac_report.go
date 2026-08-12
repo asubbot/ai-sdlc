@@ -204,7 +204,7 @@ func printAllEpicsHuman(
 	return false
 }
 
-func writeAllEpicsJSON(allReport AllEpicsReport, hasGaps bool) bool {
+func writeAllEpicsJSON(allReport AllEpicsReport) bool {
 	data, err := json.MarshalIndent(allReport, "", "  ")
 	if err != nil {
 		errLog.Printf("Error marshaling JSON: %v\n", err)

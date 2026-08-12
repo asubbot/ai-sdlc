@@ -122,7 +122,7 @@ func splitTableRow(row string) []string {
 
 func parseCountCells(cells []string) (*GateSummary, error) {
 	if len(cells) < 6 {
-		return nil, fmt.Errorf("Count row has %d cells, need 6", len(cells))
+		return nil, fmt.Errorf("count row has %d cells, need 6", len(cells))
 	}
 	nums := make([]int, 5)
 	for i := 0; i < 5; i++ {

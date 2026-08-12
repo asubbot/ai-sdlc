@@ -163,7 +163,7 @@ func validateAllEpics(jsonOutput bool) bool {
 	}
 
 	if jsonOutput {
-		return writeAllEpicsJSON(allReport, hasGaps)
+		return writeAllEpicsJSON(allReport)
 	}
 
 	return printAllEpicsHuman(results, projectNotCovered, totalACs, totalDeferred, totalObsolete, totalInScope, totalAuto, totalManual, traceRatio, autoRatio, testFuncsWithSkip, hasGaps, testsMissingACTrace, nolintViolations)
