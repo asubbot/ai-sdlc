@@ -65,3 +65,10 @@ jobs:
           ./tools/validate/validate structure EP-000
           ./tools/validate/validate pipeline EP-099
           ./tools/validate/validate structure EP-099
+
+      - name: Smoke help streams
+        working-directory: ${{ github.workspace }}
+        run: |
+          ./tools/validate/validate -h > help.out 2> help.err
+          grep -q 'Usage: validate \[subcommand\]' help.out
+          test ! -s help.err

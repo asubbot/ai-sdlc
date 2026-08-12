@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -96,24 +97,24 @@ type AllEpicsReport struct {
 func validateAllEpics(jsonOutput bool) bool {
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting current directory: %v\n", err)
+		errLog.Printf("Error getting current directory: %v\n", err)
 		os.Exit(1)
 	}
 
 	nolintViolations, err := findNolintGocycloViolations(cwd)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error scanning for nolint:gocyclo: %v\n", err)
+		errLog.Printf("Error scanning for nolint:gocyclo: %v\n", err)
 		os.Exit(1)
 	}
 
 	epicsPath := filepath.Join(cwd, "ai-sdlc-artefacts", "epics")
 	epics, err := readSortedEpicNames(epicsPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading epics directory: %v\n", err)
+		errLog.Printf("Error reading epics directory: %v\n", err)
 		os.Exit(1)
 	}
 	if len(epics) == 0 {
-		fmt.Fprintf(os.Stderr, "No epics found in %s\n", epicsPath)
+		errLog.Printf("No epics found in %s\n", epicsPath)
 		os.Exit(1)
 	}
 
@@ -123,7 +124,7 @@ func validateAllEpics(jsonOutput bool) bool {
 
 	globalCoverage, testFuncsWithSkip, testsMissingACTrace, err := findCoverageAndTestTrace(cwd)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error scanning codebase: %v\n", err)
+		errLog.Printf("Error scanning codebase: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -189,7 +190,7 @@ func jsonOutputRequested(flagVal bool, argvTail []string) bool {
 func runSingleEpicValidation(epic, epicNum, cwd string, acs map[ACCode]string, excluded map[ACCode]acExclusionKind, nolintViolations []string, jsonOut bool) bool {
 	coverage, testFuncsWithSkip, testsMissingACTrace, err := findCoverageAndTestTrace(cwd)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error scanning codebase: %v\n", err)
+		errLog.Printf("Error scanning codebase: %v\n", err)
 		os.Exit(1)
 	}
 	epicCoverage := filterCoverageForEpicNum(coverage, epicNum)
@@ -200,7 +201,7 @@ func runSingleEpicValidation(epic, epicNum, cwd string, acs map[ACCode]string, e
 	if jsonOut {
 		data, err := json.MarshalIndent(r, "", "  ")
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error marshaling JSON: %v\n", err)
+			errLog.Printf("Error marshaling JSON: %v\n", err)
 			os.Exit(1)
 		}
 		writelnStdout(string(data))
@@ -213,19 +214,19 @@ func runSingleEpicValidation(epic, epicNum, cwd string, acs map[ACCode]string, e
 func validateSingleEpic(epic string, jsonOut bool) bool {
 	epicNum, err := normalizeEpicNumber(epic)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		errLog.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting current directory: %v\n", err)
+		errLog.Printf("Error getting current directory: %v\n", err)
 		os.Exit(1)
 	}
 
 	nolintViolations, err := findNolintGocycloViolations(cwd)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error scanning for nolint:gocyclo: %v\n", err)
+		errLog.Printf("Error scanning for nolint:gocyclo: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -235,17 +236,17 @@ func validateSingleEpic(epic string, jsonOut bool) bool {
 
 	acPath := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic, "ep-acceptance-criteria.md")
 	if _, err := os.Stat(acPath); os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Error: %s not found\n", acPath)
-		fmt.Fprintf(os.Stderr, "\nUsage:\n")
-		fmt.Fprintf(os.Stderr, "  validate          - Validate all epics (default)\n")
-		fmt.Fprintf(os.Stderr, "  validate EP-009   - Validate single epic\n")
-		fmt.Fprintf(os.Stderr, "  validate --json   - JSON output\n")
+		errLog.Printf("Error: %s not found\n", acPath)
+		writeStderr("\nUsage:\n")
+		writeStderr("  validate          - Validate all epics (default)\n")
+		writeStderr("  validate EP-009   - Validate single epic\n")
+		writeStderr("  validate --json   - JSON output\n")
 		os.Exit(1)
 	}
 
 	acs, excluded, err := parseACsFromFile(acPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing AC file: %v\n", err)
+		errLog.Printf("Error parsing AC file: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -277,6 +278,11 @@ func resolveSubcommand(args []string) (subcmd, epic string, explicit bool) {
 }
 
 func main() {
+	if helpRequested(os.Args[1:]) {
+		printUsageTo(stdout)
+		return
+	}
+
 	jsonFlag := flag.Bool("json", false, "Output report as JSON instead of table")
 	flag.Parse()
 	jsonOut := jsonOutputRequested(*jsonFlag, os.Args[1:])
@@ -300,8 +306,8 @@ func main() {
 	case "ears":
 		runEARSValidation(epic, jsonOut)
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcmd)
-		printUsage()
+		errLog.Printf("Unknown subcommand: %s\n", subcmd)
+		printUsageTo(os.Stderr)
 		os.Exit(1)
 	}
 }
@@ -314,12 +320,12 @@ func runACValidation(epic string, jsonOut bool) {
 
 func runPipelineValidation(epic string, jsonOut bool) {
 	if epic == "all" {
-		fmt.Fprintf(os.Stderr, "pipeline subcommand requires an epic ID (e.g., validate pipeline EP-009)\n")
+		errLog.Printf("pipeline subcommand requires an epic ID (e.g., validate pipeline EP-009)\n")
 		os.Exit(1)
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting current directory: %v\n", err)
+		errLog.Printf("Error getting current directory: %v\n", err)
 		os.Exit(1)
 	}
 	epicDir := filepath.Join(cwd, "ai-sdlc-artefacts", "epics", epic)
@@ -341,8 +347,21 @@ func runEARSValidation(epic string, jsonOut bool) {
 	}
 }
 
-func printUsage() {
-	fmt.Fprintf(os.Stderr, `Usage: validate [subcommand] [EP-XXX] [--json]
+// helpRequested reports whether argv asks for the usage text explicitly. An
+// explicit request is the output the user asked for, so it belongs on stdout
+// with exit code 0; usage printed because of a bad invocation stays on stderr.
+func helpRequested(argv []string) bool {
+	for _, arg := range argv {
+		switch arg {
+		case "-h", "-help", "--help", "help":
+			return true
+		}
+	}
+	return false
+}
+
+func printUsageTo(w io.Writer) {
+	_, _ = fmt.Fprintf(w, `Usage: validate [subcommand] [EP-XXX] [--json]
 
 Default (no subcommand):
   validate              AC + ears + req for all epics (ears/req skip NEW/CANCEL)
