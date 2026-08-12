@@ -398,7 +398,7 @@ See [Stage 9 (Task Execution)](../../specification/skills/09-task-execution.skil
 | `pipeline_state.go` | `validate pipeline` |
 | `artefact_structure.go` | `validate structure` |
 | `req_ac_trace.go`, `ears_lint.go` | `validate req`, `validate ears` |
-| `ast_skip.go`, `test_ac_trace.go`, `policy_nolint_gocyclo.go`, `output.go` | test parsing, reverse AC trace, gocyclo policy, stdout helpers |
+| `ast_skip.go`, `test_ac_trace.go`, `policy_nolint_gocyclo.go`, `output.go` | test parsing, reverse AC trace, gocyclo policy, stdout helpers and the stderr diagnostic log |
 
 **Tests:** `*_test.go` across the package; epic fixtures under `testdata/EP-099` (healthy) and `testdata/EP-098` (broken). Run `go test ./...` from `tools/validate/`.
 
@@ -415,6 +415,7 @@ cd tools/validate && go test ./...
 ## Exit Codes
 
 - **0** — Requested validation passed: for `ac`, every in-scope AC is traced, every scanned `Test*` has an AC trace line, and the AGENTS.md gocyclo-suppression policy scan is clean; for `pipeline`, stage ordering and gate evidence are valid ✅
+- **0** — `validate -h`, `validate --help`, or `validate help`: the usage text is written to stdout and nothing is validated ℹ️
 - **1** — Failure: missing AC traceability, a `Test*` without a bound AC trace comment, an orphan AC trace comment, malformed or unreadable scanned Go input, a gocyclo policy violation, an artefact structure issue, a pipeline ordering/gate violation, an artefact read failure beyond ENOENT, or missing operator decision evidence ❌
 
 ## Common Workflows
@@ -487,5 +488,5 @@ In JSON mode, **stdout** is only the JSON document (no banner lines). Use `--jso
 ./tools/validate/validate --json EP-009
 ./tools/validate/validate EP-009 --json
 ```
-Diagnostics and usage errors go to **stderr**.
+Diagnostics and usage errors go to **stderr**. Explicitly requested help (`validate -h`, `--help`, or `help`) is the requested output and goes to **stdout** with exit code **0**.
 

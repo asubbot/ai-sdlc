@@ -4,6 +4,14 @@ All notable changes to this repository are documented in this file.
 
 ## Unreleased
 
+### Validator diagnostics and help streams
+
+- `tools/validate`: error diagnostics now go through a package-level zero-flag `log.Logger` (`errLog` in `output.go`) instead of direct `fmt.Fprintf(os.Stderr, ...)` calls, and the usage hint that accompanies a missing AC file goes through `writeStderr`. Messages on stderr are byte-identical; the change makes "the error is reported, not swallowed" explicit at every `return false` in the artefact gate and leaves one convention per stream.
+- `validate -h`, `validate --help`, and `validate help` now print the full usage text to **stdout** and exit **0**. Previously `-h` printed only the `flag` package's minimal `-json` summary to stderr, `help` was parsed as an epic id and failed, and the full usage text was unreachable from the CLI: its only call site is a `switch` default that `resolveSubcommand` can never select. Usage printed in reaction to a bad invocation still goes to stderr with a non-zero exit.
+- [tools/validate/VALIDATION.md](tools/validate/VALIDATION.md): documented the stream split and the help exit code.
+- CI: `validate.yml` gains a smoke step asserting that `validate -h` writes usage to stdout and nothing to stderr.
+- **Consumer upgrade note:** no artefact, gate, or workflow changes; available after the next tag and `ai-sdlc.version` bump. Consumer scripts or docs that captured `validate -h` from stderr must read stdout instead.
+
 ### Validator trace binding and fail-closed reads
 
 - [tools/validate/VALIDATION.md](tools/validate/VALIDATION.md) and [tools/validate/README.md](tools/validate/README.md): document the shared-AST AC trace binding contract. A qualifying `// ... AC-EE.NNN` trace binds only as an actual parsed `//` comment line on the doc comment of a top-level `Test*` or from inside that test body; raw-string and `/* ... */` block-comment lookalikes do not count. A qualifying trace attached to a receiver method named `Test*` is an orphan and hard-fails; it is not silently ignored.
