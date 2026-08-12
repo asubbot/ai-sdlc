@@ -4,6 +4,15 @@ All notable changes to this repository are documented in this file.
 
 ## Unreleased
 
+### Fail-closed project-wide AC scan
+
+- `validate` and `validate ac` without an epic id: an epic whose `ep-acceptance-criteria.md` or `ep-requirements.md` exists but cannot be stat'ed or read is now a hard error naming the file. Previously an unreadable acceptance-criteria file removed the epic from the report, and any failure to stat or read the requirements file was reported as 0 requirements, so both malformed input and broken permissions read as healthy output. The single-epic path (`validate ac EP-009`) already failed on the same input; the two now agree.
+- A **missing** `ep-requirements.md` remains a valid state and reports 0 requirements — only existing-but-unreadable files fail.
+- `validate pipeline --json` and `validate structure --json`: a JSON marshaling failure is reported and exits 1 instead of printing an empty document, matching every other marshaling site in the tool.
+- [tools/validate/VALIDATION.md](tools/validate/VALIDATION.md): documented the new exit-1 condition in **Exit Codes**.
+- `.glint.yaml`: added with `md-broken-link` exceptions for consumer templates, validator fixtures, skill examples, and the AC line-shape illustration in `VALIDATION.md`. Those links resolve from where the file is deployed, not from its place in this repository, so the rule reported 24 findings that were all false. Internal cleanups in the same pass: `slices.Contains` replaces a hand-written `containsREQ`, and `interface{}` becomes `any` in test helpers.
+- **Consumer upgrade note:** this is a behaviour change. A repository with an unreadable epic artefact will see `make validate` turn red where it previously passed; that is the point of the change, and the error message names the file. No artefact, gate, or workflow changes otherwise; available after the next tag and `ai-sdlc.version` bump.
+
 ### Validator diagnostics and help streams
 
 - `tools/validate`: error diagnostics now go through a package-level zero-flag `log.Logger` (`errLog` in `output.go`) instead of direct `fmt.Fprintf(os.Stderr, ...)` calls, and the usage hint that accompanies a missing AC file goes through `writeStderr`. Messages on stderr are byte-identical; the change makes "the error is reported, not swallowed" explicit at every `return false` in the artefact gate and leaves one convention per stream.
